@@ -17,9 +17,9 @@ return new class extends Migration
             $table->unsignedBigInteger('package_id');
             $table->enum('status', ['active', 'expired', 'cancelled'])->default('active');
             $table->timestamp('starts_at');
-            $table->timestamp('expires_at');
+            $table->timestamp('expires_at')->nullable();
             $table->timestamps();
-            
+
             $table->index(['company_id', 'status']);
             $table->index(['expires_at', 'status']);
             $table->index('company_id');
