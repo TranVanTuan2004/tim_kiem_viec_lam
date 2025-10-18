@@ -123,11 +123,11 @@ class JobPosting extends Model
     {
         return $query->where(function ($q) use ($minSalary, $maxSalary) {
             $q->whereBetween('min_salary', [$minSalary, $maxSalary])
-              ->orWhereBetween('max_salary', [$minSalary, $maxSalary])
-              ->orWhere(function ($subQ) use ($minSalary, $maxSalary) {
-                  $subQ->where('min_salary', '<=', $minSalary)
-                       ->where('max_salary', '>=', $maxSalary);
-              });
+                ->orWhereBetween('max_salary', [$minSalary, $maxSalary])
+                ->orWhere(function ($subQ) use ($minSalary, $maxSalary) {
+                    $subQ->where('min_salary', '<=', $minSalary)
+                        ->where('max_salary', '>=', $maxSalary);
+                });
         });
     }
 
@@ -139,7 +139,7 @@ class JobPosting extends Model
     }
 
     // Helper methods
-    public function getRouteKeyName(): string
+    public function getRouteKeyName()
     {
         return 'slug';
     }
