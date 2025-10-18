@@ -13,10 +13,10 @@ import { LoaderCircle } from 'lucide-vue-next';
 
 <template>
     <AuthBase
-        title="Create an account"
-        description="Enter your details below to create your account"
+        title="Đăng ký tài khoản"
+        description="Nhập thông tin của bạn bên dưới để tạo tài khoản"
     >
-        <Head title="Register" />
+        <Head title="Đăng ký" />
 
         <Form
             v-bind="RegisteredUserController.store.form()"
@@ -24,60 +24,74 @@ import { LoaderCircle } from 'lucide-vue-next';
             v-slot="{ errors, processing }"
             class="flex flex-col gap-6"
         >
+            <!-- Hiển thị lỗi tổng quát 'general' -->
+            <div v-if="errors.general" class="mb-4 text-red-500 text-center text-sm">
+                {{ errors.general }}
+            </div>
+            
             <div class="grid gap-6">
                 <div class="grid gap-2">
-                    <Label for="name">Name</Label>
+                    <Label for="name">Họ và tên</Label>
                     <Input
                         id="name"
                         type="text"
-                        required
                         autofocus
                         :tabindex="1"
                         autocomplete="name"
                         name="name"
-                        placeholder="Full name"
+                        placeholder="Họ và tên"
                     />
                     <InputError :message="errors.name" />
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
+                    <Label for="email">Email</Label>
                     <Input
                         id="email"
                         type="email"
-                        required
                         :tabindex="2"
                         autocomplete="email"
                         name="email"
-                        placeholder="email@example.com"
+                        placeholder="Email"
                     />
                     <InputError :message="errors.email" />
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="password">Password</Label>
+                    <Label for="phone">Số điện thoại</Label>
+                    <Input
+                        id="phone"
+                        type="tel"
+                        :tabindex="3"
+                        autocomplete="tel"
+                        name="phone"
+                        placeholder="Số điện thoại"
+                    />
+                    <InputError :message="errors.phone" />
+                </div>
+
+                <div class="grid gap-2">
+                    <Label for="password">Mật khẩu</Label>
                     <Input
                         id="password"
                         type="password"
-                        required
-                        :tabindex="3"
+                        :tabindex="4"
                         autocomplete="new-password"
                         name="password"
-                        placeholder="Password"
+                        placeholder="Mật khẩu"
                     />
                     <InputError :message="errors.password" />
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="password_confirmation">Confirm password</Label>
+                    <Label for="password_confirmation">Nhập lại mật khẩu</Label>
                     <Input
                         id="password_confirmation"
                         type="password"
-                        required
-                        :tabindex="4"
+                        :tabindex="5"
                         autocomplete="new-password"
                         name="password_confirmation"
-                        placeholder="Confirm password"
+                        placeholder="Nhập lại mật khẩu"
                     />
                     <InputError :message="errors.password_confirmation" />
                 </div>
@@ -85,7 +99,7 @@ import { LoaderCircle } from 'lucide-vue-next';
                 <Button
                     type="submit"
                     class="mt-2 w-full"
-                    tabindex="5"
+                    tabindex="6"
                     :disabled="processing"
                     data-test="register-user-button"
                 >
@@ -93,17 +107,17 @@ import { LoaderCircle } from 'lucide-vue-next';
                         v-if="processing"
                         class="h-4 w-4 animate-spin"
                     />
-                    Create account
+                    Đăng ký
                 </Button>
             </div>
 
             <div class="text-center text-sm text-muted-foreground">
-                Already have an account?
+                Bạn đã có tài khoản?
                 <TextLink
                     :href="login()"
                     class="underline underline-offset-4"
-                    :tabindex="6"
-                    >Log in</TextLink
+                    :tabindex="7"
+                    >Đăng nhập</TextLink
                 >
             </div>
         </Form>

@@ -27,9 +27,45 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
-            'password' => ['required', 'string'],
+            'email' => ['required', 'string', 'email', 'max:150'],
+            'password' => ['required', 'string', 'min:8', 'max:255'],
         ];
+    }
+
+    /**
+     * Custom messages for validation
+     */
+    public function messages(): array
+    {
+        return [
+            // Email
+            'email.required' => 'Vui lòng nhập email',
+            'email.email' => 'Sai định dạng email',
+            'email.max' => 'Email không dài quá 150 ký tự',
+
+            // Password
+            'password.required' => 'Vui lòng nhập mật khẩu',
+            'password.min' => 'Mật khẩu phải có ít nhất 8 ký tự',
+            'password.max' => 'Mật khẩu không quá 255 ký tự',
+        ];
+    }
+
+    /**
+     * Add custom validation after the default rules
+     * For example: cả email và password trống
+     */
+    public function withValidator($validator)
+    {
+        $validator->after(function ($validator) {
+            $data = $this->only(['email', 'password']);
+
+            // Nếu cả 2 trống → xóa lỗi riêng lẻ, thêm lỗi tổng quát
+            if (empty($data['email']) && empty($data['password'])) {
+                $validator->errors()->forget('email');
+                $validator->errors()->forget('password');
+                $validator->errors()->add('general', 'Vui lòng nhập email và password');
+            }
+        });
     }
 
     /**
@@ -47,8 +83,9 @@ class LoginRequest extends FormRequest
         if (! $user || ! Auth::getProvider()->validateCredentials($user, $this->only('password'))) {
             RateLimiter::hit($this->throttleKey());
 
+            // Custom message khi credentials sai
             throw ValidationException::withMessages([
-                'email' => trans('auth.failed'),
+                'email' => 'Email hoặc mật khẩu không đúng',
             ]);
         }
 
@@ -73,10 +110,7 @@ class LoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'email' => trans('auth.throttle', [
-                'seconds' => $seconds,
-                'minutes' => ceil($seconds / 60),
-            ]),
+            'email' => 'Quá nhiều lần đăng nhập. Vui lòng thử lại sau ' . ceil($seconds / 60) . ' phút.',
         ]);
     }
 
