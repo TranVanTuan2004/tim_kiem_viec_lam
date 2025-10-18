@@ -50,3 +50,13 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
 });
+
+
+// Route xác thực email và gửi lại email xác thực
+
+Route::get('/email/verify/{id}', [VerifyEmailController::class, 'verifyEmail'])
+    ->name('verification.verify.manual');
+
+Route::post('/email/resend', [VerifyEmailController::class, 'resendVerificationEmail'])
+    ->middleware(['auth', 'throttle:6,1'])
+    ->name('verification.resend');
