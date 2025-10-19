@@ -13,32 +13,44 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed roles first
+        // Seed roles first (already done)
         $this->call([
             RoleSeeder::class,
+            PermissionSeeder::class,
         ]);
 
-        // User::factory(10)->create();
-
+        
         // Create test admin user
-        $admin = User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-        ]);
-        $admin->assignRole('admin');
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin User',
+                'email' => 'admin@example.com',
+                'password' => bcrypt('password'),
+            ]
+        );
+        $admin->assignRole('Admin');
 
         // Create test employer user
-        $employer = User::factory()->create([
-            'name' => 'Employer User',
-            'email' => 'employer@example.com',
-        ]);
-        $employer->assignRole('employer');
+        $employer = User::firstOrCreate(
+            ['email' => 'employer@example.com'],
+            [
+                'name' => 'Employer User',
+                'email' => 'employer@example.com',
+                'password' => bcrypt('password'),
+            ]
+        );
+        $employer->assignRole('Employer');
 
         // Create test candidate user
-        $candidate = User::factory()->create([
-            'name' => 'Candidate User',
-            'email' => 'candidate@example.com',
-        ]);
-        $candidate->assignRole('candidate');
+        $candidate = User::firstOrCreate(
+            ['email' => 'candidate@example.com'],
+            [
+                'name' => 'Candidate User',
+                'email' => 'candidate@example.com',
+                'password' => bcrypt('password'),
+            ]
+        );
+        $candidate->assignRole('Candidate');
     }
 }

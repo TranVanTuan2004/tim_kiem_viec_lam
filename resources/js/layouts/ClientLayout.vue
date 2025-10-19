@@ -2,6 +2,7 @@
 import { Head } from '@inertiajs/vue3';
 import ClientHeader from '@/components/client/ClientHeader.vue';
 import ClientFooter from '@/components/client/ClientFooter.vue';
+import ChatWidget from '@/components/ChatWidget.vue';
 
 interface Props {
     title?: string;
@@ -23,6 +24,9 @@ withDefaults(defineProps<Props>(), {
         </main>
         
         <ClientFooter />
+        
+        <!-- Floating Support Chat Widget -->
+        <ChatWidget />
     </div>
 </template>
 
