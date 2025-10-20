@@ -13,15 +13,41 @@ class CompanyController extends Controller
      */
     public function index()
     {
-        $companies = Company::with(['user', 'jobPostings'])
+        $query = Company::with(['user', 'jobPostings'])
             ->verified()
             ->withCount('jobPostings')
+            ->select([
+                'id',
+                'company_name',
+                'company_slug',
+                'description',
+                'website',
+                'logo',
+                'address',
+                'city',
+                'province',
+                'size',
+                'industry',
+                'rating',
+                'total_reviews',
+                'is_verified',
+                'created_at',
+                'updated_at'
+            ]);
+
+        // Filter companies that have posted jobs
+        if (request('has_jobs') == '1') {
+            $query->has('jobPostings');
+        }
+
+        $companies = $query
             ->orderBy('rating', 'desc')
             ->orderBy('total_reviews', 'desc')
             ->paginate(12);
 
         return Inertia::render('client/CompaniesIndex', [
             'companies' => $companies,
+            'hasJobsFilter' => request('has_jobs') == '1',
         ]);
     }
 

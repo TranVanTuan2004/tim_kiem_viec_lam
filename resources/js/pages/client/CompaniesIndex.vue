@@ -13,6 +13,10 @@ const props = defineProps({
         type: Object as () => any,
         required: true,
     },
+    hasJobsFilter: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const companiesData = computed(() => props.companies?.data || []);
@@ -61,9 +65,19 @@ const getLocationText = (company: any) => {
             <div class="container mx-auto px-4 py-12">
                 <!-- Header -->
                 <div class="mb-8">
-                    <h1 class="mb-4 text-4xl font-bold">Danh sách công ty</h1>
+                    <h1 class="mb-4 text-4xl font-bold">
+                        {{
+                            hasJobsFilter
+                                ? 'Công ty đang tuyển dụng'
+                                : 'Danh sách công ty'
+                        }}
+                    </h1>
                     <p class="text-lg text-muted-foreground">
-                        Khám phá các công ty uy tín đang tuyển dụng
+                        {{
+                            hasJobsFilter
+                                ? 'Khám phá các công ty uy tín đang có việc làm mở'
+                                : 'Khám phá các công ty uy tín đang tuyển dụng'
+                        }}
                     </p>
                 </div>
 
@@ -94,7 +108,9 @@ const getLocationText = (company: any) => {
                         v-for="company in companiesData"
                         :key="company.id"
                         class="group cursor-pointer overflow-hidden transition-all hover:shadow-lg"
-                        @click="router.visit(`/companies/${company.slug}`)"
+                        @click="
+                            router.visit(`/companies/${company.company_slug}`)
+                        "
                     >
                         <div
                             class="h-24 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950 dark:to-indigo-950"
@@ -109,7 +125,7 @@ const getLocationText = (company: any) => {
                                     <img
                                         v-if="company.logo"
                                         :src="company.logo"
-                                        :alt="company.name"
+                                        :alt="company.company_name"
                                         class="h-16 w-16 rounded-lg object-cover"
                                     />
                                     <Building2
@@ -126,7 +142,7 @@ const getLocationText = (company: any) => {
                                     <h3
                                         class="text-lg font-semibold transition-colors group-hover:text-blue-600"
                                     >
-                                        {{ company.name }}
+                                        {{ company.company_name }}
                                     </h3>
                                     <div
                                         v-if="company.is_verified"
@@ -139,17 +155,17 @@ const getLocationText = (company: any) => {
                                 </div>
 
                                 <div
-                                    v-if="company.rating > 0"
+                                    v-if="company.rating && company.rating > 0"
                                     class="flex items-center justify-center space-x-1 text-sm"
                                 >
                                     <Star
                                         class="h-4 w-4 fill-yellow-400 text-yellow-400"
                                     />
                                     <span class="font-medium">{{
-                                        company.rating.toFixed(1)
+                                        Number(company.rating).toFixed(1)
                                     }}</span>
                                     <span class="text-muted-foreground"
-                                        >({{ company.total_reviews }} đánh
+                                        >({{ company.total_reviews || 0 }} đánh
                                         giá)</span
                                     >
                                 </div>
@@ -192,7 +208,15 @@ const getLocationText = (company: any) => {
                                     </Badge>
                                 </div>
 
-                                <Button variant="outline" class="w-full">
+                                <Button
+                                    variant="outline"
+                                    class="w-full"
+                                    @click="
+                                        router.visit(
+                                            `/companies/${company.company_slug}`,
+                                        )
+                                    "
+                                >
                                     Xem chi tiết
                                 </Button>
                             </div>
@@ -262,10 +286,18 @@ const getLocationText = (company: any) => {
                         class="mx-auto mb-4 h-16 w-16 text-muted-foreground"
                     />
                     <h3 class="mb-2 text-lg font-semibold">
-                        Không tìm thấy công ty nào
+                        {{
+                            hasJobsFilter
+                                ? 'Không có công ty nào đang tuyển dụng'
+                                : 'Không tìm thấy công ty nào'
+                        }}
                     </h3>
                     <p class="text-muted-foreground">
-                        Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm
+                        {{
+                            hasJobsFilter
+                                ? 'Hiện tại chưa có công ty nào đăng việc làm'
+                                : 'Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm'
+                        }}
                     </p>
                 </div>
             </div>

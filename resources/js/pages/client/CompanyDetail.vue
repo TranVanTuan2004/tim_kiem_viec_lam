@@ -204,7 +204,11 @@ const getRatingPercentage = (starCount: number) => {
                                 v-if="companyData.website"
                                 variant="outline"
                                 @click="
-                                    window.open(companyData.website, '_blank')
+                                    () =>
+                                        (window as any).open(
+                                            companyData.website,
+                                            '_blank',
+                                        )
                                 "
                             >
                                 <Globe class="mr-2 h-4 w-4" />
@@ -479,9 +483,14 @@ const getRatingPercentage = (starCount: number) => {
                                         :key="rating"
                                         class="flex items-center gap-2"
                                     >
-                                        <span class="w-8 text-sm"
-                                            >{{ rating }}★</span
+                                        <span
+                                            class="inline-flex w-8 items-center gap-1 text-sm"
                                         >
+                                            {{ rating }}
+                                            <Star
+                                                class="h-3.5 w-3.5 fill-current text-yellow-500"
+                                            />
+                                        </span>
                                         <div
                                             class="h-2 flex-1 rounded-full bg-muted"
                                         >
@@ -538,7 +547,11 @@ const getRatingPercentage = (starCount: number) => {
                                 variant="outline"
                                 class="w-full"
                                 @click="
-                                    window.open(companyData.website, '_blank')
+                                    () =>
+                                        (window as any).open(
+                                            companyData.website,
+                                            '_blank',
+                                        )
                                 "
                             >
                                 <Globe class="mr-2 h-4 w-4" />

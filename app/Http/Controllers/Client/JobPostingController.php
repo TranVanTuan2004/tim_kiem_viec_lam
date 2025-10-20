@@ -38,7 +38,7 @@ class JobPostingController extends Controller // <-- Tên class phải chính x�
                 'published_at' => $job->published_at,
                 'company' => $job->company ? [
                     'id' => $job->company->id,
-                    'name' => $job->company->name,
+                    'name' => $job->company->company_name,
                 ] : null,
                 'industry' => $job->industry ? [
                     'id' => $job->industry->id,
