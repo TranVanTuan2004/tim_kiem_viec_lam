@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Client\JobPostingController;
 use App\Http\Controllers\Client\CompanyController;
+use App\Http\Controllers\Client\HomeController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\UserController;
@@ -9,9 +10,7 @@ use App\Http\Controllers\Admin\ChatController;
 use App\Http\Controllers\SupportChatController;
 
 // Client Homepage
-Route::get('/', function () {
-    return Inertia::render('client/Home');
-})->name('home');
+Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Job Detail Page
 Route::get('/jobs/{job_posting}', [JobPostingController::class, 'show'])->name('jobs.show');
@@ -19,6 +18,7 @@ Route::get('/jobs/{job_posting}', [JobPostingController::class, 'show'])->name('
 // Company Pages
 Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
 Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
+Route::get('/companies/{company}/jobs', [CompanyController::class, 'jobs'])->name('companies.jobs');
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');

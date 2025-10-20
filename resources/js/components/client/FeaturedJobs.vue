@@ -10,58 +10,14 @@ import {
 } from '@/components/ui/card';
 import { Link } from '@inertiajs/vue3';
 import { Building2, Clock, DollarSign, Heart, MapPin } from 'lucide-vue-next';
+import { defineProps } from 'vue';
 
-// Mock data - sẽ được thay thế bằng real data sau
-const featuredJobs = [
-    {
-        id: 1,
-        slug: 'senior-backend-developer',
-        title: 'Senior Backend Developer',
-        company: 'TechCorp Vietnam',
-        logo: '🏢',
-        location: 'Hà Nội',
-        salary: '1000-2000 USD',
-        type: 'Full-time',
-        skills: ['Java', 'Spring Boot', 'MySQL'],
-        posted: '2 ngày trước',
+const props = defineProps({
+    featuredJobs: {
+        type: Array as () => any[],
+        default: () => [],
     },
-    {
-        id: 2,
-        slug: 'frontend-developer-reactjs',
-        title: 'Frontend Developer (ReactJS)',
-        company: 'Digital Solutions',
-        logo: '💼',
-        location: 'TP.HCM',
-        salary: '800-1500 USD',
-        type: 'Full-time',
-        skills: ['ReactJS', 'TypeScript', 'Tailwind'],
-        posted: '1 ngày trước',
-    },
-    {
-        id: 3,
-        slug: 'full-stack-developer',
-        title: 'Full Stack Developer',
-        company: 'StartUp Innovation',
-        logo: '🚀',
-        location: 'Remote',
-        salary: '1200-2500 USD',
-        type: 'Remote',
-        skills: ['NodeJS', 'Vue.js', 'MongoDB'],
-        posted: '3 giờ trước',
-    },
-    {
-        id: 4,
-        slug: 'devops-engineer',
-        title: 'DevOps Engineer',
-        company: 'Cloud Services Ltd',
-        logo: '☁️',
-        location: 'Đà Nẵng',
-        salary: 'Thỏa thuận',
-        type: 'Full-time',
-        skills: ['AWS', 'Docker', 'Kubernetes'],
-        posted: '5 ngày trước',
-    },
-];
+});
 </script>
 
 <template>
@@ -79,7 +35,7 @@ const featuredJobs = [
 
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
                 <Link
-                    v-for="job in featuredJobs"
+                    v-for="job in props.featuredJobs"
                     :key="job.id"
                     :href="`/jobs/${job.slug}`"
                 >

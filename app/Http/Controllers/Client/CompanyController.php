@@ -56,23 +56,13 @@ class CompanyController extends Controller
      */
     public function show(Company $company)
     {
-        $company->load([
-            'user',
-            'jobPostings' => function ($query) {
-                $query->where('status', 'published')
-                      ->orderBy('published_at', 'desc')
-                      ->limit(10);
-            },
-            'reviews' => function ($query) {
-                $query->where('status', 'approved')
-                      ->orderBy('created_at', 'desc')
-                      ->limit(5);
-            }
-        ]);
+        // Load basic relationships first
+        $company->load(['user']);
 
-        // Get recent job postings
+        // Get recent job postings with more details
         $recentJobs = $company->jobPostings()
-            ->where('status', 'published')
+            ->published()
+            ->with(['skills', 'industry'])
             ->orderBy('published_at', 'desc')
             ->limit(6)
             ->get();
@@ -80,7 +70,7 @@ class CompanyController extends Controller
         // Get approved reviews with pagination
         $reviews = $company->reviews()
             ->where('status', 'approved')
-            ->with('candidate')
+            ->with('candidate.user')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -120,12 +110,24 @@ class CompanyController extends Controller
                     'title' => $job->title,
                     'slug' => $job->slug,
                     'location' => $job->location,
+                    'city' => $job->city,
+                    'province' => $job->province,
                     'employment_type' => $job->employment_type,
                     'experience_level' => $job->experience_level,
                     'min_salary' => $job->min_salary,
                     'max_salary' => $job->max_salary,
                     'salary_type' => $job->salary_type,
                     'published_at' => $job->published_at,
+                    'skills' => $job->skills->take(3)->map(function ($skill) {
+                        return [
+                            'id' => $skill->id,
+                            'name' => $skill->name,
+                        ];
+                    }),
+                    'industry' => $job->industry ? [
+                        'id' => $job->industry->id,
+                        'name' => $job->industry->name,
+                    ] : null,
                 ];
             }),
             'reviews' => $reviews,
@@ -138,6 +140,54 @@ class CompanyController extends Controller
                 'two_star' => $ratingStats->two_star ?? 0,
                 'one_star' => $ratingStats->one_star ?? 0,
             ],
+        ]);
+    }
+
+    /**
+     * Display all jobs for a specific company.
+     */
+    public function jobs(Company $company)
+    {
+        $jobs = $company->jobPostings()
+            ->published()
+            ->with(['skills', 'industry'])
+            ->orderBy('published_at', 'desc')
+            ->paginate(12);
+
+        return Inertia::render('client/CompanyJobs', [
+            'company' => [
+                'id' => $company->id,
+                'name' => $company->company_name,
+                'slug' => $company->company_slug,
+                'logo' => $company->logo,
+                'description' => $company->description,
+            ],
+            'jobs' => $jobs->through(function ($job) {
+                return [
+                    'id' => $job->id,
+                    'title' => $job->title,
+                    'slug' => $job->slug,
+                    'location' => $job->location,
+                    'city' => $job->city,
+                    'province' => $job->province,
+                    'employment_type' => $job->employment_type,
+                    'experience_level' => $job->experience_level,
+                    'min_salary' => $job->min_salary,
+                    'max_salary' => $job->max_salary,
+                    'salary_type' => $job->salary_type,
+                    'published_at' => $job->published_at,
+                    'skills' => $job->skills->map(function ($skill) {
+                        return [
+                            'id' => $skill->id,
+                            'name' => $skill->name,
+                        ];
+                    }),
+                    'industry' => $job->industry ? [
+                        'id' => $job->industry->id,
+                        'name' => $job->industry->name,
+                    ] : null,
+                ];
+            }),
         ]);
     }
 }

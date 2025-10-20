@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import ClientLayout from '@/layouts/ClientLayout.vue';
-import { router } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import {
     Briefcase,
     Building2,
@@ -129,6 +130,29 @@ const getRatingPercentage = (starCount: number) => {
     <ClientLayout :title="companyData.name || 'Chi tiết công ty'">
         <div class="bg-muted/40">
             <div class="container mx-auto px-4 py-12">
+                <!-- Breadcrumb -->
+                <div class="mb-6">
+                    <div class="flex items-center gap-4 text-sm">
+                        <Link
+                            href="/"
+                            class="text-muted-foreground transition-colors hover:text-primary"
+                        >
+                            Trang chủ
+                        </Link>
+                        <span class="text-muted-foreground">/</span>
+                        <Link
+                            href="/companies"
+                            class="text-muted-foreground transition-colors hover:text-primary"
+                        >
+                            Danh sách công ty
+                        </Link>
+                        <span class="text-muted-foreground">/</span>
+                        <span class="font-medium text-foreground">
+                            {{ companyData.name }}
+                        </span>
+                    </div>
+                </div>
+
                 <!-- Company Header -->
                 <div class="mb-8">
                     <div class="flex items-start gap-6">
@@ -205,7 +229,7 @@ const getRatingPercentage = (starCount: number) => {
                                 variant="outline"
                                 @click="
                                     () =>
-                                        (window as any).open(
+                                        (globalThis as any).window.open(
                                             companyData.website,
                                             '_blank',
                                         )
@@ -317,6 +341,24 @@ const getRatingPercentage = (starCount: number) => {
                                                             )
                                                         }}
                                                     </span>
+                                                </div>
+
+                                                <!-- Skills -->
+                                                <div
+                                                    v-if="
+                                                        job.skills &&
+                                                        job.skills.length > 0
+                                                    "
+                                                    class="mt-3 flex flex-wrap gap-2"
+                                                >
+                                                    <Badge
+                                                        v-for="skill in job.skills"
+                                                        :key="skill.id"
+                                                        variant="secondary"
+                                                        class="text-xs"
+                                                    >
+                                                        {{ skill.name }}
+                                                    </Badge>
                                                 </div>
                                             </div>
                                             <ExternalLink
@@ -548,7 +590,7 @@ const getRatingPercentage = (starCount: number) => {
                                 class="w-full"
                                 @click="
                                     () =>
-                                        (window as any).open(
+                                        (globalThis as any).window.open(
                                             companyData.website,
                                             '_blank',
                                         )

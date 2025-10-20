@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ClientLayout from '@/layouts/ClientLayout.vue';
-import { router } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import {
     Award,
     Briefcase,
@@ -65,7 +65,9 @@ const publishedAtText = computed(() => {
 
 const companyName = computed(
     () =>
-        jobData.value.company?.name || jobData.value.company_name || 'Công ty',
+        jobData.value.company?.name ||
+        jobData.value.company?.company_name ||
+        'Công ty',
 );
 const skillsList = computed(() =>
     Array.isArray(jobData.value.skills)
@@ -90,16 +92,12 @@ const locationText = computed(
                     <div
                         class="flex items-center space-x-4 text-muted-foreground"
                     >
-                        <span
-                            class="cursor-pointer hover:text-primary"
-                            @click="
-                                router.visit(
-                                    `/companies/${jobData.company?.slug || 'techcorp-vietnam'}`,
-                                )
-                            "
+                        <Link
+                            :href="`/companies/${jobData.company?.slug || 'techcorp-vietnam'}`"
+                            class="cursor-pointer transition-colors hover:text-primary"
                         >
                             {{ companyName }}
-                        </span>
+                        </Link>
                         <span class="flex items-center"
                             ><MapPin class="mr-1 h-4 w-4" />
                             {{ locationText }}</span
