@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Client\JobPostingController;
+use App\Http\Controllers\Client\CompanyController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\UserController;
@@ -12,6 +13,10 @@ Route::get('/', function () {
 
 // Job Detail Page
 Route::get('/jobs/{job_posting}', [JobPostingController::class, 'show'])->name('jobs.show');
+
+// Company Pages
+Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
+Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');

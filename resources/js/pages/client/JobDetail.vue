@@ -90,7 +90,16 @@ const locationText = computed(
                     <div
                         class="flex items-center space-x-4 text-muted-foreground"
                     >
-                        <span>{{ companyName }}</span>
+                        <span
+                            class="cursor-pointer hover:text-primary"
+                            @click="
+                                router.visit(
+                                    `/companies/${jobData.company?.slug || 'techcorp-vietnam'}`,
+                                )
+                            "
+                        >
+                            {{ companyName }}
+                        </span>
                         <span class="flex items-center"
                             ><MapPin class="mr-1 h-4 w-4" />
                             {{ locationText }}</span
