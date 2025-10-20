@@ -20,10 +20,10 @@ defineProps<{
 
 <template>
     <AuthBase
-        title="Log in to your account"
-        description="Enter your email and password below to log in"
+        title="Đăng nhập"
+        description="Nhập email và mật khẩu của bạn bên dưới để đăng nhập"
     >
-        <Head title="Log in" />
+        <Head title="Đăng nhập" />
 
         <div
             v-if="status"
@@ -38,42 +38,45 @@ defineProps<{
             v-slot="{ errors, processing }"
             class="flex flex-col gap-6"
         >
+            <!-- Hiển thị lỗi tổng quát -->
+            <div v-if="errors.general" class="mb-4 text-red-600 text-sm text-center">
+                {{ errors.general }}
+            </div>
+            
             <div class="grid gap-6">
                 <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
+                    <Label for="email">Email</Label>
                     <Input
                         id="email"
-                        type="email"
+                        type="text"
                         name="email"
-                        required
                         autofocus
                         :tabindex="1"
                         autocomplete="email"
-                        placeholder="email@example.com"
+                        placeholder="Email"
                     />
                     <InputError :message="errors.email" />
                 </div>
 
                 <div class="grid gap-2">
                     <div class="flex items-center justify-between">
-                        <Label for="password">Password</Label>
+                        <Label for="password">Mật khẩu</Label>
                         <TextLink
                             v-if="canResetPassword"
                             :href="request()"
                             class="text-sm"
                             :tabindex="5"
                         >
-                            Forgot password?
+                            Quên mật khẩu?
                         </TextLink>
                     </div>
                     <Input
                         id="password"
                         type="password"
                         name="password"
-                        required
                         :tabindex="2"
                         autocomplete="current-password"
-                        placeholder="Password"
+                        placeholder="Mật khẩu"
                     />
                     <InputError :message="errors.password" />
                 </div>
@@ -81,7 +84,7 @@ defineProps<{
                 <div class="flex items-center justify-between">
                     <Label for="remember" class="flex items-center space-x-3">
                         <Checkbox id="remember" name="remember" :tabindex="3" />
-                        <span>Remember me</span>
+                        <span>Ghi nhớ tài khoản</span>
                     </Label>
                 </div>
 
@@ -101,8 +104,8 @@ defineProps<{
             </div>
 
             <div class="text-center text-sm text-muted-foreground">
-                Don't have an account?
-                <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
+                Bạn chưa có tài khoản?
+                <TextLink :href="register()" :tabindex="5">Đăng ký</TextLink>
             </div>
         </Form>
     </AuthBase>

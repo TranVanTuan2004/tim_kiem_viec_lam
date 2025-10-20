@@ -15,31 +15,23 @@ class RoleSeeder extends Seeder
         $roles = [
             [
                 'name' => 'Admin',
-                'slug' => Role::ADMIN,
-                'description' => 'Quản trị viên hệ thống với toàn quyền truy cập',
-                'is_active' => true,
+                'guard_name' => 'web',
             ],
             [
-                'name' => 'Nhà tuyển dụng',
-                'slug' => Role::EMPLOYER,
-                'description' => 'Nhà tuyển dụng có thể đăng tin và quản lý ứng viên',
-                'is_active' => true,
+                'name' => 'Employer',
+                'guard_name' => 'web',
             ],
             [
-                'name' => 'Ứng viên',
-                'slug' => Role::CANDIDATE,
-                'description' => 'Ứng viên tìm kiếm và ứng tuyển công việc',
-                'is_active' => true,
+                'name' => 'Candidate',
+                'guard_name' => 'web',
             ],
         ];
 
         foreach ($roles as $roleData) {
-            Role::updateOrCreate(
-                ['slug' => $roleData['slug']],
+            Role::firstOrCreate(
+                ['name' => $roleData['name'], 'guard_name' => $roleData['guard_name']],
                 $roleData
             );
         }
-
-        $this->command->info('Roles seeded successfully!');
     }
 }

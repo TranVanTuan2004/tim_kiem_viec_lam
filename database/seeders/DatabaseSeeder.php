@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,12 +12,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed roles first
+        // Seed roles and permissions first
         $this->call([
             RoleSeeder::class,
         ]);
-
-        // User::factory(10)->create();
 
         // Create or get test admin user
         $admin = User::firstOrCreate(
@@ -29,8 +26,8 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-        if (! $admin->hasRole('admin')) {
-            $admin->assignRole('admin');
+        if (! $admin->hasRole('Admin')) {
+            $admin->assignRole('Admin');
         }
 
         // Create or get test employer user
@@ -42,8 +39,8 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-        if (! $employer->hasRole('employer')) {
-            $employer->assignRole('employer');
+        if (! $employer->hasRole('Employer')) {
+            $employer->assignRole('Employer');
         }
 
         // Create or get test candidate user
@@ -55,8 +52,8 @@ class DatabaseSeeder extends Seeder
                 'email_verified_at' => now(),
             ]
         );
-        if (! $candidate->hasRole('candidate')) {
-            $candidate->assignRole('candidate');
+        if (! $candidate->hasRole('Candidate')) {
+            $candidate->assignRole('Candidate');
         }
 
         // Seed a test company and job posting

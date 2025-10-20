@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes;
+    use HasFactory, Notifiable, TwoFactorAuthenticatable, SoftDeletes, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -85,15 +86,17 @@ class User extends Authenticatable
         return $this->hasMany(Report::class, 'reporter_id');
     }
 
-    public function roles()
-    {
-        return $this->belongsToMany(Role::class, 'role_user', 'user_id', 'role_id')
-            ->withTimestamps();
-    }
+    // roles() relationship is provided by Spatie's HasRoles trait
+    // No need to define it manually - Spatie uses model_has_roles table
 
     public function payments()
     {
         return $this->hasMany(Payment::class, 'user_id');
+    }
+
+    public function companies()
+    {
+        return $this->hasMany(Company::class, 'user_id');
     }
 
     // Scopes
@@ -109,64 +112,32 @@ class User extends Authenticatable
         });
     }
 
-    // Helper methods (dùng roles thay vì user_type)
+    // Helper methods - compatible with both slug and name
     public function isCandidate(): bool
     {
-        return $this->hasRole('candidate');
+        // Spatie hasRole() checks by 'name', so we need to use the role name
+        return $this->hasRole('Candidate');
     }
 
     public function isEmployer(): bool
     {
-        return $this->hasRole('employer');
+        return $this->hasRole('Employer');
     }
 
     public function isAdmin(): bool
     {
-        return $this->hasRole('admin');
+        return $this->hasRole('Admin');
     }
 
-    // Role methods
-    public function hasRole(string $roleSlug): bool
-    {
-        return $this->roles()->where('slug', $roleSlug)->exists();
-    }
-
-    public function hasAnyRole(array $roleSlugs): bool
-    {
-        return $this->roles()->whereIn('slug', $roleSlugs)->exists();
-    }
-
-    public function assignRole(string|Role $role): void
-    {
-        if (is_string($role)) {
-            $role = Role::where('slug', $role)->firstOrFail();
-        }
-        
-        if (!$this->hasRole($role->slug)) {
-            $this->roles()->attach($role->id);
-        }
-    }
-
-    public function removeRole(string|Role $role): void
-    {
-        if (is_string($role)) {
-            $role = Role::where('slug', $role)->first();
-        }
-        
-        if ($role) {
-            $this->roles()->detach($role->id);
-        }
-    }
-
-    public function syncRoles(array $roles): void
-    {
-        $roleIds = collect($roles)->map(function ($role) {
-            if ($role instanceof Role) {
-                return $role->id;
-            }
-            return Role::where('slug', $role)->firstOrFail()->id;
-        })->toArray();
-        
-        $this->roles()->sync($roleIds);
-    }
+    // Note: The following methods are provided by Spatie's HasRoles trait:
+    // - hasRole($role) - checks by name
+    // - hasAnyRole($roles)
+    // - hasAllRoles($roles)
+    // - assignRole($role)
+    // - removeRole($role)
+    // - syncRoles($roles)
+    // - getRoleNames()
+    // - givePermissionTo($permission)
+    // - revokePermissionTo($permission)
+    // - can($permission)
 }
