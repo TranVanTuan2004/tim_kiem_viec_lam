@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,44 +12,54 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed roles first (already done)
+        // Seed roles and permissions first
         $this->call([
             RoleSeeder::class,
-            PermissionSeeder::class,
         ]);
 
-        
-        // Create test admin user
+        // Create or get test admin user
         $admin = User::firstOrCreate(
             ['email' => 'admin@example.com'],
             [
                 'name' => 'Admin User',
-                'email' => 'admin@example.com',
                 'password' => bcrypt('password'),
+                'email_verified_at' => now(),
             ]
         );
-        $admin->assignRole('Admin');
+        if (! $admin->hasRole('Admin')) {
+            $admin->assignRole('Admin');
+        }
 
-        // Create test employer user
+        // Create or get test employer user
         $employer = User::firstOrCreate(
             ['email' => 'employer@example.com'],
             [
                 'name' => 'Employer User',
-                'email' => 'employer@example.com',
                 'password' => bcrypt('password'),
+                'email_verified_at' => now(),
             ]
         );
-        $employer->assignRole('Employer');
+        if (! $employer->hasRole('Employer')) {
+            $employer->assignRole('Employer');
+        }
 
-        // Create test candidate user
+        // Create or get test candidate user
         $candidate = User::firstOrCreate(
             ['email' => 'candidate@example.com'],
             [
                 'name' => 'Candidate User',
-                'email' => 'candidate@example.com',
                 'password' => bcrypt('password'),
+                'email_verified_at' => now(),
             ]
         );
-        $candidate->assignRole('Candidate');
+        if (! $candidate->hasRole('Candidate')) {
+            $candidate->assignRole('Candidate');
+        }
+
+        // Seed a test company and job posting
+        $this->call([
+            \Database\Seeders\CompanySeeder::class,
+            \Database\Seeders\JobPostingSeeder::class,
+        ]);
     }
 }

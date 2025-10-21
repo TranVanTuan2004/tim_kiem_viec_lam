@@ -24,7 +24,7 @@ return new class extends Migration
             $table->string('city');
             $table->string('province');
             $table->enum('employment_type', ['full_time', 'part_time', 'contract', 'internship', 'freelance']);
-            $table->enum('experience_level', ['fresher', 'junior', 'middle', 'senior', 'lead']);
+            $table->enum('experience_level', ['fresher', 'junior', 'middle', 'senior', 'lead', 'mid', 'mid-senior']);
             $table->decimal('min_salary', 10, 2)->nullable();
             $table->decimal('max_salary', 10, 2)->nullable();
             $table->enum('salary_type', ['monthly', 'yearly', 'hourly', 'project'])->default('monthly');
@@ -37,7 +37,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
             $table->timestamp('published_at')->nullable();
-            
+
             $table->index(['status', 'published_at']);
             $table->index(['city', 'province']);
             $table->index(['industry_id', 'experience_level']);
