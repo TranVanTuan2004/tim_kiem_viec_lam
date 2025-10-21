@@ -16,6 +16,7 @@ class ServicePackage extends Model
         'description',
         'price',
         'duration_days',
+        'max_jobs',
         'features',
         'is_active',
     ];
