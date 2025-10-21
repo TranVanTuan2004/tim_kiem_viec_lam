@@ -18,6 +18,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             CompanySeeder::class,
             JobPostingSeeder::class,
+            ServicePackageSeeder::class,
         ]);
 
         // Create or get test admin user
