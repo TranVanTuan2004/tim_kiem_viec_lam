@@ -99,7 +99,7 @@ defineProps<{
                         v-if="processing"
                         class="h-4 w-4 animate-spin"
                     />
-                    Log in
+                    Đăng nhập
                 </Button>
             </div>
 
