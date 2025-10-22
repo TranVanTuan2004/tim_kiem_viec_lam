@@ -12,7 +12,8 @@ use App\Http\Controllers\SupportChatController;
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// Job Detail Page
+// Job Pages
+Route::get('/jobs', [JobPostingController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job_posting}', [JobPostingController::class, 'show'])->name('jobs.show');
 
 // Company Pages

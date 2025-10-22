@@ -8,7 +8,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import { Building2, Clock, DollarSign, Heart, MapPin } from 'lucide-vue-next';
 import { defineProps } from 'vue';
 
@@ -30,7 +30,9 @@ const props = defineProps({
                         Cơ hội việc làm IT mới nhất
                     </p>
                 </div>
-                <Button variant="outline">Xem tất cả</Button>
+                <Button variant="outline" @click="router.visit('/jobs')">
+                    Xem tất cả
+                </Button>
             </div>
 
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -45,7 +47,19 @@ const props = defineProps({
                         <CardHeader>
                             <div class="flex items-start justify-between">
                                 <div class="flex flex-1 items-start space-x-4">
-                                    <div class="text-4xl">{{ job.logo }}</div>
+                                    <div
+                                        class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg bg-muted"
+                                    >
+                                        <img
+                                            v-if="job.company_logo"
+                                            :src="job.company_logo"
+                                            :alt="job.company"
+                                            class="h-full w-full rounded-lg object-contain p-2"
+                                        />
+                                        <div v-else class="text-3xl">
+                                            {{ job.logo }}
+                                        </div>
+                                    </div>
                                     <div class="flex-1">
                                         <CardTitle
                                             class="mb-1 text-xl transition-colors group-hover:text-red-600"

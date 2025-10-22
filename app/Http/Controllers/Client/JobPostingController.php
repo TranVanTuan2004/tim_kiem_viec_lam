@@ -9,6 +9,38 @@ use Inertia\Inertia;
 class JobPostingController extends Controller // <-- Tên class phải chính xác
 {
     /**
+     * Display a listing of all jobs.
+     */
+    public function index()
+    {
+        $jobs = JobPosting::published()
+            ->with(['company', 'skills'])
+            ->orderBy('published_at', 'desc')
+            ->paginate(12)
+            ->through(function ($job) {
+                return [
+                    'id' => $job->id,
+                    'slug' => $job->slug,
+                    'title' => $job->title,
+                    'company' => $job->company->company_name ?? 'Công ty',
+                    'company_slug' => $job->company->company_slug ?? null,
+                    'company_logo' => $job->company->logo ?? null,
+                    'logo' => '🏢',
+                    'location' => $job->location ?? $job->city ?? 'Nơi làm việc',
+                    'salary' => $job->getSalaryRange(),
+                    'type' => $job->employment_type ? str_replace('_', ' ', ucfirst($job->employment_type)) : 'Full-time',
+                    'skills' => $job->skills->take(3)->pluck('name')->toArray(),
+                    'posted' => $job->published_at ? $job->published_at->diffForHumans() : 'Vừa đăng',
+                    'is_featured' => $job->is_featured,
+                ];
+            });
+
+        return Inertia::render('client/JobsIndex', [
+            'jobs' => $jobs,
+        ]);
+    }
+
+    /**
      * Display the specified resource.
      */
     public function show(JobPosting $job_posting)
