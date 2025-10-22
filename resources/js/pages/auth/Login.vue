@@ -99,7 +99,35 @@ defineProps<{
                         v-if="processing"
                         class="h-4 w-4 animate-spin"
                     />
-                    Log in
+                    Đăng nhập
+                </Button>
+            </div>
+
+            <!-- Nút đăng nhập xã hội -->
+            <div class="relative my-4">
+                <div class="absolute inset-0 flex items-center">
+                    <span class="w-full border-t"></span>
+                </div>
+                <div class="relative flex justify-center text-xs uppercase">
+                    <span class="bg-background px-2 text-muted-foreground">Hoặc</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <Button
+                    as="a"
+                    href="/auth/google"
+                    class="bg-red-500 hover:bg-red-600 text-white w-full"
+                >
+                    Đăng nhập với Google
+                </Button>
+
+                <Button
+                    as="a"
+                    href="/auth/facebook"
+                    class="bg-blue-600 hover:bg-blue-700 text-white w-full"
+                >
+                    Đăng nhập với Facebook
                 </Button>
             </div>
 
