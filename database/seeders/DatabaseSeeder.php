@@ -15,6 +15,10 @@ class DatabaseSeeder extends Seeder
         // Seed roles and permissions first
         $this->call([
             RoleSeeder::class,
+            PermissionSeeder::class,
+            CompanySeeder::class,
+            JobPostingSeeder::class,
+            ServicePackageSeeder::class,
         ]);
 
         // Create or get test admin user
@@ -55,11 +59,5 @@ class DatabaseSeeder extends Seeder
         if (! $candidate->hasRole('Candidate')) {
             $candidate->assignRole('Candidate');
         }
-
-        // Seed a test company and job posting
-        $this->call([
-            \Database\Seeders\CompanySeeder::class,
-            \Database\Seeders\JobPostingSeeder::class,
-        ]);
     }
 }
