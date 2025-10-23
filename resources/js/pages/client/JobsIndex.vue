@@ -29,6 +29,12 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    filters: {
+        type: Object,
+        default: () => ({
+            featured: false,
+        }),
+    },
 });
 
 const showFilters = ref(false);
@@ -48,7 +54,11 @@ const showFilters = ref(false);
                     <div class="mb-4 flex items-center justify-center gap-3">
                         <Briefcase class="h-10 w-10" />
                         <h1 class="text-5xl font-bold tracking-tight">
-                            Tất cả việc làm IT
+                            {{
+                                props.filters.featured
+                                    ? 'Việc làm nổi bật'
+                                    : 'Tất cả việc làm IT'
+                            }}
                         </h1>
                     </div>
                     <p class="mb-8 text-xl text-red-50">
@@ -56,7 +66,11 @@ const showFilters = ref(false);
                         <span class="font-bold text-white">{{
                             props.jobs.total || 0
                         }}</span>
-                        cơ hội việc làm tuyệt vời
+                        {{
+                            props.filters.featured
+                                ? 'việc làm nổi bật'
+                                : 'cơ hội việc làm tuyệt vời'
+                        }}
                     </p>
 
                     <!-- Search Bar -->
@@ -101,9 +115,20 @@ const showFilters = ref(false);
                                 </span>
                             </p>
                         </div>
+                        <Badge
+                            v-if="props.filters.featured"
+                            class="bg-gradient-to-r from-red-600 to-orange-500 text-white"
+                        >
+                            ⭐ Việc làm nổi bật
+                        </Badge>
                     </div>
 
                     <div class="flex items-center gap-2">
+                        <Link v-if="props.filters.featured" href="/jobs">
+                            <Button variant="outline" size="sm" class="gap-2">
+                                Xem tất cả việc làm
+                            </Button>
+                        </Link>
                         <Button
                             variant="outline"
                             size="sm"
