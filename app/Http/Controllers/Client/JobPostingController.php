@@ -99,6 +99,8 @@ class JobPostingController extends Controller // <-- Tên class phải chính x�
                 'city' => $job->city,
                 'province' => $job->province,
                 'published_at' => $job->published_at,
+                'views' => $job->views,
+                'applications_count' => $job->applications_count,
                 'company' => $job->company ? [
                     'id' => $job->company->id,
                     'name' => $job->company->company_name,

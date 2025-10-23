@@ -4,58 +4,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { router } from '@inertiajs/vue3';
 import { MapPin, Star, Users } from 'lucide-vue-next';
+import { defineProps } from 'vue';
 
-// Mock data - In real app, this would come from props or API
-const topCompanies = [
-    {
-        id: 1,
-        name: 'TechCorp Vietnam',
-        slug: 'techcorp-vietnam',
-        logo: '🏢',
-        rating: 4.5,
-        reviews: 1200,
-        jobs: 45,
-        location: 'Hà Nội',
-        employees: '10,000+',
-        description: 'Công ty công nghệ giả lập cho mục đích test',
+const props = defineProps({
+    topCompanies: {
+        type: Array as () => any[],
+        default: () => [],
     },
-    {
-        id: 2,
-        name: 'FPT Software',
-        slug: 'fpt-software',
-        logo: '💻',
-        rating: 4.7,
-        reviews: 890,
-        jobs: 32,
-        location: 'TP.HCM',
-        employees: '5,000+',
-        description: 'Công ty phần mềm hàng đầu Việt Nam',
-    },
-    {
-        id: 3,
-        name: 'VNG Corporation',
-        slug: 'vng-corporation',
-        logo: '🎮',
-        rating: 4.3,
-        reviews: 650,
-        jobs: 28,
-        location: 'TP.HCM',
-        employees: '2,000+',
-        description: 'Công ty công nghệ và giải trí',
-    },
-    {
-        id: 4,
-        name: 'Tiki',
-        slug: 'tiki',
-        logo: '🛒',
-        rating: 4.6,
-        reviews: 1500,
-        jobs: 56,
-        location: 'TP.HCM',
-        employees: '3,000+',
-        description: 'Sàn thương mại điện tử',
-    },
-];
+});
 </script>
 
 <template>
@@ -75,7 +31,7 @@ const topCompanies = [
 
             <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
                 <Card
-                    v-for="company in topCompanies"
+                    v-for="company in props.topCompanies"
                     :key="company.id"
                     class="group cursor-pointer overflow-hidden transition-all hover:shadow-lg"
                     @click="router.visit(`/companies/${company.slug}`)"
@@ -86,9 +42,15 @@ const topCompanies = [
                     <CardContent class="relative pt-0">
                         <div class="absolute -top-12 left-1/2 -translate-x-1/2">
                             <div
-                                class="flex h-24 w-24 items-center justify-center rounded-xl border-4 border-background bg-white text-5xl shadow-lg dark:bg-card"
+                                class="flex h-24 w-24 items-center justify-center rounded-xl border-4 border-background bg-white shadow-lg dark:bg-card overflow-hidden"
                             >
-                                {{ company.logo }}
+                                <img 
+                                    v-if="company.logo" 
+                                    :src="company.logo" 
+                                    :alt="company.name"
+                                    class="h-full w-full object-contain p-2"
+                                />
+                                <div v-else class="text-5xl">🏢</div>
                             </div>
                         </div>
 

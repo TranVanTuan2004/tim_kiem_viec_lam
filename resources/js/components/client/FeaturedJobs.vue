@@ -85,7 +85,15 @@ const props = defineProps({
                                     <div
                                         class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-50 to-orange-50 text-3xl ring-2 ring-red-100 transition-transform duration-300 group-hover:scale-110 group-hover:ring-red-200 dark:from-red-950 dark:to-orange-950 dark:ring-red-900"
                                     >
-                                        {{ job.logo }}
+                                        <img
+                                            v-if="job.company_logo"
+                                            :src="job.company_logo"
+                                            :alt="job.company"
+                                            class="h-full w-full rounded-xl object-contain p-2"
+                                        />
+                                        <div v-else class="text-3xl">
+                                            {{ job.logo }}
+                                        </div>
                                     </div>
 
                                     <div class="min-w-0 flex-1">

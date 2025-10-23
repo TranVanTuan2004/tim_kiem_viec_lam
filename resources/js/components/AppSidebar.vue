@@ -15,7 +15,7 @@ import {
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Users, MessageSquare } from 'lucide-vue-next';
+import { BookOpen, Folder, LayoutGrid, Users, MessageSquare, CreditCard } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { usePermissions } from '@/composables/usePermissions';
 import { defaultDocument } from '@vueuse/core';
@@ -40,6 +40,18 @@ const mainNavItems: NavItem[] = [
         href: '/admin/chat',
         icon: MessageSquare,
         permission: 'view messages', 
+    },
+    {
+        title: 'Gói Dịch Vụ',
+        href: '/admin/subscriptions',
+        icon: CreditCard,
+        permission: 'view subscriptions',
+    },
+    {
+        title: 'ZaloPay Demo',
+        href: '/admin/subscriptions/zalopay-demo',
+        icon: CreditCard,
+        permission: 'view subscriptions',
     },
 ];
 console.log(currentUser.value)

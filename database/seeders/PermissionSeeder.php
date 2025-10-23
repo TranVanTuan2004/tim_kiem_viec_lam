@@ -59,6 +59,10 @@ class PermissionSeeder extends Seeder
             // Messages/Chat
             'send messages',
             'view messages',
+            
+            // Subscriptions
+            'view subscriptions',
+            'manage subscriptions',
 
             // Reports
             'view reports',
@@ -129,6 +133,10 @@ class PermissionSeeder extends Seeder
                 // Messages
                 'send messages',
                 'view messages',
+                
+                // Subscriptions
+                'view subscriptions',
+                'manage subscriptions',
 
                 // Reports
                 'create report',

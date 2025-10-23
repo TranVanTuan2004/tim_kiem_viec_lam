@@ -17,7 +17,7 @@ class HomeController extends Controller
             ->featured()
             ->with(['company', 'skills'])
             ->orderBy('published_at', 'desc')
-            ->limit(6) // Tăng lên 6 jobs
+            ->limit(6)
             ->get()
             ->map(function ($job) {
                 return [
@@ -35,8 +35,34 @@ class HomeController extends Controller
                 ];
             });
 
+        // Get top companies with job counts
+        $topCompanies = \App\Models\Company::withCount([
+            'jobPostings' => function ($query) {
+                $query->where('status', 'approved')->whereNotNull('published_at');
+            }
+        ])
+            ->where('is_verified', true)
+            ->orderBy('rating', 'desc')
+            ->limit(4)
+            ->get()
+            ->map(function ($company) {
+                return [
+                    'id' => $company->id,
+                    'name' => $company->company_name,
+                    'slug' => $company->company_slug,
+                    'logo' => $company->logo,
+                    'rating' => $company->rating ?? 0,
+                    'reviews' => $company->total_reviews ?? 0,
+                    'jobs' => $company->job_postings_count ?? 0,
+                    'location' => $company->city ?? $company->province ?? 'Việt Nam',
+                    'employees' => $company->size ?? 'N/A',
+                    'description' => $company->description ?? '',
+                ];
+            });
+
         return Inertia::render('client/Home', [
             'featuredJobs' => $featuredJobs,
+            'topCompanies' => $topCompanies,
         ]);
     }
 

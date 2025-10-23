@@ -8,12 +8,20 @@ use Inertia\Inertia;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ChatController;
 use App\Http\Controllers\SupportChatController;
+use App\Http\Controllers\Admin\SubscriptionController;
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// Job Detail Page
+// Job Pages
+Route::get('/jobs', [JobPostingController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job_posting}', [JobPostingController::class, 'show'])->name('jobs.show');
+
+// Job Application Routes (require authentication)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/jobs/{job_posting}/apply', [\App\Http\Controllers\Client\ApplicationController::class, 'create'])->name('jobs.apply');
+    Route::post('/jobs/{job_posting}/apply', [\App\Http\Controllers\Client\ApplicationController::class, 'store'])->name('jobs.apply.store');
+});
 
 // Company Pages
 Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
@@ -35,6 +43,44 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(
     Route::post('chat/send/{user}', [ChatController::class, 'sendMessage'])->name('chat.send');
     Route::post('chat/mark-as-read/{message}', [ChatController::class, 'markAsRead'])->name('chat.mark-read');
     Route::get('chat/unread-count', [ChatController::class, 'getUnreadCount'])->name('chat.unread');
+});
+
+// Admin Routes - Subscription Management (for Employers)
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'permission:view subscriptions'])->group(function () {
+    Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions');
+    Route::post('subscriptions/subscribe', [SubscriptionController::class, 'subscribe'])->middleware('permission:manage subscriptions')->name('subscribe');
+    Route::post('subscriptions/upgrade', [SubscriptionController::class, 'upgrade'])->middleware('permission:manage subscriptions')->name('upgrade');
+    Route::post('subscriptions/renew', [SubscriptionController::class, 'renew'])->middleware('permission:manage subscriptions')->name('renew');
+    Route::post('subscriptions/cancel', [SubscriptionController::class, 'cancel'])->middleware('permission:manage subscriptions')->name('cancel');
+    Route::get('subscriptions/{subscription}', [SubscriptionController::class, 'show'])->name('subscriptions.show');
+    Route::get('subscriptions/qr/data', [SubscriptionController::class, 'getPaymentData'])->name('subscriptions.payment');
+    Route::get('subscriptions/zalopay-demo', [SubscriptionController::class, 'zaloPayDemo'])->name('subscriptions.zalopay-demo');
+    Route::post('subscriptions/test-zalopay', [SubscriptionController::class, 'testZaloPay'])->name('subscriptions.test-zalopay');
+    Route::post('subscriptions/simulate-payment', [SubscriptionController::class, 'simulatePayment'])->name('subscriptions.simulate-payment');
+    Route::get('subscriptions/vnpay-demo', [SubscriptionController::class, 'vnpayDemo'])->name('subscriptions.vnpay-demo');
+    Route::post('subscriptions/test-vnpay', [SubscriptionController::class, 'testVNPay'])->name('subscriptions.test-vnpay');
+    Route::post('subscriptions/simulate-vnpay-payment', [SubscriptionController::class, 'simulateVNPayPayment'])->name('subscriptions.simulate-vnpay-payment');
+});
+
+// Payment Callbacks (không cần auth)
+Route::prefix('admin/subscriptions/payment')->group(function () {
+    Route::post('callback', [SubscriptionController::class, 'zalopayCallback'])->name('zalopay.callback');
+    Route::get('return', [SubscriptionController::class, 'zalopayReturn'])->name('zalopay.return');
+});
+
+// VNPay Payment Callbacks (không cần auth)
+Route::prefix('admin/subscriptions/vnpay')->group(function () {
+    Route::post('callback', [SubscriptionController::class, 'vnpayCallback'])->name('vnpay.callback');
+    Route::get('return', [SubscriptionController::class, 'vnpayReturn'])->name('vnpay.return');
+});
+
+// Test route để kiểm tra
+Route::get('test-zalopay', function () {
+    return 'ZaloPay test route works!';
+});
+
+Route::get('test-vnpay', function () {
+    return 'VNPay test route works!';
 });
 
 // Support Chat Widget - Available for all authenticated users
