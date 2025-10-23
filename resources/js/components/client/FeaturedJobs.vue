@@ -8,7 +8,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import { Link } from '@inertiajs/vue3';
+import { Link, router } from '@inertiajs/vue3';
 import { Building2, Clock, DollarSign, Heart, MapPin } from 'lucide-vue-next';
 import { defineProps } from 'vue';
 
@@ -83,8 +83,7 @@ const props = defineProps({
                                 <div class="flex flex-1 items-start gap-4">
                                     <!-- Company Logo -->
                                     <div
-                                        class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-50 to-orange-50 text-3xl ring-2 ring-red-100 transition-transform duration-300 group-hover:scale-110 group-hover:ring-red-200 dark:from-red-950 dark:to-orange-950 dark:ring-red-900"
-                                    >
+                                        class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-red-50 to-orange-50 text-3xl ring-2 ring-red-100 transition-transform duration-300 group-hover:scale-110 group-hover:ring-red-200 dark:from-red-950 dark:to-orange-950 dark:ring-red-900">
                                         <img
                                             v-if="job.company_logo"
                                             :src="job.company_logo"
@@ -95,7 +94,6 @@ const props = defineProps({
                                             {{ job.logo }}
                                         </div>
                                     </div>
-
                                     <div class="min-w-0 flex-1">
                                         <CardTitle
                                             class="mb-2 line-clamp-2 text-xl leading-tight font-bold transition-colors group-hover:text-red-600"
