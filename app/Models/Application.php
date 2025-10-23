@@ -11,7 +11,7 @@ class Application extends Model
     use HasFactory;
 
     protected $fillable = [
-        'job_id',
+        'job_posting_id',
         'candidate_id',
         'cover_letter',
         'cv_file',

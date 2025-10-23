@@ -13,10 +13,17 @@ class JobPostingController extends Controller // <-- Tên class phải chính x�
      */
     public function index()
     {
-        $jobs = JobPosting::published()
+        $query = JobPosting::published()
             ->with(['company', 'skills'])
-            ->orderBy('published_at', 'desc')
-            ->paginate(12)
+            ->orderBy('published_at', 'desc');
+
+        // Filter by featured if requested
+        if (request('featured')) {
+            $query->where('is_featured', true);
+        }
+
+        $jobs = $query->paginate(12)
+            ->withQueryString()
             ->through(function ($job) {
                 return [
                     'id' => $job->id,
@@ -37,6 +44,9 @@ class JobPostingController extends Controller // <-- Tên class phải chính x�
 
         return Inertia::render('client/JobsIndex', [
             'jobs' => $jobs,
+            'filters' => [
+                'featured' => request('featured', false),
+            ],
         ]);
     }
 
@@ -68,6 +78,8 @@ class JobPostingController extends Controller // <-- Tên class phải chính x�
                 'city' => $job->city,
                 'province' => $job->province,
                 'published_at' => $job->published_at,
+                'views' => $job->views,
+                'applications_count' => $job->applications_count,
                 'company' => $job->company ? [
                     'id' => $job->company->id,
                     'name' => $job->company->company_name,

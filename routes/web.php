@@ -17,6 +17,12 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/jobs', [JobPostingController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job_posting}', [JobPostingController::class, 'show'])->name('jobs.show');
 
+// Job Application Routes (require authentication)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/jobs/{job_posting}/apply', [\App\Http\Controllers\Client\ApplicationController::class, 'create'])->name('jobs.apply');
+    Route::post('/jobs/{job_posting}/apply', [\App\Http\Controllers\Client\ApplicationController::class, 'store'])->name('jobs.apply.store');
+});
+
 // Company Pages
 Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
 Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');

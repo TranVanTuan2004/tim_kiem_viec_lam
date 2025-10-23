@@ -30,7 +30,10 @@ const props = defineProps({
                         Cơ hội việc làm IT mới nhất
                     </p>
                 </div>
-                <Button variant="outline" @click="router.visit('/jobs')">
+                <Button
+                    variant="outline"
+                    @click="router.visit('/jobs?featured=1')"
+                >
                     Xem tất cả
                 </Button>
             </div>
