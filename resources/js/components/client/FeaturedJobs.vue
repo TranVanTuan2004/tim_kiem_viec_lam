@@ -8,6 +8,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
+import { useLanguage } from '@/composables/useLanguage';
 import { Link } from '@inertiajs/vue3';
 import { Building2, Clock, DollarSign, Heart, MapPin } from 'lucide-vue-next';
 import { defineProps } from 'vue';
@@ -18,6 +19,8 @@ const props = defineProps({
         default: () => [],
     },
 });
+
+const { t } = useLanguage();
 </script>
 
 <template>
@@ -48,13 +51,13 @@ const props = defineProps({
                             class="relative inline-flex h-2 w-2 rounded-full bg-red-500"
                         ></span>
                     </span>
-                    Hot Jobs
+                    {{ t.hotJobs }}
                 </div>
                 <h2 class="mb-3 text-4xl font-bold tracking-tight md:text-5xl">
-                    Việc làm <span class="text-red-600">nổi bật</span>
+                    {{ t.featuredJobs }}
                 </h2>
                 <p class="mx-auto max-w-2xl text-lg text-muted-foreground">
-                    Cơ hội việc làm IT hấp dẫn nhất từ các công ty hàng đầu
+                    {{ t.featuredJobsDescription }}
                 </p>
             </div>
 
