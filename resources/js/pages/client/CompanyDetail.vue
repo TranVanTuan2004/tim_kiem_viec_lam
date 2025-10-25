@@ -228,11 +228,7 @@ const getRatingPercentage = (starCount: number) => {
                                 v-if="companyData.website"
                                 variant="outline"
                                 @click="
-                                    () =>
-                                        (globalThis as any).window.open(
-                                            companyData.website,
-                                            '_blank',
-                                        )
+                                    window.open(companyData.website, '_blank')
                                 "
                             >
                                 <Globe class="mr-2 h-4 w-4" />

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
@@ -12,16 +11,23 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { usePermissions } from '@/composables/usePermissions';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Users, MessageSquare, CreditCard } from 'lucide-vue-next';
+import {
+    BookOpen,
+    CreditCard,
+    Folder,
+    LayoutGrid,
+    MessageSquare,
+    Users,
+} from 'lucide-vue-next';
+import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
-import { usePermissions } from '@/composables/usePermissions';
-import { defaultDocument } from '@vueuse/core';
 
 const { can, currentUser } = usePermissions();
-console.log(can('view users'))
+console.log(can('view users'));
 
 const mainNavItems: NavItem[] = [
     {
@@ -39,7 +45,7 @@ const mainNavItems: NavItem[] = [
         title: 'Chat',
         href: '/admin/chat',
         icon: MessageSquare,
-        permission: 'view messages', 
+        permission: 'view messages',
     },
     {
         title: 'Gói Dịch Vụ',
@@ -54,11 +60,11 @@ const mainNavItems: NavItem[] = [
         permission: 'view subscriptions',
     },
 ];
-console.log(currentUser.value)
+console.log(currentUser.value);
 
 // Filter items theo permission (giống @can trong Blade)
 const filteredMainNavItems = computed(() => {
-    return mainNavItems.filter(item => can(item.permission));
+    return mainNavItems.filter((item) => can(item.permission));
 });
 
 const footerNavItems: NavItem[] = [
