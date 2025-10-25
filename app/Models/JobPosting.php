@@ -138,6 +138,31 @@ class JobPosting extends Model
         });
     }
 
+    public function scopeSearch($query, $keyword)
+    {
+        if (!$keyword) {
+            return $query;
+        }
+
+        return $query->where(function($q) use ($keyword) {
+            $q->where('title', 'like', "%{$keyword}%")
+              ->orWhere('description', 'like', "%{$keyword}%");
+        });
+    }
+
+    public function scopeFilterByLocation($query, $location)
+    {
+        if (!$location) {
+            return $query;
+        }
+
+        return $query->where(function($q) use ($location) {
+            $q->where('location', 'like', "%{$location}%")
+              ->orWhere('city', 'like', "%{$location}%")
+              ->orWhere('province', 'like', "%{$location}%");
+        });
+    }
+
     // Helper methods
     public function getRouteKeyName()
     {
