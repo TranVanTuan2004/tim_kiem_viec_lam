@@ -1,25 +1,25 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import Table from '@/components/ui/table/Table.vue';
-import TableBody from '@/components/ui/table/TableBody.vue';
-import TableCell from '@/components/ui/table/TableCell.vue';
-import TableHead from '@/components/ui/table/TableHead.vue';
-import TableHeader from '@/components/ui/table/TableHeader.vue';
-import TableRow from '@/components/ui/table/TableRow.vue';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Search, MoreVertical, Edit, Trash2, Eye } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { Input } from '@/components/ui/input';
+import Table from '@/components/ui/table/Table.vue';
+import TableBody from '@/components/ui/table/TableBody.vue';
+import TableCell from '@/components/ui/table/TableCell.vue';
+import TableHead from '@/components/ui/table/TableHead.vue';
+import TableHeader from '@/components/ui/table/TableHeader.vue';
+import TableRow from '@/components/ui/table/TableRow.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { debounce } from 'lodash-es';
+import { Edit, Eye, MoreVertical, Plus, Search, Trash2 } from 'lucide-vue-next';
+import { ref, watch } from 'vue';
 
 interface User {
     id: number;
@@ -49,10 +49,14 @@ const props = defineProps<Props>();
 const search = ref(props.filters.search || '');
 
 const handleSearch = debounce(() => {
-    router.get('/admin/users', { search: search.value }, {
-        preserveState: true,
-        replace: true,
-    });
+    router.get(
+        '/admin/users',
+        { search: search.value },
+        {
+            preserveState: true,
+            replace: true,
+        },
+    );
 }, 300);
 
 watch(search, handleSearch);
@@ -80,7 +84,7 @@ const breadcrumbs = [
                         <CardTitle>Quản lý Users</CardTitle>
                         <Link href="/admin/users/create">
                             <Button>
-                                <Plus class="h-4 w-4 mr-2" />
+                                <Plus class="mr-2 h-4 w-4" />
                                 Thêm User
                             </Button>
                         </Link>
@@ -88,12 +92,14 @@ const breadcrumbs = [
                 </CardHeader>
                 <CardContent>
                     <!-- Search and Filters -->
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="relative flex-1 max-w-sm">
-                            <Search class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input 
+                    <div class="mb-6 flex items-center gap-4">
+                        <div class="relative max-w-sm flex-1">
+                            <Search
+                                class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+                            />
+                            <Input
                                 v-model="search"
-                                placeholder="Tìm kiếm theo tên, email..." 
+                                placeholder="Tìm kiếm theo tên, email..."
                                 class="pl-10"
                             />
                         </div>
@@ -109,17 +115,24 @@ const breadcrumbs = [
                                     <TableHead>Vai trò</TableHead>
                                     <TableHead>Trạng thái</TableHead>
                                     <TableHead>Ngày tạo</TableHead>
-                                    <TableHead class="text-right">Thao tác</TableHead>
+                                    <TableHead class="text-right"
+                                        >Thao tác</TableHead
+                                    >
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow v-for="user in users.data" :key="user.id">
-                                    <TableCell class="font-medium">{{ user.name }}</TableCell>
+                                <TableRow
+                                    v-for="user in users.data"
+                                    :key="user.id"
+                                >
+                                    <TableCell class="font-medium">{{
+                                        user.name
+                                    }}</TableCell>
                                     <TableCell>{{ user.email }}</TableCell>
                                     <TableCell>
                                         <div class="flex flex-wrap gap-1">
-                                            <Badge 
-                                                v-for="role in user.roles" 
+                                            <Badge
+                                                v-for="role in user.roles"
                                                 :key="role.id"
                                                 variant="secondary"
                                             >
@@ -128,38 +141,69 @@ const breadcrumbs = [
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge :variant="user.is_active ? 'default' : 'secondary'">
-                                            {{ user.is_active ? 'Active' : 'Inactive' }}
+                                        <Badge
+                                            :variant="
+                                                user.is_active
+                                                    ? 'default'
+                                                    : 'secondary'
+                                            "
+                                        >
+                                            {{
+                                                user.is_active
+                                                    ? 'Active'
+                                                    : 'Inactive'
+                                            }}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        {{ new Date(user.created_at).toLocaleDateString('vi-VN') }}
+                                        {{
+                                            new Date(
+                                                user.created_at,
+                                            ).toLocaleDateString('vi-VN')
+                                        }}
                                     </TableCell>
                                     <TableCell class="text-right">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger as-child>
-                                                <Button variant="ghost" size="icon">
-                                                    <MoreVertical class="h-4 w-4" />
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                >
+                                                    <MoreVertical
+                                                        class="h-4 w-4"
+                                                    />
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuItem as-child>
-                                                    <Link :href="`/admin/users/${user.id}`" class="flex items-center">
-                                                        <Eye class="h-4 w-4 mr-2" />
+                                                    <Link
+                                                        :href="`/admin/users/${user.id}`"
+                                                        class="flex items-center"
+                                                    >
+                                                        <Eye
+                                                            class="mr-2 h-4 w-4"
+                                                        />
                                                         Xem
                                                     </Link>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem as-child>
-                                                    <Link :href="`/admin/users/${user.id}/edit`" class="flex items-center">
-                                                        <Edit class="h-4 w-4 mr-2" />
+                                                    <Link
+                                                        :href="`/admin/users/${user.id}/edit`"
+                                                        class="flex items-center"
+                                                    >
+                                                        <Edit
+                                                            class="mr-2 h-4 w-4"
+                                                        />
                                                         Sửa
                                                     </Link>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem 
+                                                <DropdownMenuItem
                                                     @click="deleteUser(user.id)"
                                                     class="text-destructive"
                                                 >
-                                                    <Trash2 class="h-4 w-4 mr-2" />
+                                                    <Trash2
+                                                        class="mr-2 h-4 w-4"
+                                                    />
                                                     Xóa
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
@@ -171,13 +215,18 @@ const breadcrumbs = [
                     </div>
 
                     <!-- Pagination -->
-                    <div v-if="users.meta" class="flex items-center justify-between mt-4">
+                    <div
+                        v-if="users.meta"
+                        class="mt-4 flex items-center justify-between"
+                    >
                         <div class="text-sm text-muted-foreground">
-                            Hiển thị {{ users.meta.from || 0 }} - {{ users.meta.to || 0 }} / {{ users.meta.total || 0 }} users
+                            Hiển thị {{ users.meta.from || 0 }} -
+                            {{ users.meta.to || 0 }} /
+                            {{ users.meta.total || 0 }} users
                         </div>
                         <div class="flex gap-2">
-                            <Button 
-                                v-for="link in users.links" 
+                            <Button
+                                v-for="link in users.links"
                                 :key="link.label"
                                 :variant="link.active ? 'default' : 'outline'"
                                 :disabled="!link.url"
@@ -192,4 +241,3 @@ const breadcrumbs = [
         </div>
     </AppLayout>
 </template>
-
