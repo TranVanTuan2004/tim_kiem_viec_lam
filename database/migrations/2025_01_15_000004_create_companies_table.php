@@ -19,7 +19,7 @@ return new class extends Migration
             $table->text('description');
             $table->string('website')->nullable();
             $table->string('logo')->nullable();
-            $table->string('address');
+            $table->string('address')->nullable();
             $table->string('city');
             $table->string('province');
             $table->string('size')->nullable(); // 1-10, 11-50, 51-200, 200+
@@ -29,7 +29,7 @@ return new class extends Migration
             $table->boolean('is_verified')->default(false);
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['is_verified', 'rating']);
             $table->index(['city', 'province']);
             $table->index('user_id');

@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -13,32 +12,52 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Seed roles first
+        // Seed roles and permissions first
         $this->call([
             RoleSeeder::class,
+            PermissionSeeder::class,
+            CompanySeeder::class,
+            JobPostingSeeder::class,
+            ServicePackageSeeder::class,
         ]);
 
-        // User::factory(10)->create();
+        // Create or get test admin user
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@example.com'],
+            [
+                'name' => 'Admin User',
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+        if (! $admin->hasRole('Admin')) {
+            $admin->assignRole('Admin');
+        }
 
-        // Create test admin user
-        $admin = User::factory()->create([
-            'name' => 'Admin User',
-            'email' => 'admin@example.com',
-        ]);
-        $admin->assignRole('admin');
+        // Create or get test employer user
+        $employer = User::firstOrCreate(
+            ['email' => 'employer@example.com'],
+            [
+                'name' => 'Employer User',
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+        if (! $employer->hasRole('Employer')) {
+            $employer->assignRole('Employer');
+        }
 
-        // Create test employer user
-        $employer = User::factory()->create([
-            'name' => 'Employer User',
-            'email' => 'employer@example.com',
-        ]);
-        $employer->assignRole('employer');
-
-        // Create test candidate user
-        $candidate = User::factory()->create([
-            'name' => 'Candidate User',
-            'email' => 'candidate@example.com',
-        ]);
-        $candidate->assignRole('candidate');
+        // Create or get test candidate user
+        $candidate = User::firstOrCreate(
+            ['email' => 'candidate@example.com'],
+            [
+                'name' => 'Candidate User',
+                'password' => bcrypt('password'),
+                'email_verified_at' => now(),
+            ]
+        );
+        if (! $candidate->hasRole('Candidate')) {
+            $candidate->assignRole('Candidate');
+        }
     }
 }

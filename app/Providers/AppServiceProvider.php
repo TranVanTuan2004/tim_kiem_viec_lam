@@ -2,11 +2,13 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\URL;
+use Inertia\Inertia;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -34,5 +36,6 @@ class AppServiceProvider extends ServiceProvider
                 ]
             );
         });
+        Vite::prefetch(concurrency: 3);
     }
 }
