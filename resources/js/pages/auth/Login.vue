@@ -9,12 +9,21 @@ import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { register } from '@/routes';
 import { request } from '@/routes/password';
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, usePage } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
+import type { PageProps } from '@inertiajs/core';
 
 defineProps<{
     status?: string;
     canResetPassword: boolean;
+}>();
+
+// ✅ Khai báo kiểu dữ liệu cho flash message để tránh lỗi TypeScript
+const page = usePage<PageProps & {
+    flash?: {
+        success?: string;
+        error?: string;
+    };
 }>();
 </script>
 
@@ -24,6 +33,23 @@ defineProps<{
         description="Nhập email và mật khẩu của bạn bên dưới để đăng nhập"
     >
         <Head title="Đăng nhập" />
+
+        <!-- Thông báo lỗi hoặc thành công từ server -->
+        <div
+            v-if="page.props.flash?.error"
+            class="mb-4 text-center text-sm font-medium text-red-600 bg-red-50 p-3 rounded-md border border-red-200"
+        >
+            {{ page.props.flash.error }}
+        </div>
+
+        <div
+            v-if="page.props.flash?.success"
+            class="mb-4 text-center text-sm font-medium text-green-600 bg-green-50 p-3 rounded-md border border-green-200"
+        >
+            {{ page.props.flash.success }}
+        </div>
+
+
 
         <div
             v-if="status"
@@ -122,13 +148,13 @@ defineProps<{
                     Đăng nhập với Google
                 </Button>
 
-                <Button
+                <!-- <Button
                     as="a"
                     href="/auth/facebook"
                     class="bg-blue-600 hover:bg-blue-700 text-white w-full"
                 >
                     Đăng nhập với Facebook
-                </Button>
+                </Button> -->
             </div>
 
             <div class="text-center text-sm text-muted-foreground">
