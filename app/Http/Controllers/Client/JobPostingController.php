@@ -22,6 +22,25 @@ class JobPostingController extends Controller // <-- Tên class phải chính x�
             $query->where('is_featured', true);
         }
 
+        // Search by keyword
+        if (request('q')) {
+            $keyword = request('q');
+            $query->where(function($q) use ($keyword) {
+                $q->where('title', 'like', "%{$keyword}%")
+                  ->orWhere('description', 'like', "%{$keyword}%");
+            });
+        }
+
+        // Filter by location
+        if (request('location')) {
+            $location = request('location');
+            $query->where(function($q) use ($location) {
+                $q->where('location', 'like', "%{$location}%")
+                  ->orWhere('city', 'like', "%{$location}%")
+                  ->orWhere('province', 'like', "%{$location}%");
+            });
+        }
+
         $jobs = $query->paginate(12)
             ->withQueryString()
             ->through(function ($job) {
@@ -46,6 +65,8 @@ class JobPostingController extends Controller // <-- Tên class phải chính x�
             'jobs' => $jobs,
             'filters' => [
                 'featured' => request('featured', false),
+                'q' => request('q', ''),
+                'location' => request('location', ''),
             ],
         ]);
     }

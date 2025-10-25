@@ -28,6 +28,23 @@ Route::get('/companies', [CompanyController::class, 'index'])->name('companies.i
 Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
 Route::get('/companies/{company}/jobs', [CompanyController::class, 'jobs'])->name('companies.jobs');
 
+// Static Pages
+Route::get('/about', function () {
+    return Inertia::render('client/About');
+})->name('about');
+
+Route::get('/contact', function () {
+    return Inertia::render('client/Contact');
+})->name('contact');
+
+Route::get('/terms', function () {
+    return Inertia::render('client/Terms');
+})->name('terms');
+
+Route::get('/privacy', function () {
+    return Inertia::render('client/Privacy');
+})->name('privacy');
+
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');

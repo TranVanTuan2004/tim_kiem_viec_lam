@@ -21,8 +21,9 @@ import {
     MapPin,
     Search,
     TrendingUp,
+    X,
 } from 'lucide-vue-next';
-import { defineProps, ref } from 'vue';
+import { computed, defineProps, ref } from 'vue';
 
 const props = defineProps({
     jobs: {
@@ -33,15 +34,32 @@ const props = defineProps({
         type: Object,
         default: () => ({
             featured: false,
+            q: '',
+            location: '',
         }),
     },
 });
 
 const showFilters = ref(false);
+
+const pageTitle = computed(() =>
+    props.filters.featured ? 'Việc làm nổi bật' : 'Tất cả việc làm IT',
+);
+
+const pageDescription = computed(() => {
+    const total = props.jobs.total || 0;
+    return props.filters.featured
+        ? `Khám phá ${total} việc làm nổi bật`
+        : `Khám phá ${total} cơ hội việc làm tuyệt vời`;
+});
+
+const hasActiveFilters = computed(
+    () => props.filters.featured || props.filters.q || props.filters.location,
+);
 </script>
 
 <template>
-    <ClientLayout title="Tất cả việc làm - Job Portal">
+    <ClientLayout :title="pageTitle + ' - Job Portal'">
         <!-- Hero Section with Search -->
         <div
             class="relative overflow-hidden bg-gradient-to-br from-red-600 via-red-500 to-orange-500 py-16"
@@ -54,24 +72,52 @@ const showFilters = ref(false);
                     <div class="mb-4 flex items-center justify-center gap-3">
                         <Briefcase class="h-10 w-10" />
                         <h1 class="text-5xl font-bold tracking-tight">
-                            {{
-                                props.filters.featured
-                                    ? 'Việc làm nổi bật'
-                                    : 'Tất cả việc làm IT'
-                            }}
+                            {{ pageTitle }}
                         </h1>
                     </div>
                     <p class="mb-8 text-xl text-red-50">
-                        Khám phá
-                        <span class="font-bold text-white">{{
-                            props.jobs.total || 0
-                        }}</span>
-                        {{
-                            props.filters.featured
-                                ? 'việc làm nổi bật'
-                                : 'cơ hội việc làm tuyệt vời'
-                        }}
+                        {{ pageDescription }}
                     </p>
+
+                    <!-- Active Filters -->
+                    <div
+                        v-if="hasActiveFilters"
+                        class="mb-6 flex flex-wrap items-center justify-center gap-3"
+                    >
+                        <Badge
+                            v-if="filters.featured"
+                            class="gap-2 bg-white/20 px-4 py-2 text-sm text-white backdrop-blur-sm"
+                        >
+                            ⭐ Việc làm nổi bật
+                            <Link href="/jobs" class="hover:opacity-75">
+                                <X class="h-3 w-3" />
+                            </Link>
+                        </Badge>
+                        <Badge
+                            v-if="filters.q"
+                            class="gap-2 bg-white/20 px-4 py-2 text-sm text-white backdrop-blur-sm"
+                        >
+                            Từ khóa: {{ filters.q }}
+                            <Link
+                                :href="`/jobs?${filters.location ? 'location=' + filters.location : ''}`"
+                                class="hover:opacity-75"
+                            >
+                                <X class="h-3 w-3" />
+                            </Link>
+                        </Badge>
+                        <Badge
+                            v-if="filters.location"
+                            class="gap-2 bg-white/20 px-4 py-2 text-sm text-white backdrop-blur-sm"
+                        >
+                            Địa điểm: {{ filters.location }}
+                            <Link
+                                :href="`/jobs?${filters.q ? 'q=' + filters.q : ''}`"
+                                class="hover:opacity-75"
+                            >
+                                <X class="h-3 w-3" />
+                            </Link>
+                        </Badge>
+                    </div>
 
                     <!-- Search Bar -->
                     <div class="mx-auto flex max-w-2xl gap-2">

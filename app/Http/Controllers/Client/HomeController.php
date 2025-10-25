@@ -26,7 +26,7 @@ class HomeController extends Controller
                     'title' => $job->title,
                     'company' => $job->company->company_name ?? 'Công ty',
                     'company_logo' => $job->company->logo ?? null,
-                    'logo' => '🏢', // Default logo emoji as fallback
+                    'logo' => $this->getCompanyEmoji($job->company),
                     'location' => $job->location ?? $job->city ?? 'Nơi làm việc',
                     'salary' => $job->getSalaryRange(),
                     'type' => $job->employment_type ? str_replace('_', ' ', ucfirst($job->employment_type)) : 'Full-time',
@@ -64,5 +64,17 @@ class HomeController extends Controller
             'featuredJobs' => $featuredJobs,
             'topCompanies' => $topCompanies,
         ]);
+    }
+
+    /**
+     * Get company emoji based on company name
+     */
+    private function getCompanyEmoji($company): string
+    {
+        if (!$company) return '🏢';
+        
+        $emojis = ['🏢', '💼', '🚀', '⚡', '🎯', '💻', '🔥', '⭐'];
+        $index = abs(crc32($company->company_name ?? 'default')) % count($emojis);
+        return $emojis[$index];
     }
 }
