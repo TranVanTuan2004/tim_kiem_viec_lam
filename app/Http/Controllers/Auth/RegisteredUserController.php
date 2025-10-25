@@ -52,6 +52,10 @@ class RegisteredUserController extends Controller
 
         $request->session()->regenerate();
 
-        return to_route('dashboard');
+        // ✅ Thêm dòng này để chuyển hướng tới trang xác minh email
+        return redirect()->route('verification.notice');
+
+        // (Giữ nguyên dòng dưới, nhưng nó sẽ không chạy nữa sau redirect ở trên)
+        // return to_route('dashboard');
     }
 }

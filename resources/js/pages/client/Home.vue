@@ -12,6 +12,10 @@ const props = defineProps({
         type: Array as () => any[],
         default: () => [],
     },
+    topCompanies: {
+        type: Array as () => any[],
+        default: () => [],
+    },
 });
 </script>
 
@@ -30,6 +34,6 @@ const props = defineProps({
         <FeaturedJobs :featured-jobs="props.featuredJobs" />
 
         <!-- Top Companies -->
-        <TopCompanies />
+        <TopCompanies :top-companies="props.topCompanies" />
     </ClientLayout>
 </template>

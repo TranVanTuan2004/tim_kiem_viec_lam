@@ -3,17 +3,21 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ClientLayout from '@/layouts/ClientLayout.vue';
-import { Link, router } from '@inertiajs/vue3';
+import jobs from '@/routes/jobs';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import {
     Award,
+    Bookmark,
     Briefcase,
     Calendar,
     Clock,
     DollarSign,
+    Eye,
     MapPin,
+    Share2,
     Users,
 } from 'lucide-vue-next';
-import { computed, defineProps } from 'vue';
+import { computed, defineProps, ref } from 'vue';
 
 const props = defineProps({
     job: {
@@ -21,6 +25,13 @@ const props = defineProps({
         required: true,
     },
 });
+
+const page = usePage();
+const auth = computed(() => page.props.auth);
+
+// State
+const isSaved = ref(false);
+const isSharing = ref(false);
 
 // Computed safe accessors with fallbacks
 const jobData = computed(() => props.job || {});
@@ -78,6 +89,45 @@ const quantityText = computed(() => jobData.value.quantity ?? '1');
 const locationText = computed(
     () => jobData.value.location || jobData.value.city || 'Nơi làm việc',
 );
+
+// Methods
+const toggleSaveJob = () => {
+    if (!auth.value.user) {
+        router.visit('/login');
+        return;
+    }
+
+    // TODO: Implement save job API
+    isSaved.value = !isSaved.value;
+
+    if (isSaved.value) {
+        // Show success message
+        console.log('Job saved!');
+    } else {
+        console.log('Job unsaved!');
+    }
+};
+
+const shareJob = () => {
+    if (navigator.share) {
+        navigator
+            .share({
+                title: jobData.value.title,
+                text: `Check out this job: ${jobData.value.title} at ${companyName.value}`,
+                url: window.location.href,
+            })
+            .then(() => {
+                console.log('Shared successfully');
+            })
+            .catch((error) => {
+                console.log('Error sharing:', error);
+            });
+    } else {
+        // Fallback: Copy to clipboard
+        navigator.clipboard.writeText(window.location.href);
+        alert('Link copied to clipboard!');
+    }
+};
 </script>
 
 <template>
@@ -86,22 +136,51 @@ const locationText = computed(
             <div class="container mx-auto px-4 py-12">
                 <!-- Header -->
                 <div class="mb-8">
-                    <h1 class="mb-2 text-4xl font-bold tracking-tight">
-                        {{ jobData.title || 'Untitled' }}
-                    </h1>
-                    <div
-                        class="flex items-center space-x-4 text-muted-foreground"
-                    >
-                        <Link
-                            :href="`/companies/${jobData.company?.slug || 'techcorp-vietnam'}`"
-                            class="cursor-pointer transition-colors hover:text-primary"
-                        >
-                            {{ companyName }}
-                        </Link>
-                        <span class="flex items-center"
-                            ><MapPin class="mr-1 h-4 w-4" />
-                            {{ locationText }}</span
-                        >
+                    <div class="flex items-start justify-between gap-4">
+                        <div class="flex-1">
+                            <h1 class="mb-2 text-4xl font-bold tracking-tight">
+                                {{ jobData.title || 'Untitled' }}
+                            </h1>
+                            <div
+                                class="flex items-center space-x-4 text-muted-foreground"
+                            >
+                                <Link
+                                    :href="`/companies/${jobData.company?.slug || 'techcorp-vietnam'}`"
+                                    class="cursor-pointer transition-colors hover:text-primary"
+                                >
+                                    {{ companyName }}
+                                </Link>
+                                <span class="flex items-center"
+                                    ><MapPin class="mr-1 h-4 w-4" />
+                                    {{ locationText }}</span
+                                >
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex gap-2">
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                @click="toggleSaveJob"
+                                :class="{
+                                    'bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-950 dark:text-red-400':
+                                        isSaved,
+                                }"
+                            >
+                                <Bookmark
+                                    :class="{ 'fill-current': isSaved }"
+                                    class="h-5 w-5"
+                                />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                @click="shareJob"
+                            >
+                                <Share2 class="h-5 w-5" />
+                            </Button>
+                        </div>
                     </div>
                 </div>
 
@@ -156,6 +235,35 @@ const locationText = computed(
 
                     <!-- Sidebar -->
                     <div class="space-y-6">
+                        <!-- Company Card -->
+                        <Card v-if="jobData.company">
+                            <CardHeader>
+                                <CardTitle>About Company</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Link
+                                    :href="`/companies/${jobData.company.slug}`"
+                                    class="group block"
+                                >
+                                    <div class="space-y-3">
+                                        <h3
+                                            class="text-lg font-semibold transition-colors group-hover:text-red-600"
+                                        >
+                                            {{ companyName }}
+                                        </h3>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            class="w-full"
+                                        >
+                                            View Company Profile →
+                                        </Button>
+                                    </div>
+                                </Link>
+                            </CardContent>
+                        </Card>
+
+                        <!-- Job Overview Card -->
                         <Card>
                             <CardHeader>
                                 <CardTitle>Job Overview</CardTitle>
@@ -255,10 +363,54 @@ const locationText = computed(
                             </CardContent>
                         </Card>
 
+                        <!-- Job Statistics (if available) -->
+                        <Card
+                            v-if="jobData.views || jobData.applications_count"
+                        >
+                            <CardHeader>
+                                <CardTitle>Job Statistics</CardTitle>
+                            </CardHeader>
+                            <CardContent class="space-y-3 text-sm">
+                                <div
+                                    v-if="jobData.views"
+                                    class="flex items-center justify-between"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <Eye
+                                            class="h-4 w-4 text-muted-foreground"
+                                        />
+                                        <span class="text-muted-foreground"
+                                            >Views</span
+                                        >
+                                    </div>
+                                    <span class="font-semibold">{{
+                                        jobData.views
+                                    }}</span>
+                                </div>
+                                <div
+                                    v-if="jobData.applications_count"
+                                    class="flex items-center justify-between"
+                                >
+                                    <div class="flex items-center gap-2">
+                                        <Users
+                                            class="h-4 w-4 text-muted-foreground"
+                                        />
+                                        <span class="text-muted-foreground"
+                                            >Applicants</span
+                                        >
+                                    </div>
+                                    <span class="font-semibold">{{
+                                        jobData.applications_count
+                                    }}</span>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        <!-- Apply Button -->
                         <Button
                             size="lg"
                             class="w-full bg-red-600 hover:bg-red-700"
-                            @click="router.visit(`/jobs/${jobData.slug}/apply`)"
+                            @click="router.visit(jobs.apply(jobData.slug).url)"
                             >Apply Now</Button
                         >
                     </div>

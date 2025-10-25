@@ -13,13 +13,37 @@ use App\Http\Controllers\Admin\SubscriptionController;
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// Job Detail Page
+// Job Pages
+Route::get('/jobs', [JobPostingController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job_posting}', [JobPostingController::class, 'show'])->name('jobs.show');
+
+// Job Application Routes (require authentication)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/jobs/{job_posting}/apply', [\App\Http\Controllers\Client\ApplicationController::class, 'create'])->name('jobs.apply');
+    Route::post('/jobs/{job_posting}/apply', [\App\Http\Controllers\Client\ApplicationController::class, 'store'])->name('jobs.apply.store');
+});
 
 // Company Pages
 Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
 Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
 Route::get('/companies/{company}/jobs', [CompanyController::class, 'jobs'])->name('companies.jobs');
+
+// Static Pages
+Route::get('/about', function () {
+    return Inertia::render('client/About');
+})->name('about');
+
+Route::get('/contact', function () {
+    return Inertia::render('client/Contact');
+})->name('contact');
+
+Route::get('/terms', function () {
+    return Inertia::render('client/Terms');
+})->name('terms');
+
+Route::get('/privacy', function () {
+    return Inertia::render('client/Privacy');
+})->name('privacy');
 
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
