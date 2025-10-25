@@ -4,6 +4,9 @@ import { Input } from '@/components/ui/input';
 import { router } from '@inertiajs/vue3';
 import { Briefcase, MapPin, Search, TrendingUp, Users } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
+import { useLanguage } from '@/composables/useLanguage';
+
+const { t } = useLanguage();
 
 const searchQuery = ref('');
 const location = ref('');
@@ -79,14 +82,14 @@ const quickSearch = (keyword: string) => {
                         class="inline-flex items-center gap-2 rounded-full bg-white/20 px-4 py-2 text-sm font-medium text-white backdrop-blur-sm"
                     >
                         <TrendingUp class="h-4 w-4" />
-                        <span>1000+ việc làm mới mỗi tuần</span>
+                        <span>{{ t.newJobsPerWeek }}</span>
                     </div>
                 </div>
 
                 <h1
                     class="mb-4 text-4xl font-bold tracking-tight text-white md:text-6xl lg:text-7xl"
                 >
-                    Tìm việc làm
+                    {{ t.findJobs }}
                     <div class="mt-2 inline-block">
                         <span class="text-yellow-300">{{ currentText }}</span>
                         <span class="animate-pulse text-yellow-300">|</span>
@@ -94,8 +97,7 @@ const quickSearch = (keyword: string) => {
                 </h1>
 
                 <p class="mb-12 text-xl text-white/90 md:text-2xl">
-                    Kết nối với <span class="font-bold">1000+</span> cơ hội việc
-                    làm IT từ các công ty hàng đầu
+                    {{ t.connectWithOver1000ITJobOpportunitiesFromTopCompanies }}
                 </p>
 
                 <!-- Search Box -->

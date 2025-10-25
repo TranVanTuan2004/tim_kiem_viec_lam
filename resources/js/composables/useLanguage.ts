@@ -16,6 +16,8 @@ export const translations = {
         register: 'Đăng ký',
         dashboard: 'Dashboard',
 
+        connectWithOver1000ITJobOpportunitiesFromTopCompanies: 'Kết nối với hơn 1000 cơ hội việc làm IT từ các công ty hàng đầu',
+        newJobsPerWeek: '1000+ việc làm mới mỗi tuần',
         // Common
         jobPortal: 'Job Portal',
         search: 'Tìm kiếm',
@@ -180,6 +182,9 @@ export const translations = {
         login: 'Login',
         register: 'Sign Up',
         dashboard: 'Dashboard',
+        newJobsPerWeek: '1000+ new jobs per week',
+
+        connectWithOver1000ITJobOpportunitiesFromTopCompanies: 'Connect with over 1000 IT job opportunities from top companies',
 
         // Common
         jobPortal: 'Job Portal',
