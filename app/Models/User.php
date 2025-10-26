@@ -105,10 +105,10 @@ class User extends Authenticatable implements MustVerifyEmail
         return $query->where('is_active', true);
     }
 
-    public function scopeWithRole($query, $roleSlug)
+    public function scopeWithRole($query, $roleName)
     {
-        return $query->whereHas('roles', function ($q) use ($roleSlug) {
-            $q->where('slug', $roleSlug);
+        return $query->whereHas('roles', function ($q) use ($roleName) {
+            $q->where('name', $roleName);
         });
     }
 

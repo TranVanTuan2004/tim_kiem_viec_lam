@@ -16,6 +16,10 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             PermissionSeeder::class,
+        ]);
+
+        // Seed data
+        $this->call([
             CompanySeeder::class,
             JobPostingSeeder::class,
             ServicePackageSeeder::class,
@@ -28,6 +32,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Admin User',
                 'password' => bcrypt('password'),
                 'email_verified_at' => now(),
+                'is_active' => true,
             ]
         );
         if (! $admin->hasRole('Admin')) {
@@ -41,6 +46,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Employer User',
                 'password' => bcrypt('password'),
                 'email_verified_at' => now(),
+                'is_active' => true,
             ]
         );
         if (! $employer->hasRole('Employer')) {
@@ -54,6 +60,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Candidate User',
                 'password' => bcrypt('password'),
                 'email_verified_at' => now(),
+                'is_active' => true,
             ]
         );
         if (! $candidate->hasRole('Candidate')) {
