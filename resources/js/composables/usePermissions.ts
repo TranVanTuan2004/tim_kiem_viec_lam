@@ -98,7 +98,7 @@ export function usePermissions() {
     
     return {
         currentUser,
-        can, // Giống @can trong Blade
+        can,
         hasRole,
         hasAnyRole,
         hasAllRoles,

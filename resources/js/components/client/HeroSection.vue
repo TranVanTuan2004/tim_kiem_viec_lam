@@ -5,7 +5,7 @@ import { router } from '@inertiajs/vue3';
 import { Briefcase, MapPin, Search, TrendingUp, Users } from 'lucide-vue-next';
 import { onMounted, ref } from 'vue';
 import { useLanguage } from '@/composables/useLanguage';
-
+import LocationSelector from './LocationSelector.vue';
 const { t } = useLanguage();
 
 const searchQuery = ref('');
@@ -120,11 +120,10 @@ const quickSearch = (keyword: string) => {
                             <MapPin
                                 class="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-muted-foreground"
                             />
-                            <Input
-                                v-model="location"
-                                placeholder="Địa điểm: Hà Nội, TP.HCM..."
-                                class="h-14 pl-10 text-base"
-                                @keyup.enter="handleSearch"
+                            <LocationSelector
+                            v-model="location"
+                            placeholder="Chọn địa điểm..."
+                            @search="handleSearch"
                             />
                         </div>
                         <Button
