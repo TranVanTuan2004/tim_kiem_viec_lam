@@ -22,6 +22,7 @@ import {
     CreditCard,
     FileText,
     Folder,
+    Home,
     LayoutGrid,
     MessageSquare,
     User,
@@ -45,6 +46,11 @@ const getDashboardLink = () => {
 
 // Define different navigation items for different roles
 const candidateNavItems: NavItem[] = [
+    {
+        title: 'Home',
+        href: '/',
+        icon: Home,
+    },
     {
         title: 'Dashboard',
         href: '/candidate/dashboard',
@@ -73,6 +79,11 @@ const candidateNavItems: NavItem[] = [
 ];
 
 const adminNavItems: NavItem[] = [
+    {
+        title: 'Home',
+        href: '/',
+        icon: Home,
+    },
     {
         title: 'Dashboard',
         href: dashboard(),

@@ -150,13 +150,7 @@
                                         />
                                         <div>
                                             <Link
-                                                :href="
-                                                    route(
-                                                        'jobs.show',
-                                                        application.job_posting
-                                                            .id,
-                                                    )
-                                                "
+                                                :href="`/jobs/${application.job_posting.id}`"
                                                 class="text-xl font-semibold text-gray-900 hover:text-blue-600"
                                             >
                                                 {{
@@ -203,12 +197,7 @@
                                 </div>
                                 <div class="ml-4 flex items-center space-x-2">
                                     <Link
-                                        :href="
-                                            route(
-                                                'candidate.applications.show',
-                                                application.id,
-                                            )
-                                        "
+                                        :href="`/candidate/applications/${application.id}`"
                                         class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                                     >
                                         View Details
@@ -255,7 +244,7 @@
                             </p>
                             <div class="mt-6">
                                 <Link
-                                    :href="route('jobs.index')"
+                                    href="/jobs"
                                     class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
                                 >
                                     Browse Jobs
@@ -338,7 +327,7 @@ const getStatusClass = (status: string) => {
 };
 
 const applyFilters = () => {
-    router.get(route('candidate.applications.index'), localFilters, {
+    router.get('/candidate/applications', localFilters, {
         preserveState: true,
         preserveScroll: true,
     });
@@ -354,7 +343,7 @@ const debounceSearch = () => {
 const withdrawApplication = (id: number) => {
     if (confirm('Are you sure you want to withdraw this application?')) {
         router.post(
-            route('candidate.applications.withdraw', id),
+            `/candidate/applications/${id}/withdraw`,
             {},
             {
                 preserveScroll: true,

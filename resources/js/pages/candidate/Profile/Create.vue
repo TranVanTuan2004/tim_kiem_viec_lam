@@ -155,22 +155,19 @@
                                             <option value="">
                                                 Select Experience Level
                                             </option>
-                                            <option value="entry">
-                                                Entry Level
+                                            <option value="fresher">
+                                                Fresher
                                             </option>
                                             <option value="junior">
                                                 Junior
                                             </option>
-                                            <option value="mid">
-                                                Mid Level
+                                            <option value="middle">
+                                                Middle Level
                                             </option>
                                             <option value="senior">
                                                 Senior
                                             </option>
                                             <option value="lead">Lead</option>
-                                            <option value="executive">
-                                                Executive
-                                            </option>
                                         </select>
                                     </div>
 
