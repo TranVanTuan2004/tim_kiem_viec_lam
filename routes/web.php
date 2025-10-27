@@ -5,6 +5,8 @@ use App\Http\Controllers\Client\CompanyController;
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Candidate\PortfolioController;
 use App\Http\Controllers\Candidate\DashboardController;
+use App\Http\Controllers\Employer\DashboardController as EmployerDashboardController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Candidate\ProfileController;
 use App\Http\Controllers\Candidate\ApplicationController;
 use App\Http\Controllers\Candidate\SavedJobController;
@@ -57,17 +59,26 @@ Route::get('dashboard', function () {
     if ($user->hasRole('Candidate')) {
         return redirect()->route('candidate.dashboard');
     } elseif ($user->hasRole('Employer')) {
-        return redirect()->route('employer.dashboard'); // Update when employer dashboard is ready
+        return redirect()->route('employer.dashboard');
     } elseif ($user->hasRole('Admin')) {
-        return Inertia::render('Dashboard'); // Admin dashboard
+        return redirect()->route('admin.dashboard');
     }
     // Default fallback
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
+// Employer Routes
+Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer'])->group(function () {
+    // Dashboard
+    Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
+});
+
 // Admin Routes - Using Spatie Permission
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
+    // Dashboard
+    Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    
     // User Management - Only admin
     Route::resource('users', UserController::class)->middleware('permission:view users');
     
