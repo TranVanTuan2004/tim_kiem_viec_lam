@@ -9,6 +9,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ChatController;
 use App\Http\Controllers\SupportChatController;
 use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\Employer\PostingController;
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -83,6 +84,21 @@ Route::middleware(['auth'])->group(function () {
     Route::post('support/send', [SupportChatController::class, 'send'])->name('support.send');
     Route::post('support/messages/{message}/read', [SupportChatController::class, 'markAsRead'])->name('support.mark-read');
 });
+
+Route::prefix('employer')->name('employer.')->group(function () {
+    // Danh sách tin tuyển dụng
+    Route::get('posting', [PostingController::class, 'index'])->name('postings.index');
+
+    // Tạo tin mới
+    Route::get('posting/create', [PostingController::class, 'create'])->name('postings.create');
+    Route::post('posting', [PostingController::class, 'store'])->name('postings.store');
+
+    // Chi tiết tin tuyển dụng
+    Route::get('posting/{id}', [PostingController::class, 'show'])->name('postings.show');
+});
+
+
+
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
