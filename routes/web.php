@@ -3,6 +3,11 @@
 use App\Http\Controllers\Client\JobPostingController;
 use App\Http\Controllers\Client\CompanyController;
 use App\Http\Controllers\Client\HomeController;
+use App\Http\Controllers\Candidate\PortfolioController;
+use App\Http\Controllers\Candidate\DashboardController;
+use App\Http\Controllers\Candidate\ProfileController;
+use App\Http\Controllers\Candidate\ApplicationController;
+use App\Http\Controllers\Candidate\SavedJobController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\UserController;
@@ -46,6 +51,19 @@ Route::get('/privacy', function () {
     return Inertia::render('client/Privacy');
 })->name('privacy');
 
+Route::get('dashboard', function () {
+    $user = auth()->user();
+    // Redirect based on user role
+    if ($user->hasRole('Candidate')) {
+        return redirect()->route('candidate.dashboard');
+    } elseif ($user->hasRole('Employer')) {
+        return redirect()->route('employer.dashboard'); // Update when employer dashboard is ready
+    } elseif ($user->hasRole('Admin')) {
+        return Inertia::render('Dashboard'); // Admin dashboard
+    }
+    // Default fallback
+    return Inertia::render('Dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 Route::get('dashboard', [DashboardController::class, 'index'])->middleware(['auth', 'verified'])->name('dashboard');
 
 // Admin Routes - Using Spatie Permission
@@ -104,6 +122,36 @@ Route::middleware(['auth'])->group(function () {
     Route::get('support/messages', [SupportChatController::class, 'messages'])->name('support.messages');
     Route::post('support/send', [SupportChatController::class, 'send'])->name('support.send');
     Route::post('support/messages/{message}/read', [SupportChatController::class, 'markAsRead'])->name('support.mark-read');
+});
+
+// Candidate Routes - All candidate features
+Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'role:Candidate'])->group(function () {
+    // Dashboard
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Profile Management
+    Route::get('profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::get('profile/create', [ProfileController::class, 'create'])->name('profile.create');
+    Route::post('profile', [ProfileController::class, 'store'])->name('profile.store');
+    Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('profile/toggle-availability', [ProfileController::class, 'toggleAvailability'])->name('profile.toggle-availability');
+    
+    // Applications Management
+    Route::get('applications', [ApplicationController::class, 'index'])->name('applications.index');
+    Route::get('applications/{application}', [ApplicationController::class, 'show'])->name('applications.show');
+    Route::post('applications/{application}/withdraw', [ApplicationController::class, 'withdraw'])->name('applications.withdraw');
+    
+    // Saved Jobs Management
+    Route::get('saved-jobs', [SavedJobController::class, 'index'])->name('saved-jobs.index');
+    Route::post('saved-jobs/{job}/toggle', [SavedJobController::class, 'toggle'])->name('saved-jobs.toggle');
+    Route::delete('saved-jobs/{job}', [SavedJobController::class, 'destroy'])->name('saved-jobs.destroy');
+    
+    // Portfolio Management
+    Route::resource('portfolios', PortfolioController::class);
+    Route::post('portfolios/reorder', [PortfolioController::class, 'reorder'])->name('portfolios.reorder');
+    Route::post('portfolios/{portfolio}/toggle-featured', [PortfolioController::class, 'toggleFeatured'])->name('portfolios.toggle-featured');
+    Route::post('portfolios/{portfolio}/toggle-public', [PortfolioController::class, 'togglePublic'])->name('portfolios.toggle-public');
 });
 
 require __DIR__ . '/settings.php';

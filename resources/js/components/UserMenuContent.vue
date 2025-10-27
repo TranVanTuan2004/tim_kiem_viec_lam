@@ -10,17 +10,59 @@ import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
-import { LogOut, Settings } from 'lucide-vue-next';
+import { Briefcase, LogOut, Settings, User as UserIcon } from 'lucide-vue-next';
+import { computed } from 'vue';
 
 interface Props {
     user: User;
 }
 
+const props = defineProps<Props>();
+
 const handleLogout = () => {
-    router.flushAll();
+    router.post(
+        logout.url(),
+        {},
+        {
+            onFinish: () => router.flushAll(),
+        },
+    );
 };
 
-defineProps<Props>();
+// Determine user role and profile link
+const isCandidate = computed(() =>
+    props.user.roles?.some((role) => role.name === 'Candidate'),
+);
+
+const isEmployer = computed(() =>
+    props.user.roles?.some((role) => role.name === 'Employer'),
+);
+
+const isAdmin = computed(() =>
+    props.user.roles?.some((role) => role.name === 'Admin'),
+);
+
+const profileLink = computed(() => {
+    if (isCandidate.value) {
+        return '/candidate/profile';
+    } else if (isEmployer.value) {
+        return '/employer/profile'; // Update this when employer profile is ready
+    } else if (isAdmin.value) {
+        return edit(); // Admin uses settings page
+    }
+    return edit(); // Fallback to settings
+});
+
+const dashboardLink = computed(() => {
+    if (isCandidate.value) {
+        return '/candidate/dashboard';
+    } else if (isEmployer.value) {
+        return '/dashboard'; // Update this when employer dashboard is ready
+    } else if (isAdmin.value) {
+        return '/dashboard';
+    }
+    return '/dashboard';
+});
 </script>
 
 <template>
@@ -31,7 +73,29 @@ defineProps<Props>();
     </DropdownMenuLabel>
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
+        <!-- Dashboard Link for Candidates -->
+        <DropdownMenuItem v-if="isCandidate" :as-child="true">
+            <Link
+                class="block w-full"
+                :href="dashboardLink"
+                prefetch
+                as="button"
+            >
+                <Briefcase class="mr-2 h-4 w-4" />
+                Dashboard
+            </Link>
+        </DropdownMenuItem>
+
+        <!-- Profile Link -->
         <DropdownMenuItem :as-child="true">
+            <Link class="block w-full" :href="profileLink" prefetch as="button">
+                <UserIcon class="mr-2 h-4 w-4" />
+                {{ isCandidate ? 'My Profile' : 'Profile' }}
+            </Link>
+        </DropdownMenuItem>
+
+        <!-- Settings Link (for Admin) -->
+        <DropdownMenuItem v-if="isAdmin" :as-child="true">
             <Link class="block w-full" :href="edit()" prefetch as="button">
                 <Settings class="mr-2 h-4 w-4" />
                 Settings
@@ -39,16 +103,8 @@ defineProps<Props>();
         </DropdownMenuItem>
     </DropdownMenuGroup>
     <DropdownMenuSeparator />
-    <DropdownMenuItem :as-child="true">
-        <Link
-            class="block w-full"
-            :href="logout()"
-            @click="handleLogout"
-            as="button"
-            data-test="logout-button"
-        >
-            <LogOut class="mr-2 h-4 w-4" />
-            Log out
-        </Link>
+    <DropdownMenuItem @click="handleLogout">
+        <LogOut class="mr-2 h-4 w-4" />
+        Log out
     </DropdownMenuItem>
 </template>
