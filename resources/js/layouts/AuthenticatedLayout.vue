@@ -9,6 +9,9 @@ interface Props {
 withDefaults(defineProps<Props>(), {
     breadcrumbs: () => [],
 });
+
+// Debug: Log current page info
+console.log('AuthenticatedLayout loaded for:', window.location.pathname);
 </script>
 
 <template>

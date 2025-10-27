@@ -97,23 +97,13 @@
                                             >
                                                 <div class="flex-1">
                                                     <Link
-                                                        :href="
-                                                            route(
-                                                                'jobs.show',
-                                                                job.id,
-                                                            )
-                                                        "
+                                                        :href="`/jobs/${job.id}`"
                                                         class="text-xl font-semibold text-gray-900 hover:text-blue-600"
                                                     >
                                                         {{ job.title }}
                                                     </Link>
                                                     <Link
-                                                        :href="
-                                                            route(
-                                                                'companies.show',
-                                                                job.company.id,
-                                                            )
-                                                        "
+                                                        :href="`/companies/${job.company.id}`"
                                                         class="mt-1 block text-gray-600 hover:text-blue-600"
                                                     >
                                                         {{ job.company.name }}
@@ -232,24 +222,14 @@
                                                 class="mt-4 flex items-center space-x-3"
                                             >
                                                 <Link
-                                                    :href="
-                                                        route(
-                                                            'jobs.show',
-                                                            job.id,
-                                                        )
-                                                    "
+                                                    :href="`/jobs/${job.id}`"
                                                     class="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
                                                 >
                                                     View Details
                                                 </Link>
                                                 <Link
                                                     v-if="!job.has_applied"
-                                                    :href="
-                                                        route(
-                                                            'jobs.apply',
-                                                            job.id,
-                                                        )
-                                                    "
+                                                    :href="`/jobs/${job.id}/apply`"
                                                     class="rounded-md border border-blue-600 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
                                                 >
                                                     Apply Now
@@ -301,7 +281,7 @@
                             </p>
                             <div class="mt-6">
                                 <Link
-                                    :href="route('jobs.index')"
+                                    href="/jobs"
                                     class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
                                 >
                                     Browse Jobs
@@ -382,7 +362,7 @@ const stripHtml = (html: string) => {
 };
 
 const applyFilters = () => {
-    router.get(route('candidate.saved-jobs.index'), localFilters, {
+    router.get('/candidate/saved-jobs', localFilters, {
         preserveState: true,
         preserveScroll: true,
     });
@@ -396,7 +376,7 @@ const debounceSearch = () => {
 };
 
 const unsaveJob = (jobId: number) => {
-    router.delete(route('candidate.saved-jobs.destroy', jobId), {
+    router.delete(`/candidate/saved-jobs/${jobId}`, {
         preserveScroll: true,
         onSuccess: () => {
             // Handle success

@@ -7,7 +7,7 @@
                 <!-- Back Button -->
                 <div class="mb-6">
                     <Link
-                        :href="route('candidate.applications.index')"
+                        href="/candidate/applications"
                         class="inline-flex items-center text-blue-600 hover:text-blue-800"
                     >
                         <svg
@@ -85,13 +85,7 @@
                                             {{ application.job_posting.title }}
                                         </h3>
                                         <Link
-                                            :href="
-                                                route(
-                                                    'companies.show',
-                                                    application.job_posting
-                                                        .company.id,
-                                                )
-                                            "
+                                            :href="`/companies/${application.job_posting.company.id}`"
                                             class="text-lg text-blue-600 hover:text-blue-800"
                                         >
                                             {{
@@ -236,12 +230,7 @@
 
                                 <div class="mt-6">
                                     <Link
-                                        :href="
-                                            route(
-                                                'jobs.show',
-                                                application.job_posting.id,
-                                            )
-                                        "
+                                        :href="`/jobs/${application.job_posting.id}`"
                                         class="inline-flex items-center text-blue-600 hover:text-blue-800"
                                     >
                                         View Full Job Posting →
@@ -286,23 +275,13 @@
                             </div>
                             <div class="space-y-3 p-6">
                                 <Link
-                                    :href="
-                                        route(
-                                            'jobs.show',
-                                            application.job_posting.id,
-                                        )
-                                    "
+                                    :href="`/jobs/${application.job_posting.id}`"
                                     class="block w-full rounded-md bg-blue-600 px-4 py-2 text-center text-white hover:bg-blue-700"
                                 >
                                     View Job Posting
                                 </Link>
                                 <Link
-                                    :href="
-                                        route(
-                                            'companies.show',
-                                            application.job_posting.company.id,
-                                        )
-                                    "
+                                    :href="`/companies/${application.job_posting.company.id}`"
                                     class="block w-full rounded-md border border-gray-300 px-4 py-2 text-center text-gray-700 hover:bg-gray-50"
                                 >
                                     View Company
@@ -499,11 +478,11 @@ const formatSalary = (min: number, max: number) => {
 const withdrawApplication = () => {
     if (confirm('Are you sure you want to withdraw this application?')) {
         router.post(
-            route('candidate.applications.withdraw', application.id),
+            `/candidate/applications/${application.id}/withdraw`,
             {},
             {
                 onSuccess: () => {
-                    router.visit(route('candidate.applications.index'));
+                    router.visit('/candidate/applications');
                 },
             },
         );

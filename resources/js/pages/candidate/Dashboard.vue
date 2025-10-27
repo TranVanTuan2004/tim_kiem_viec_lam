@@ -279,7 +279,7 @@
                                 Recent Applications
                             </h2>
                             <Link
-                                :href="route('candidate.applications.index')"
+                                href="/candidate/applications"
                                 class="text-blue-600 hover:text-blue-800"
                             >
                                 View All
@@ -357,12 +357,7 @@
                                     </div>
                                 </div>
                                 <Link
-                                    :href="
-                                        route(
-                                            'candidate.applications.show',
-                                            application.id,
-                                        )
-                                    "
+                                    :href="`/candidate/applications/${application.id}`"
                                     class="ml-4 text-blue-600 hover:text-blue-800"
                                 >
                                     View Details
@@ -427,7 +422,7 @@
                                         </span>
                                     </div>
                                     <Link
-                                        :href="route('jobs.show', job.id)"
+                                        :href="`/jobs/${job.id}`"
                                         class="mt-3 block rounded-md bg-blue-600 px-3 py-2 text-center text-sm text-white hover:bg-blue-700"
                                     >
                                         View Job
