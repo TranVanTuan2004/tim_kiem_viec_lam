@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\NewPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 use App\Http\Controllers\Auth\RegisteredUserController;
 use App\Http\Controllers\Auth\VerifyEmailController;
+use App\Http\Controllers\Auth\SocialAuthController;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware('guest')->group(function () {
@@ -33,6 +34,17 @@ Route::middleware('guest')->group(function () {
 
     Route::post('reset-password', [NewPasswordController::class, 'store'])
         ->name('password.store');
+
+
+    Route::get('auth/google', [SocialAuthController::class, 'redirectToGoogle'])
+        ->name('auth.google');
+
+    Route::get('auth/google/callback', [SocialAuthController::class, 'handleGoogleCallback']);
+
+    Route::get('auth/facebook', [SocialAuthController::class, 'redirectToFacebook'])
+        ->name('auth.facebook');
+
+    Route::get('auth/facebook/callback', [SocialAuthController::class, 'handleFacebookCallback']);
 });
 
 Route::middleware('auth')->group(function () {
@@ -50,3 +62,13 @@ Route::middleware('auth')->group(function () {
     Route::post('logout', [AuthenticatedSessionController::class, 'destroy'])
         ->name('logout');
 });
+
+
+// Route xác thực email và gửi lại email xác thực
+
+Route::get('/email/verify/{id}', [VerifyEmailController::class, 'verifyEmail'])
+    ->name('verification.verify.manual');
+
+Route::post('/email/resend', [VerifyEmailController::class, 'resendVerificationEmail'])
+    ->middleware(['auth', 'throttle:6,1'])
+    ->name('verification.resend');

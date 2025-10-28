@@ -1,12 +1,18 @@
 <script setup lang="ts">
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link, useForm } from '@inertiajs/vue3';
 import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ArrowLeft } from 'lucide-vue-next';
 
 interface Role {
@@ -63,21 +69,34 @@ const breadcrumbs = [
                     <Card>
                         <CardHeader>
                             <CardTitle>Thông tin cơ bản</CardTitle>
-                            <CardDescription>Nhập thông tin user</CardDescription>
+                            <CardDescription
+                                >Nhập thông tin user</CardDescription
+                            >
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <div class="space-y-2">
                                 <Label for="name">Họ tên *</Label>
                                 <Input id="name" v-model="form.name" required />
-                                <span v-if="form.errors.name" class="text-sm text-destructive">
+                                <span
+                                    v-if="form.errors.name"
+                                    class="text-sm text-destructive"
+                                >
                                     {{ form.errors.name }}
                                 </span>
                             </div>
 
                             <div class="space-y-2">
                                 <Label for="email">Email *</Label>
-                                <Input id="email" v-model="form.email" type="email" required />
-                                <span v-if="form.errors.email" class="text-sm text-destructive">
+                                <Input
+                                    id="email"
+                                    v-model="form.email"
+                                    type="email"
+                                    required
+                                />
+                                <span
+                                    v-if="form.errors.email"
+                                    class="text-sm text-destructive"
+                                >
                                     {{ form.errors.email }}
                                 </span>
                             </div>
@@ -85,15 +104,25 @@ const breadcrumbs = [
                             <div class="space-y-2">
                                 <Label for="phone">Số điện thoại</Label>
                                 <Input id="phone" v-model="form.phone" />
-                                <span v-if="form.errors.phone" class="text-sm text-destructive">
+                                <span
+                                    v-if="form.errors.phone"
+                                    class="text-sm text-destructive"
+                                >
                                     {{ form.errors.phone }}
                                 </span>
                             </div>
 
                             <div class="space-y-2">
                                 <Label for="bio">Bio</Label>
-                                <Textarea id="bio" v-model="form.bio" rows="3" />
-                                <span v-if="form.errors.bio" class="text-sm text-destructive">
+                                <Textarea
+                                    id="bio"
+                                    v-model="form.bio"
+                                    rows="3"
+                                />
+                                <span
+                                    v-if="form.errors.bio"
+                                    class="text-sm text-destructive"
+                                >
                                     {{ form.errors.bio }}
                                 </span>
                             </div>
@@ -109,19 +138,29 @@ const breadcrumbs = [
                             <CardContent class="space-y-4">
                                 <div class="space-y-2">
                                     <Label for="password">Mật khẩu *</Label>
-                                    <Input id="password" v-model="form.password" type="password" required />
-                                    <span v-if="form.errors.password" class="text-sm text-destructive">
+                                    <Input
+                                        id="password"
+                                        v-model="form.password"
+                                        type="password"
+                                        required
+                                    />
+                                    <span
+                                        v-if="form.errors.password"
+                                        class="text-sm text-destructive"
+                                    >
                                         {{ form.errors.password }}
                                     </span>
                                 </div>
 
                                 <div class="space-y-2">
-                                    <Label for="password_confirmation">Xác nhận mật khẩu *</Label>
-                                    <Input 
-                                        id="password_confirmation" 
-                                        v-model="form.password_confirmation" 
-                                        type="password" 
-                                        required 
+                                    <Label for="password_confirmation"
+                                        >Xác nhận mật khẩu *</Label
+                                    >
+                                    <Input
+                                        id="password_confirmation"
+                                        v-model="form.password_confirmation"
+                                        type="password"
+                                        required
                                     />
                                 </div>
                             </CardContent>
@@ -133,22 +172,28 @@ const breadcrumbs = [
                             </CardHeader>
                             <CardContent class="space-y-4">
                                 <div class="space-y-3">
-                                    <div 
-                                        v-for="role in roles" 
+                                    <div
+                                        v-for="role in roles"
                                         :key="role.id"
                                         class="flex items-center space-x-2"
                                     >
-                                        <Checkbox 
+                                        <Checkbox
                                             :id="`role-${role.id}`"
                                             :value="role.id"
                                             v-model:checked="form.roles"
                                         />
-                                        <Label :for="`role-${role.id}`" class="cursor-pointer">
+                                        <Label
+                                            :for="`role-${role.id}`"
+                                            class="cursor-pointer"
+                                        >
                                             {{ role.name }}
                                         </Label>
                                     </div>
                                 </div>
-                                <span v-if="form.errors.roles" class="text-sm text-destructive">
+                                <span
+                                    v-if="form.errors.roles"
+                                    class="text-sm text-destructive"
+                                >
                                     {{ form.errors.roles }}
                                 </span>
                             </CardContent>
@@ -160,11 +205,14 @@ const breadcrumbs = [
                             </CardHeader>
                             <CardContent>
                                 <div class="flex items-center space-x-2">
-                                    <Checkbox 
+                                    <Checkbox
                                         id="is_active"
                                         v-model:checked="form.is_active"
                                     />
-                                    <Label for="is_active" class="cursor-pointer">
+                                    <Label
+                                        for="is_active"
+                                        class="cursor-pointer"
+                                    >
                                         Active
                                     </Label>
                                 </div>
@@ -174,7 +222,7 @@ const breadcrumbs = [
                 </div>
 
                 <!-- Submit Buttons -->
-                <div class="flex justify-end gap-4 mt-6">
+                <div class="mt-6 flex justify-end gap-4">
                     <Link href="/admin/users">
                         <Button type="button" variant="outline">Hủy</Button>
                     </Link>
@@ -186,4 +234,3 @@ const breadcrumbs = [
         </div>
     </AppLayout>
 </template>
-

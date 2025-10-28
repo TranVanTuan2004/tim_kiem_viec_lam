@@ -89,6 +89,13 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // ✅ Kiểm tra nếu tài khoản chưa được xác thực
+        if (! $user->hasVerifiedEmail()) {
+            throw ValidationException::withMessages([
+                'email' => 'Tài khoản của bạn chưa được xác thực. Vui lòng kiểm tra email hoặc nhấn "Gửi lại email xác thực".',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
 
         return $user;

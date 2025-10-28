@@ -103,7 +103,10 @@ class PermissionSeeder extends Seeder
 
         if ($adminRole) {
             // Admin gets ALL permissions
-            $adminRole->givePermissionTo(Permission::all());
+            $allPermissions = Permission::all()->pluck('name')->toArray();
+            $permissionsToExclude = ['view subscriptions'];
+            $adminPermissions = array_diff($allPermissions, $permissionsToExclude);
+            $adminRole->givePermissionTo($adminPermissions);
         }
 
         if ($employerRole) {

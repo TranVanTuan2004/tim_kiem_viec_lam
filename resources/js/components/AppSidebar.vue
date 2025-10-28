@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
@@ -12,18 +11,79 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
+import { usePermissions } from '@/composables/usePermissions';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Users, MessageSquare, CreditCard } from 'lucide-vue-next';
+import {
+    BookOpen,
+    Bookmark,
+    Briefcase,
+    CreditCard,
+    FileText,
+    Folder,
+    Home,
+    LayoutGrid,
+    MessageSquare,
+    User,
+    Users,
+} from 'lucide-vue-next';
+import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
-import { usePermissions } from '@/composables/usePermissions';
-import { defaultDocument } from '@vueuse/core';
 
-const { can, currentUser } = usePermissions();
-console.log(can('view users'))
+const { can, currentUser, hasRole } = usePermissions();
+console.log(can('view users'));
 
-const mainNavItems: NavItem[] = [
+// Determine dashboard link based on role
+const getDashboardLink = () => {
+    if (hasRole('Candidate')) {
+        return '/candidate/dashboard';
+    } else if (hasRole('Employer')) {
+        return '/dashboard'; // Update when employer dashboard is ready
+    }
+    return dashboard(); // Admin or default
+};
+
+// Define different navigation items for different roles
+const candidateNavItems: NavItem[] = [
+    {
+        title: 'Home',
+        href: '/',
+        icon: Home,
+    },
+    {
+        title: 'Dashboard',
+        href: '/candidate/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'My Profile',
+        href: '/candidate/profile',
+        icon: User,
+    },
+    {
+        title: 'My Applications',
+        href: '/candidate/applications',
+        icon: FileText,
+    },
+    {
+        title: 'Saved Jobs',
+        href: '/candidate/saved-jobs',
+        icon: Bookmark,
+    },
+    {
+        title: 'Portfolio',
+        href: '/candidate/portfolios',
+        icon: Briefcase,
+    },
+];
+
+const adminNavItems: NavItem[] = [
+    {
+        title: 'Home',
+        href: '/',
+        icon: Home,
+    },
     {
         title: 'Dashboard',
         href: dashboard(),
@@ -39,7 +99,7 @@ const mainNavItems: NavItem[] = [
         title: 'Chat',
         href: '/admin/chat',
         icon: MessageSquare,
-        permission: 'view messages', 
+        permission: 'view messages',
     },
     {
         title: 'Gói Dịch Vụ',
@@ -54,25 +114,44 @@ const mainNavItems: NavItem[] = [
         permission: 'view subscriptions',
     },
 ];
-console.log(currentUser.value)
+
+console.log(currentUser.value);
+
+// Get navigation items based on user role
+const mainNavItems = computed(() => {
+    if (hasRole('Candidate')) {
+        return candidateNavItems;
+    } else if (hasRole('Employer')) {
+        return adminNavItems; // Update when employer nav is ready
+    }
+    return adminNavItems; // Default to admin nav
+});
 
 // Filter items theo permission (giống @can trong Blade)
 const filteredMainNavItems = computed(() => {
-    return mainNavItems.filter(item => can(item.permission));
+    return mainNavItems.value.filter((item) => can(item.permission));
 });
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Github Repo',
-        href: 'https://github.com/laravel/vue-starter-kit',
-        icon: Folder,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#vue',
-        icon: BookOpen,
-    },
-];
+// Footer navigation items - hide for candidates
+const footerNavItems = computed(() => {
+    // Don't show footer links for candidates
+    if (hasRole('Candidate')) {
+        return [];
+    }
+
+    return [
+        {
+            title: 'Github Repo',
+            href: 'https://github.com/laravel/vue-starter-kit',
+            icon: Folder,
+        },
+        {
+            title: 'Documentation',
+            href: 'https://laravel.com/docs/starter-kits#vue',
+            icon: BookOpen,
+        },
+    ];
+});
 </script>
 
 <template>
@@ -81,7 +160,7 @@ const footerNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="dashboard()">
+                        <Link :href="getDashboardLink()">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>
@@ -94,7 +173,10 @@ const footerNavItems: NavItem[] = [
         </SidebarContent>
 
         <SidebarFooter>
-            <NavFooter :items="footerNavItems" />
+            <NavFooter
+                v-if="footerNavItems.length > 0"
+                :items="footerNavItems"
+            />
             <NavUser />
         </SidebarFooter>
     </Sidebar>

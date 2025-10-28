@@ -3,6 +3,13 @@
 use App\Http\Controllers\Client\JobPostingController;
 use App\Http\Controllers\Client\CompanyController;
 use App\Http\Controllers\Client\HomeController;
+use App\Http\Controllers\Candidate\PortfolioController;
+use App\Http\Controllers\Candidate\DashboardController;
+use App\Http\Controllers\Employer\DashboardController as EmployerDashboardController;
+use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
+use App\Http\Controllers\Candidate\ProfileController;
+use App\Http\Controllers\Candidate\ApplicationController;
+use App\Http\Controllers\Candidate\SavedJobController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\UserController;
@@ -18,17 +25,72 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/jobs', [JobPostingController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job_posting}', [JobPostingController::class, 'show'])->name('jobs.show');
 
+// Job Application Routes (require authentication)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/jobs/{job_posting}/apply', [\App\Http\Controllers\Client\ApplicationController::class, 'create'])->name('jobs.apply');
+    Route::post('/jobs/{job_posting}/apply', [\App\Http\Controllers\Client\ApplicationController::class, 'store'])->name('jobs.apply.store');
+});
+
 // Company Pages
 Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
 Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
 Route::get('/companies/{company}/jobs', [CompanyController::class, 'jobs'])->name('companies.jobs');
 
+// Static Pages
+Route::get('/about', function () {
+    return Inertia::render('client/About');
+})->name('about');
+
+Route::get('/contact', function () {
+    return Inertia::render('client/Contact');
+})->name('contact');
+
+Route::get('/terms', function () {
+    return Inertia::render('client/Terms');
+})->name('terms');
+
+Route::get('/privacy', function () {
+    return Inertia::render('client/Privacy');
+})->name('privacy');
+
 Route::get('dashboard', function () {
+    $user = auth()->user();
+    
+    // Debug: Log user info
+    \Log::info('Dashboard access', [
+        'user_id' => $user->id,
+        'user_name' => $user->name,
+        'roles' => $user->roles->pluck('name')->toArray()
+    ]);
+    
+    // Redirect based on user role
+    if ($user->hasRole('Candidate')) {
+        \Log::info('Redirecting to candidate dashboard');
+        return redirect()->route('candidate.dashboard');
+    } elseif ($user->hasRole('Employer')) {
+        \Log::info('Redirecting to employer dashboard');
+        return redirect()->route('employer.dashboard');
+    } elseif ($user->hasRole('Admin')) {
+        \Log::info('Redirecting to admin dashboard');
+        return redirect()->route('admin.dashboard');
+    }
+    
+    // Default fallback
+    \Log::info('No role found, using default dashboard');
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
+// Employer Routes
+Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer'])->group(function () {
+    // Dashboard
+    Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
+});
+
 // Admin Routes - Using Spatie Permission
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
+    // Dashboard
+    Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    
     // User Management - Only admin
     Route::resource('users', UserController::class)->middleware('permission:view users');
     
@@ -85,6 +147,41 @@ Route::middleware(['auth'])->group(function () {
     Route::post('support/messages/{message}/read', [SupportChatController::class, 'markAsRead'])->name('support.mark-read');
 });
 
+// Candidate Routes - All candidate features
+Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'role:Candidate'])->group(function () {
+    // Redirect /candidate to /candidate/dashboard
+    Route::get('/', function () {
+        return redirect()->route('candidate.dashboard');
+    });
+    
+    // Dashboard
+    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Profile Management
+    Route::get('profile', [ProfileController::class, 'index'])->name('profile.index');
+    Route::get('profile/create', [ProfileController::class, 'create'])->name('profile.create');
+    Route::post('profile', [ProfileController::class, 'store'])->name('profile.store');
+    Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('profile/toggle-availability', [ProfileController::class, 'toggleAvailability'])->name('profile.toggle-availability');
+    
+    // Applications Management
+    Route::get('applications', [ApplicationController::class, 'index'])->name('applications.index');
+    Route::get('applications/{application}', [ApplicationController::class, 'show'])->name('applications.show');
+    Route::post('applications/{application}/withdraw', [ApplicationController::class, 'withdraw'])->name('applications.withdraw');
+    
+    // Saved Jobs Management
+    Route::get('saved-jobs', [SavedJobController::class, 'index'])->name('saved-jobs.index');
+    Route::post('saved-jobs/{job}/toggle', [SavedJobController::class, 'toggle'])->name('saved-jobs.toggle');
+    Route::delete('saved-jobs/{job}', [SavedJobController::class, 'destroy'])->name('saved-jobs.destroy');
+    
+    // Portfolio Management
+    Route::resource('portfolios', PortfolioController::class);
+    Route::post('portfolios/reorder', [PortfolioController::class, 'reorder'])->name('portfolios.reorder');
+    Route::post('portfolios/{portfolio}/toggle-featured', [PortfolioController::class, 'toggleFeatured'])->name('portfolios.toggle-featured');
+    Route::post('portfolios/{portfolio}/toggle-public', [PortfolioController::class, 'togglePublic'])->name('portfolios.toggle-public');
+});
+
 Route::prefix('employer')->name('employer.')->group(function () {
     // Danh sách tin tuyển dụng
     Route::get('posting', [PostingController::class, 'index'])->name('postings.index');
@@ -96,8 +193,6 @@ Route::prefix('employer')->name('employer.')->group(function () {
     // Chi tiết tin tuyển dụng
     Route::get('posting/{id}', [PostingController::class, 'show'])->name('postings.show');
 });
-
-
 
 
 require __DIR__ . '/settings.php';

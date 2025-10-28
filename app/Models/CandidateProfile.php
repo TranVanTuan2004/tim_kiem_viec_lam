@@ -82,6 +82,11 @@ class CandidateProfile extends Model
         return $this->hasMany(CompanyReview::class, 'candidate_id');
     }
 
+    public function portfolios(): HasMany
+    {
+        return $this->hasMany(Portfolio::class, 'candidate_id');
+    }
+
     // Scopes
     public function scopeAvailable($query)
     {

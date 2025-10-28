@@ -9,12 +9,21 @@ import { Label } from '@/components/ui/label';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { register } from '@/routes';
 import { request } from '@/routes/password';
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, usePage } from '@inertiajs/vue3';
 import { LoaderCircle } from 'lucide-vue-next';
+import type { PageProps } from '@inertiajs/core';
 
 defineProps<{
     status?: string;
     canResetPassword: boolean;
+}>();
+
+// ✅ Khai báo kiểu dữ liệu cho flash message để tránh lỗi TypeScript
+const page = usePage<PageProps & {
+    flash?: {
+        success?: string;
+        error?: string;
+    };
 }>();
 </script>
 
@@ -24,6 +33,23 @@ defineProps<{
         description="Nhập email và mật khẩu của bạn bên dưới để đăng nhập"
     >
         <Head title="Đăng nhập" />
+
+        <!-- Thông báo lỗi hoặc thành công từ server -->
+        <div
+            v-if="page.props.flash?.error"
+            class="mb-4 text-center text-sm font-medium text-red-600 bg-red-50 p-3 rounded-md border border-red-200"
+        >
+            {{ page.props.flash.error }}
+        </div>
+
+        <div
+            v-if="page.props.flash?.success"
+            class="mb-4 text-center text-sm font-medium text-green-600 bg-green-50 p-3 rounded-md border border-green-200"
+        >
+            {{ page.props.flash.success }}
+        </div>
+
+
 
         <div
             v-if="status"
@@ -99,8 +125,36 @@ defineProps<{
                         v-if="processing"
                         class="h-4 w-4 animate-spin"
                     />
-                    Log in
+                    Đăng nhập
                 </Button>
+            </div>
+
+            <!-- Nút đăng nhập xã hội -->
+            <div class="relative my-4">
+                <div class="absolute inset-0 flex items-center">
+                    <span class="w-full border-t"></span>
+                </div>
+                <div class="relative flex justify-center text-xs uppercase">
+                    <span class="bg-background px-2 text-muted-foreground">Hoặc</span>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <Button
+                    as="a"
+                    href="/auth/google"
+                    class="bg-red-500 hover:bg-red-600 text-white w-full"
+                >
+                    Đăng nhập với Google
+                </Button>
+
+                <!-- <Button
+                    as="a"
+                    href="/auth/facebook"
+                    class="bg-blue-600 hover:bg-blue-700 text-white w-full"
+                >
+                    Đăng nhập với Facebook
+                </Button> -->
             </div>
 
             <div class="text-center text-sm text-muted-foreground">
