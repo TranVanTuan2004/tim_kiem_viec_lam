@@ -20,10 +20,14 @@ use App\Http\Controllers\Employer\PostingController;
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
-
 // Job Pages
-Route::get('/jobs', [JobPostingController::class, 'index'])->name('jobs.index');
-Route::get('/jobs/{job_posting}', [JobPostingController::class, 'show'])->name('jobs.show');
+Route::prefix('employer')->name('employer.')->group(function () {
+    Route::get('posting/{id}/edit', [PostingController::class, 'edit'])->name('postings.edit');
+    Route::put('posting/{id}', [PostingController::class, 'update'])->name('postings.update');
+    Route::delete('posting/{id}', [PostingController::class, 'destroy'])->name('postings.destroy');
+    Route::patch('posting/{id}/toggle', [PostingController::class, 'toggle'])->name('postings.toggle');
+});
+
 
 // Job Application Routes (require authentication)
 Route::middleware(['auth'])->group(function () {

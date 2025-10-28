@@ -12,6 +12,30 @@ defineProps<{
     };
 }>();
 
+// Xóa tin tuyển dụng
+const deleteJob = (id: number) => {
+    if (!confirm('Bạn có chắc muốn xóa tin tuyển dụng này không?')) return;
+    const form = useForm();
+    form.delete(`/employer/posting/${id}`, {
+        onSuccess: () => {
+            alert('Đã xóa tin tuyển dụng.');
+            location.reload(); // hoặc dùng Inertia reload
+        },
+    });
+};
+
+// Ẩn/Hiện tin tuyển dụng
+const toggleJob = (job: any) => {
+    const form = useForm();
+    form.patch(`/employer/posting/${job.id}/toggle`, {
+        onSuccess: () => {
+            alert(`Tin tuyển dụng đã được ${job.is_active ? 'ẩn' : 'hiện'}.`);
+            location.reload();
+        },
+    });
+};
+
+
 </script>
 
 <template>
