@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ChatController;
 use App\Http\Controllers\SupportChatController;
 use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\Employer\PostingController;
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -180,6 +181,19 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'role:Candid
     Route::post('portfolios/{portfolio}/toggle-featured', [PortfolioController::class, 'toggleFeatured'])->name('portfolios.toggle-featured');
     Route::post('portfolios/{portfolio}/toggle-public', [PortfolioController::class, 'togglePublic'])->name('portfolios.toggle-public');
 });
+
+Route::prefix('employer')->name('employer.')->group(function () {
+    // Danh sách tin tuyển dụng
+    Route::get('posting', [PostingController::class, 'index'])->name('postings.index');
+
+    // Tạo tin mới
+    Route::get('posting/create', [PostingController::class, 'create'])->name('postings.create');
+    Route::post('posting', [PostingController::class, 'store'])->name('postings.store');
+
+    // Chi tiết tin tuyển dụng
+    Route::get('posting/{id}', [PostingController::class, 'show'])->name('postings.show');
+});
+
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';
