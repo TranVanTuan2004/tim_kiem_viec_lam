@@ -421,6 +421,7 @@ const isCurrentPackage = (packageItem) => {
 };
 
 const formatPrice = (price) => {
+    if (!price) return '0 ₫';
     return new Intl.NumberFormat('vi-VN', {
         style: 'currency',
         currency: 'VND',
@@ -428,10 +429,12 @@ const formatPrice = (price) => {
 };
 
 const formatDate = (date) => {
+    if (!date) return 'N/A';
     return new Date(date).toLocaleDateString('vi-VN');
 };
 
 const getDaysRemaining = (expiresAt) => {
+    if (!expiresAt) return 0;
     const now = new Date();
     const expiry = new Date(expiresAt);
     const diffTime = expiry - now;

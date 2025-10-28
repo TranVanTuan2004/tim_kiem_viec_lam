@@ -40,7 +40,7 @@ class DashboardController extends Controller
                     'name' => $user->name,
                     'email' => $user->email,
                     'roles' => $user->roles->pluck('name'),
-                    'created_at' => $user->created_at->format('Y-m-d H:i:s'),
+                    'created_at' => $user->created_at ? $user->created_at->format('Y-m-d H:i:s') : null,
                 ];
             });
 
@@ -59,7 +59,7 @@ class DashboardController extends Controller
                         'id' => $job->company->id,
                         'name' => $job->company->name,
                     ],
-                    'created_at' => $job->created_at->format('Y-m-d H:i:s'),
+                    'created_at' => $job->created_at ? $job->created_at->format('Y-m-d H:i:s') : null,
                 ];
             });
 
@@ -72,7 +72,7 @@ class DashboardController extends Controller
                 return [
                     'id' => $application->id,
                     'status' => $application->status,
-                    'applied_at' => $application->created_at->format('Y-m-d H:i:s'),
+                    'applied_at' => $application->created_at ? $application->created_at->format('Y-m-d H:i:s') : null,
                     'candidate' => [
                         'name' => $application->candidateProfile->user->name,
                         'email' => $application->candidateProfile->user->email,

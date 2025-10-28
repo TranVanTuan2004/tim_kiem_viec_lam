@@ -307,6 +307,7 @@ const localFilters = reactive({ ...props.filters });
 let searchTimeout: number | null = null;
 
 const formatDate = (date: string) => {
+    if (!date) return 'N/A';
     return new Date(date).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',

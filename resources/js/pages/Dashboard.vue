@@ -56,10 +56,12 @@ const last30Days = computed(() => page.props.last30Days || []);
 const recentActivities = computed(() => page.props.recentActivities || {});
 
 const formatNumber = (num: number) => {
+  if (!num) return '0';
   return new Intl.NumberFormat('vi-VN').format(num);
 };
 
 const formatCurrency = (num: number) => {
+  if (!num) return '0 ₫';
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
     currency: 'VND',
