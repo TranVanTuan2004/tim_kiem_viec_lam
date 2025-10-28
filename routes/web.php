@@ -17,6 +17,7 @@ use App\Http\Controllers\Admin\ChatController;
 use App\Http\Controllers\SupportChatController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Employer\PostingController;
+use Illuminate\Support\Facades\Log;
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -59,28 +60,28 @@ Route::get('/privacy', function () {
 
 Route::get('dashboard', function () {
     $user = auth()->user();
-    
+
     // Debug: Log user info
-    \Log::info('Dashboard access', [
+    Log::info('Dashboard access', [
         'user_id' => $user->id,
         'user_name' => $user->name,
         'roles' => $user->roles->pluck('name')->toArray()
     ]);
-    
+
     // Redirect based on user role
     if ($user->hasRole('Candidate')) {
-        \Log::info('Redirecting to candidate dashboard');
+        Log::info('Redirecting to candidate dashboard');
         return redirect()->route('candidate.dashboard');
     } elseif ($user->hasRole('Employer')) {
-        \Log::info('Redirecting to employer dashboard');
+        Log::info('Redirecting to employer dashboard');
         return redirect()->route('employer.dashboard');
     } elseif ($user->hasRole('Admin')) {
-        \Log::info('Redirecting to admin dashboard');
+        Log::info('Redirecting to admin dashboard');
         return redirect()->route('admin.dashboard');
     }
-    
+
     // Default fallback
-    \Log::info('No role found, using default dashboard');
+    Log::info('No role found, using default dashboard');
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -94,10 +95,10 @@ Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-    
+
     // User Management - Only admin
     Route::resource('users', UserController::class)->middleware('permission:view users');
-    
+
     // Chat routes - All authenticated users
     Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('chat/messages/{user}', [ChatController::class, 'getMessages'])->name('chat.messages');
@@ -157,10 +158,10 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'role:Candid
     Route::get('/', function () {
         return redirect()->route('candidate.dashboard');
     });
-    
+
     // Dashboard
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    
+
     // Profile Management
     Route::get('profile', [ProfileController::class, 'index'])->name('profile.index');
     Route::get('profile/create', [ProfileController::class, 'create'])->name('profile.create');
@@ -168,17 +169,17 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'role:Candid
     Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('profile/toggle-availability', [ProfileController::class, 'toggleAvailability'])->name('profile.toggle-availability');
-    
+
     // Applications Management
     Route::get('applications', [ApplicationController::class, 'index'])->name('applications.index');
     Route::get('applications/{application}', [ApplicationController::class, 'show'])->name('applications.show');
     Route::post('applications/{application}/withdraw', [ApplicationController::class, 'withdraw'])->name('applications.withdraw');
-    
+
     // Saved Jobs Management
     Route::get('saved-jobs', [SavedJobController::class, 'index'])->name('saved-jobs.index');
     Route::post('saved-jobs/{job}/toggle', [SavedJobController::class, 'toggle'])->name('saved-jobs.toggle');
     Route::delete('saved-jobs/{job}', [SavedJobController::class, 'destroy'])->name('saved-jobs.destroy');
-    
+
     // Portfolio Management
     Route::resource('portfolios', PortfolioController::class);
     Route::post('portfolios/reorder', [PortfolioController::class, 'reorder'])->name('portfolios.reorder');
