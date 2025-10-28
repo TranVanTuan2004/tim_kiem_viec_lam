@@ -17,10 +17,10 @@ defineProps<{
 
 <template>
     <AuthLayout
-        title="Forgot password"
-        description="Enter your email to receive a password reset link"
+        title="Quên mật khẩu"
+        description="Nhập email của bạn để nhận liên kết đặt lại mật khẩu"
     >
-        <Head title="Forgot password" />
+        <Head title="Quên mật khẩu" />
 
         <div
             v-if="status"
@@ -35,7 +35,7 @@ defineProps<{
                 v-slot="{ errors, processing }"
             >
                 <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
+                    <Label for="email">Địa chỉ email</Label>
                     <Input
                         id="email"
                         type="email"
@@ -57,14 +57,14 @@ defineProps<{
                             v-if="processing"
                             class="h-4 w-4 animate-spin"
                         />
-                        Email password reset link
+                        Đặt lại mật khẩu
                     </Button>
                 </div>
             </Form>
 
             <div class="space-x-1 text-center text-sm text-muted-foreground">
-                <span>Or, return to</span>
-                <TextLink :href="login()">log in</TextLink>
+                <span>Hoặc, quay lại</span>
+                <TextLink :href="login()">Đăng nhập</TextLink>
             </div>
         </div>
     </AuthLayout>
