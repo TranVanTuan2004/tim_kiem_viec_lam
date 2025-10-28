@@ -450,6 +450,7 @@ interface Props {
 defineProps<Props>();
 
 const formatDate = (date: string) => {
+    if (!date) return 'N/A';
     return new Date(date).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',

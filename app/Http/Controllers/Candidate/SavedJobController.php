@@ -132,7 +132,7 @@ class SavedJobController extends Controller
             'experience_level' => $job->experience_level,
             'salary_min' => $job->salary_min,
             'salary_max' => $job->salary_max,
-            'deadline' => $job->deadline->format('Y-m-d'),
+            'deadline' => $job->deadline ? $job->deadline->format('Y-m-d') : null,
             'status' => $job->status,
             'saved_at' => $job->pivot?->created_at?->format('Y-m-d H:i:s'),
             'has_applied' => $hasApplied,

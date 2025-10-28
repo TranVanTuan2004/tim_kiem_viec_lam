@@ -131,8 +131,8 @@ class ApplicationController extends Controller
             'id' => $application->id,
             'status' => $application->status,
             'cover_letter' => $application->cover_letter,
-            'applied_at' => $application->created_at->format('Y-m-d H:i:s'),
-            'updated_at' => $application->updated_at->format('Y-m-d H:i:s'),
+            'applied_at' => $application->created_at ? $application->created_at->format('Y-m-d H:i:s') : null,
+            'updated_at' => $application->updated_at ? $application->updated_at->format('Y-m-d H:i:s') : null,
             'job_posting' => [
                 'id' => $application->jobPosting->id,
                 'title' => $application->jobPosting->title,
@@ -142,7 +142,7 @@ class ApplicationController extends Controller
                 'experience_level' => $application->jobPosting->experience_level,
                 'salary_min' => $application->jobPosting->salary_min,
                 'salary_max' => $application->jobPosting->salary_max,
-                'deadline' => $application->jobPosting->deadline->format('Y-m-d'),
+                'deadline' => $application->jobPosting->deadline ? $application->jobPosting->deadline->format('Y-m-d') : null,
                 'status' => $application->jobPosting->status,
                 'company' => [
                     'id' => $application->jobPosting->company->id,

@@ -73,6 +73,7 @@ const locationText = computed(() => {
 });
 
 const formatDate = (dateString: string) => {
+    if (!dateString) return 'N/A';
     try {
         return new Date(dateString).toLocaleDateString('vi-VN');
     } catch (e) {

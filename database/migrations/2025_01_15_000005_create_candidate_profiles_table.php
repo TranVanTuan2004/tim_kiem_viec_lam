@@ -16,9 +16,9 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->date('birth_date')->nullable();
             $table->enum('gender', ['male', 'female', 'other'])->nullable();
-            $table->string('address');
-            $table->string('city');
-            $table->string('province');
+            $table->string('address')->nullable();
+            $table->string('city')->nullable();
+            $table->string('province')->nullable();
             $table->string('cv_file')->nullable();
             $table->text('summary')->nullable();
             $table->string('current_position')->nullable();
