@@ -20,13 +20,7 @@ use App\Http\Controllers\Employer\PostingController;
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
-// Job Pages
-Route::prefix('employer')->name('employer.')->group(function () {
-    Route::get('posting/{id}/edit', [PostingController::class, 'edit'])->name('postings.edit');
-    Route::put('posting/{id}', [PostingController::class, 'update'])->name('postings.update');
-    Route::delete('posting/{id}', [PostingController::class, 'destroy'])->name('postings.destroy');
-    Route::patch('posting/{id}/toggle', [PostingController::class, 'toggle'])->name('postings.toggle');
-});
+
 
 
 // Job Application Routes (require authentication)
@@ -189,13 +183,17 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'role:Candid
 Route::prefix('employer')->name('employer.')->group(function () {
     // Danh sách tin tuyển dụng
     Route::get('posting', [PostingController::class, 'index'])->name('postings.index');
-
     // Tạo tin mới
     Route::get('posting/create', [PostingController::class, 'create'])->name('postings.create');
     Route::post('posting', [PostingController::class, 'store'])->name('postings.store');
-
-    // Chi tiết tin tuyển dụng
+    // Xem & chỉnh sửa tin
     Route::get('posting/{id}', [PostingController::class, 'show'])->name('postings.show');
+    Route::get('posting/{id}/edit', [PostingController::class, 'edit'])->name('postings.edit');
+    Route::put('posting/{id}', [PostingController::class, 'update'])->name('postings.update');
+    //Xóa
+    Route::delete('posting/{id}', [PostingController::class, 'destroy'])->name('postings.destroy');
+    //Ẩn , hiện tin tuyển dụng
+    Route::patch('posting/{id}/toggle', [PostingController::class, 'toggle'])->name('postings.toggle');
 });
 
 

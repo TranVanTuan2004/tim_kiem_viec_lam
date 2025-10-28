@@ -14,17 +14,49 @@ class PostingController extends Controller
      * Hiển thị form tạo mới tin tuyển dụng.
      */
 
-    public function index()
+    public function index(Request $request)
+{
+    $companyId = Auth::user()->company_id ?? 1;
+
+    // Lọc theo trạng thái (active = 1, inactive = 0, all)
+    $status = $request->get('status', 'all');
+
+    $query = JobPosting::where('company_id', $companyId);
+
+    // Lọc theo trạng thái duyệt
+    if (in_array($status, ['pending', 'approved', 'rejected'])) {
+        $query->where('status', $status);
+    }
+
+    if ($status === 'active') {
+        $query->where('is_active', true);
+    } elseif ($status === 'inactive') {
+        $query->where('is_active', false);
+    }
+
+    $jobs = $query->latest()->paginate(10);
+
+    return inertia('Employer/Posting/Index', [
+        'jobs' => $jobs,
+        'filters' => [
+            'status' => $status,
+        ],
+    ]);
+}
+
+public function toggleVisibility($id)
     {
-        $companyId = Auth::user()->company_id ?? 1;
+        $job = JobPosting::findOrFail($id);
 
-        $jobs = \App\Models\JobPosting::where('company_id', $companyId)
-            ->latest()
-            ->paginate(10);
+        // Kiểm tra quyền (chỉ cho phép sửa tin của công ty mình)
+        if ($job->company_id !== Auth::user()->company_id) {
+            abort(403, 'Bạn không có quyền chỉnh sửa tin này.');
+        }
 
-        return inertia('Employer/Posting/Index', [
-            'jobs' => $jobs,
-        ]);
+        $job->is_active = !$job->is_active;
+        $job->save();
+
+        return back()->with('success', 'Cập nhật trạng thái hiển thị thành công!');
     }
 
     public function create()
@@ -88,10 +120,15 @@ class PostingController extends Controller
     {
         $job = JobPosting::findOrFail($id);
 
+        // if ($job->company_id !== Auth::user()->company_id) {
+        //     abort(403, 'Bạn không có quyền xem tin này.');
+        // }
+
         return inertia('Employer/Posting/Show', [
             'job' => $job,
         ]);
     }
+    
 
     public function destroy($id)
 {
