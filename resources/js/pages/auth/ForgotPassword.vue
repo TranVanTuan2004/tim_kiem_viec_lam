@@ -33,6 +33,7 @@ defineProps<{
             <Form
                 v-bind="PasswordResetLinkController.store.form()"
                 v-slot="{ errors, processing }"
+                novalidate
             >
                 <div class="grid gap-2">
                     <Label for="email">Địa chỉ email</Label>
