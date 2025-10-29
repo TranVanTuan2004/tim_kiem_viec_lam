@@ -17,6 +17,8 @@ use App\Http\Controllers\Admin\ChatController;
 use App\Http\Controllers\SupportChatController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Employer\PostingController;
+use App\Http\Controllers\Employer\CompanyController as EmployerCompanyController;
+
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -194,6 +196,9 @@ Route::prefix('employer')->name('employer.')->group(function () {
     Route::delete('posting/{id}', [PostingController::class, 'destroy'])->name('postings.destroy');
     //Ẩn , hiện tin tuyển dụng
     Route::patch('posting/{id}/toggle', [PostingController::class, 'toggle'])->name('postings.toggle');
+    // Cài đặt công ty
+    Route::get('/settings/company', [EmployerCompanyController::class, 'edit'])->name('company.edit');
+    Route::patch('/settings/company', [EmployerCompanyController::class, 'update'])->name('company.update');
 });
 
 
