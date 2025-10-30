@@ -19,10 +19,10 @@ const inputEmail = ref(props.email);
 
 <template>
     <AuthLayout
-        title="Reset password"
-        description="Please enter your new password below"
+        title="Đặt lại mật khẩu"
+        description="Vui lòng nhập mật khẩu mới của bạn bên dưới"
     >
-        <Head title="Reset password" />
+        <Head title="Đặt lại mật khẩu" />
 
         <Form
             v-bind="NewPasswordController.store.form()"
@@ -46,7 +46,7 @@ const inputEmail = ref(props.email);
                 </div>
 
                 <div class="grid gap-2">
-                    <Label for="password">Password</Label>
+                    <Label for="password">Mật khẩu</Label>
                     <Input
                         id="password"
                         type="password"
@@ -54,14 +54,14 @@ const inputEmail = ref(props.email);
                         autocomplete="new-password"
                         class="mt-1 block w-full"
                         autofocus
-                        placeholder="Password"
+                        placeholder="Mật khẩu"
                     />
                     <InputError :message="errors.password" />
                 </div>
 
                 <div class="grid gap-2">
                     <Label for="password_confirmation">
-                        Confirm Password
+                        Nhập lại mật khẩu
                     </Label>
                     <Input
                         id="password_confirmation"
@@ -69,7 +69,7 @@ const inputEmail = ref(props.email);
                         name="password_confirmation"
                         autocomplete="new-password"
                         class="mt-1 block w-full"
-                        placeholder="Confirm password"
+                        placeholder="Nhập lại mật khẩu"
                     />
                     <InputError :message="errors.password_confirmation" />
                 </div>
@@ -84,7 +84,7 @@ const inputEmail = ref(props.email);
                         v-if="processing"
                         class="h-4 w-4 animate-spin"
                     />
-                    Reset password
+                    Đặt lại mật khẩu
                 </Button>
             </div>
         </Form>
