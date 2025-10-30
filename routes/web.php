@@ -16,13 +16,12 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ChatController;
 use App\Http\Controllers\SupportChatController;
 use App\Http\Controllers\Admin\SubscriptionController;
+use App\Http\Controllers\Employer\PostingController;
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
-// Job Pages
-Route::get('/jobs', [JobPostingController::class, 'index'])->name('jobs.index');
-Route::get('/jobs/{job_posting}', [JobPostingController::class, 'show'])->name('jobs.show');
+
 
 // Job Application Routes (require authentication)
 Route::middleware(['auth'])->group(function () {
@@ -180,6 +179,23 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'role:Candid
     Route::post('portfolios/{portfolio}/toggle-featured', [PortfolioController::class, 'toggleFeatured'])->name('portfolios.toggle-featured');
     Route::post('portfolios/{portfolio}/toggle-public', [PortfolioController::class, 'togglePublic'])->name('portfolios.toggle-public');
 });
+
+Route::prefix('employer')->name('employer.')->group(function () {
+    // Danh sách tin tuyển dụng
+    Route::get('posting', [PostingController::class, 'index'])->name('postings.index');
+    // Tạo tin mới
+    Route::get('posting/create', [PostingController::class, 'create'])->name('postings.create');
+    Route::post('posting', [PostingController::class, 'store'])->name('postings.store');
+    // Xem & chỉnh sửa tin
+    Route::get('posting/{id}', [PostingController::class, 'show'])->name('postings.show');
+    Route::get('posting/{id}/edit', [PostingController::class, 'edit'])->name('postings.edit');
+    Route::put('posting/{id}', [PostingController::class, 'update'])->name('postings.update');
+    //Xóa
+    Route::delete('posting/{id}', [PostingController::class, 'destroy'])->name('postings.destroy');
+    //Ẩn , hiện tin tuyển dụng
+    Route::patch('posting/{id}/toggle', [PostingController::class, 'toggle'])->name('postings.toggle');
+});
+
 
 require __DIR__ . '/settings.php';
 require __DIR__ . '/auth.php';

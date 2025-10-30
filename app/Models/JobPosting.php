@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class JobPosting extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'company_id',
@@ -33,6 +33,7 @@ class JobPosting extends Model
         'quantity',
         'status',
         'is_featured',
+        'is_active',
         'views',
         'applications_count',
         'published_at',
@@ -46,6 +47,8 @@ class JobPosting extends Model
             'application_deadline' => 'date',
             'published_at' => 'datetime',
             'is_featured' => 'boolean',
+            'is_active' => 'boolean',
+
         ];
     }
 
@@ -137,6 +140,11 @@ class JobPosting extends Model
             $q->whereIn('skill_id', $skillIds);
         });
     }
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true);
+    }
+
 
     public function scopeSearch($query, $keyword)
     {

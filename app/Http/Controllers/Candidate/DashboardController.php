@@ -41,7 +41,7 @@ class DashboardController extends Controller
                 return [
                     'id' => $application->id,
                     'status' => $application->status,
-                    'applied_at' => $application->created_at->format('Y-m-d H:i:s'),
+                    'applied_at' => $application->created_at ? $application->created_at->format('Y-m-d H:i:s') : null,
                     'cover_letter' => $application->cover_letter,
                     'job_posting' => [
                         'id' => $application->jobPosting->id,
@@ -110,7 +110,7 @@ class DashboardController extends Controller
                     'experience_level' => $job->experience_level,
                     'salary_min' => $job->salary_min,
                     'salary_max' => $job->salary_max,
-                    'deadline' => $job->deadline->format('Y-m-d'),
+                    'deadline' => $job->deadline ? $job->deadline->format('Y-m-d') : null,
                     'company' => [
                         'id' => $job->company->id,
                         'name' => $job->company->name,

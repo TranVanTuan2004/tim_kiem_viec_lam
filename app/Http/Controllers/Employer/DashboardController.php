@@ -47,8 +47,8 @@ class DashboardController extends Controller
                     'location' => $job->location,
                     'job_type' => $job->job_type,
                     'applications_count' => $job->applications->count(),
-                    'created_at' => $job->created_at->format('Y-m-d H:i:s'),
-                    'deadline' => $job->deadline->format('Y-m-d'),
+                    'created_at' => $job->created_at ? $job->created_at->format('Y-m-d H:i:s') : null,
+                    'deadline' => $job->deadline ? $job->deadline->format('Y-m-d') : null,
                 ];
             });
 
@@ -65,7 +65,7 @@ class DashboardController extends Controller
                 return [
                     'id' => $application->id,
                     'status' => $application->status,
-                    'applied_at' => $application->created_at->format('Y-m-d H:i:s'),
+                    'applied_at' => $application->created_at ? $application->created_at->format('Y-m-d H:i:s') : null,
                     'candidate' => [
                         'name' => $application->candidateProfile->user->name,
                         'email' => $application->candidateProfile->user->email,
