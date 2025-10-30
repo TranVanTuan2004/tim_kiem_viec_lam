@@ -23,6 +23,10 @@ use App\Http\Controllers\Employer\CompanyController as EmployerCompanyController
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
+// Jobs listing & detail
+Route::get('/jobs', [JobPostingController::class, 'index'])->name('jobs.index');
+Route::get('/jobs/{job_posting}', [JobPostingController::class, 'show'])->name('jobs.show');
+
 
 
 // Job Application Routes (require authentication)
