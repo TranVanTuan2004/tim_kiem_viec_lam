@@ -128,9 +128,7 @@ const toggleJob = (job: any) => {
                 >
                     <CardHeader>
                         <div class="flex items-start justify-between">
-                            <CardTitle class="text-lg font-medium">{{
-                                job.title
-                            }}</CardTitle>
+                            <CardTitle class="text-lg font-medium">{{ job.title }}</CardTitle>
                             <span
                                 :class="{
                                     'bg-green-100 text-green-600':
