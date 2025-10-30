@@ -28,14 +28,24 @@ class PasswordResetLinkController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
-        $request->validate([
-            'email' => 'required|email',
-        ]);
+        $request->validate(
+            [
+                'email' => 'required|email|ends_with:@gmail.com',
+            ],
+            [
+                'email.required' => 'Vui lòng nhập email',
+                'email.email' => 'Sai định dạng email',
+                'email.ends_with' => 'Sai định dạng email',
+            ]
+        );
 
-        Password::sendResetLink(
+        $status = Password::sendResetLink(
             $request->only('email')
         );
 
-        return back()->with('status', __('A reset link will be sent if the account exists.'));
+        return $status === Password::RESET_LINK_SENT
+            ? back()->with('status', __('Hệ thống đã gửi liên kết đặt lại mật khẩu đến email của bạn.'))
+            : back()->withErrors(['email' => __('Email không tồn tại trong hệ thống.')]);
     }
+
 }
