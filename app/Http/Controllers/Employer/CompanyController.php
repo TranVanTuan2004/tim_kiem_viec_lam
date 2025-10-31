@@ -25,7 +25,7 @@ class CompanyController extends Controller
         }
 
         // Tên component Inertia phải là 'Employer/Company' để khớp với đường dẫn file Vue
-        return inertia('Employer/Setting/Company', [ 
+        return inertia('Employer/Settings/Company', [ 
             'company' => $company,
         ]);
     }
