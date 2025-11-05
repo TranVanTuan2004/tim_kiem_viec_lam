@@ -6,10 +6,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Payment extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory, SoftDeletes, LogsActivity;
 
     protected $fillable = [
         'user_id',
@@ -107,11 +109,32 @@ class Payment extends Model
             'status' => 'completed',
             'paid_at' => now(),
         ]);
+
+        // Log payment completion
+        activity()
+            ->performedOn($this)
+            ->causedBy($this->user)
+            ->withProperties([
+                'amount' => $this->amount,
+                'payment_method' => $this->payment_method,
+                'transaction_id' => $this->transaction_id,
+            ])
+            ->log('Payment completed successfully');
     }
 
     public function markAsFailed(): void
     {
         $this->update(['status' => 'failed']);
+
+        // Log payment failure
+        activity()
+            ->performedOn($this)
+            ->causedBy($this->user)
+            ->withProperties([
+                'amount' => $this->amount,
+                'payment_method' => $this->payment_method,
+            ])
+            ->log('Payment failed');
     }
 
     public function markAsRefunded(): void
@@ -163,4 +186,14 @@ class Payment extends Model
     public const STATUS_COMPLETED = 'completed';
     public const STATUS_FAILED = 'failed';
     public const STATUS_REFUNDED = 'refunded';
+
+    // Activity Log Configuration
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()  // Log tất cả các field
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn(string $eventName) => "Payment #{$this->id} ({$this->getFormattedAmount()}) {$eventName}");
+    }
 }
