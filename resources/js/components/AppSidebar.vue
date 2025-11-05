@@ -16,6 +16,7 @@ import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import {
+    Activity,
     BookOpen,
     Bookmark,
     Briefcase,
@@ -100,6 +101,12 @@ const adminNavItems: NavItem[] = [
         href: '/admin/chat',
         icon: MessageSquare,
         permission: 'view messages',
+    },
+    {
+        title: 'Activity Logs',
+        href: '/admin/activity-logs',
+        icon: Activity,
+        permission: 'view users',
     },
     {
         title: 'Gói Dịch Vụ',
