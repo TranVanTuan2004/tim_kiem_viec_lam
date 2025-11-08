@@ -20,6 +20,7 @@ use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Employer\PostingController;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Employer\CompanyController as EmployerCompanyController;
+use App\Http\Controllers\Employer\ApplicationController as EmployerApplicationController;
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -90,8 +91,6 @@ Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer
     // Dashboard
     Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
     
-});
-
 // Admin Routes - Using Spatie Permission
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
     // Dashboard
@@ -188,6 +187,14 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'role:Candid
     Route::post('portfolios/{portfolio}/toggle-public', [PortfolioController::class, 'togglePublic'])->name('portfolios.toggle-public');
 });
 
+
+// Employer Routes
+Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer'])->group(function () {
+    // Dashboard
+    Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/applications', [EmployerApplicationController::class, 'index'])->name('applications.index');
+    Route::get('/applications/{id}', [EmployerApplicationController::class, 'show'])->name('applications.show');
+});
 Route::prefix('employer')->name('employer.')->group(function () {
     // Danh sách tin tuyển dụng
     Route::get('posting', [PostingController::class, 'index'])->name('postings.index');
@@ -205,6 +212,7 @@ Route::prefix('employer')->name('employer.')->group(function () {
     // Cài đặt công ty
     Route::get('/settings/company', [EmployerCompanyController::class, 'edit'])->name('company.edit');
     Route::patch('/settings/company', [EmployerCompanyController::class, 'update'])->name('company.update');
+
 });
 
 Route::prefix('admin')->name('admin.')->group(function () {
