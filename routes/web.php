@@ -10,6 +10,7 @@ use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Candidate\ProfileController;
 use App\Http\Controllers\Candidate\ApplicationController;
 use App\Http\Controllers\Candidate\SavedJobController;
+use App\Http\Controllers\Candidate\FavoriteController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\UserController;
@@ -185,6 +186,11 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'role:Candid
     Route::post('portfolios/reorder', [PortfolioController::class, 'reorder'])->name('portfolios.reorder');
     Route::post('portfolios/{portfolio}/toggle-featured', [PortfolioController::class, 'toggleFeatured'])->name('portfolios.toggle-featured');
     Route::post('portfolios/{portfolio}/toggle-public', [PortfolioController::class, 'togglePublic'])->name('portfolios.toggle-public');
+
+    // Favorites
+    Route::get('favorites', [FavoriteController::class, 'index'])->name('favorites.index');
+    Route::post('favorites/toggle/{job}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
+    Route::delete('favorites/clear', [FavoriteController::class, 'clear'])->name('favorites.clear');
 });
 
 
