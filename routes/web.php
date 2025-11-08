@@ -90,7 +90,7 @@ Route::get('dashboard', function () {
 Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer'])->group(function () {
     // Dashboard
     Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
-    
+});
 // Admin Routes - Using Spatie Permission
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
     // Dashboard
@@ -98,7 +98,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(
 
     // User Management - Only admin
     Route::resource('users', UserController::class)->middleware('permission:view users');
-    
+
     // Chat routes - All authenticated users
     Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('chat/messages/{user}', [ChatController::class, 'getMessages'])->name('chat.messages');
@@ -212,7 +212,6 @@ Route::prefix('employer')->name('employer.')->group(function () {
     // Cài đặt công ty
     Route::get('/settings/company', [EmployerCompanyController::class, 'edit'])->name('company.edit');
     Route::patch('/settings/company', [EmployerCompanyController::class, 'update'])->name('company.update');
-
 });
 
 Route::prefix('admin')->name('admin.')->group(function () {
