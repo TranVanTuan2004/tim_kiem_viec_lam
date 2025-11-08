@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ChatController;
+use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\SupportChatController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Employer\PostingController;
@@ -69,24 +70,27 @@ Route::get('dashboard', function () {
     ]);
 
     // Redirect based on user role
-    if ($user->hasRole('Candidate')) {
-        Log::info('Redirecting to candidate dashboard');
-        return redirect()->route('candidate.dashboard');
-    } elseif ($user->hasRole('Employer')) {
-        Log::info('Redirecting to employer dashboard');
-        return redirect()->route('employer.dashboard');
-    } elseif ($user->hasRole('Admin')) {
-        Log::info('Redirecting to admin dashboard');
-        return redirect()->route('admin.dashboard');
-    }
+    // if ($user->hasRole('Candidate')) {
+    //     Log::info('Redirecting to candidate dashboard');
+    //     return redirect()->route('candidate.dashboard');
+    // } elseif ($user->hasRole('Employer')) {
+    //     Log::info('Redirecting to employer dashboard');
+    //     return redirect()->route('employer.dashboard');
+    // } elseif ($user->hasRole('Admin')) {
+    //     Log::info('Redirecting to admin dashboard');
+    //     return redirect()->route('admin.dashboard');
+    // }
 
     // Default fallback
     Log::info('No role found, using default dashboard');
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-
-
+// Employer Routes
+Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer'])->group(function () {
+    // Dashboard
+    Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
+    
 // Admin Routes - Using Spatie Permission
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
     // Dashboard
@@ -94,7 +98,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(
 
     // User Management - Only admin
     Route::resource('users', UserController::class)->middleware('permission:view users');
-
+    
     // Chat routes - All authenticated users
     Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
     Route::get('chat/messages/{user}', [ChatController::class, 'getMessages'])->name('chat.messages');
@@ -209,7 +213,15 @@ Route::prefix('employer')->name('employer.')->group(function () {
     Route::get('/settings/company', [EmployerCompanyController::class, 'edit'])->name('company.edit');
     Route::patch('/settings/company', [EmployerCompanyController::class, 'update'])->name('company.update');
 
-    
+});
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
+    Route::get('activity-logs/statistics', [ActivityLogController::class, 'statistics'])->name('activity-logs.statistics');
+    Route::get('activity-logs/recent', [ActivityLogController::class, 'recent'])->name('activity-logs.recent');
+    Route::get('activity-logs/top-users', [ActivityLogController::class, 'topUsers'])->name('activity-logs.top-users');
+    Route::get('activity-logs/export', [ActivityLogController::class, 'export'])->name('activity-logs.export');
+    Route::post('activity-logs/clean', [ActivityLogController::class, 'clean'])->name('activity-logs.clean');
 });
 
 

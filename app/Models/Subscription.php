@@ -5,10 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Subscription extends Model
 {
-    use HasFactory;
+    use HasFactory, LogsActivity;
 
     protected $fillable = [
         'company_id',
@@ -108,5 +110,15 @@ class Subscription extends Model
         $totalDays = $this->starts_at->diffInDays($this->expires_at);
         $remainingDays = $this->getDaysRemaining();
         return round((($totalDays - $remainingDays) / $totalDays) * 100, 2);
+    }
+
+    // Activity Log Configuration
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()  // Log tất cả các field
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn(string $eventName) => "Subscription #{$this->id} {$eventName}");
     }
 }

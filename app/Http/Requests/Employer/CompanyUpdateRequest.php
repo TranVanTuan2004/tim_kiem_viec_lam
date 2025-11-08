@@ -10,10 +10,9 @@ class CompanyUpdateRequest extends FormRequest
      * Xác định xem người dùng có được phép thực hiện request này không.
      */
     public function authorize(): bool
-    {
-        // Chỉ cho phép nếu user đang đăng nhập có liên kết với công ty
-        return (bool) $this->user()->company_id;
-    }
+{
+    return true;
+}
 
     /**
      * Lấy các quy tắc validation áp dụng cho request.

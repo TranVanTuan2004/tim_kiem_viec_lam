@@ -78,7 +78,7 @@ class DashboardController extends Controller
                 ];
             });
 
-        return Inertia::render('employer/Dashboard', [
+        return Inertia::render('Employer/Dashboard', [
             'stats' => $stats,
             'recentJobs' => $recentJobs,
             'recentApplications' => $recentApplications,
