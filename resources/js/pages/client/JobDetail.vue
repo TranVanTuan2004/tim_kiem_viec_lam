@@ -16,6 +16,7 @@ import {
     MapPin,
     Share2,
     Users,
+    Heart,
 } from 'lucide-vue-next';
 import { computed, defineProps, ref } from 'vue';
 
@@ -30,7 +31,8 @@ const page = usePage();
 const auth = computed(() => page.props.auth);
 
 // State
-const isSaved = ref(false);
+// const isSaved = ref(false);
+const isFavorite = ref(false);
 const isSharing = ref(false);
 
 // Computed safe accessors with fallbacks
@@ -91,20 +93,36 @@ const locationText = computed(
 );
 
 // Methods
-const toggleSaveJob = () => {
+// const toggleSaveJob = () => {
+//     if (!auth.value.user) {
+//         router.visit('/login');
+//         return;
+//     }
+
+//     // TODO: Implement save job API
+//     isSaved.value = !isSaved.value;
+
+//     if (isSaved.value) {
+//         // Show success message
+//         console.log('Job saved!');
+//     } else {
+//         console.log('Job unsaved!');
+//     }
+// };
+
+const toggleFavoriteJob = () => {
     if (!auth.value.user) {
         router.visit('/login');
         return;
     }
 
-    // TODO: Implement save job API
-    isSaved.value = !isSaved.value;
+    // TODO: Gọi API lưu yêu thích
+    isFavorite.value = !isFavorite.value;
 
-    if (isSaved.value) {
-        // Show success message
-        console.log('Job saved!');
+    if (isFavorite.value) {
+        console.log('Đã thêm vào danh sách yêu thích.');
     } else {
-        console.log('Job unsaved!');
+        console.log('Đã xóa khỏi danh sách yêu thích.');
     }
 };
 
@@ -159,7 +177,7 @@ const shareJob = () => {
 
                         <!-- Action Buttons -->
                         <div class="flex gap-2">
-                            <Button
+                            <!-- <Button
                                 variant="outline"
                                 size="icon"
                                 @click="toggleSaveJob"
@@ -172,7 +190,21 @@ const shareJob = () => {
                                     :class="{ 'fill-current': isSaved }"
                                     class="h-5 w-5"
                                 />
+                            </Button> -->
+
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                class="h-8 w-8 flex-shrink-0 text-muted-foreground transition-colors hover:text-red-600"
+                                @click="toggleFavoriteJob"
+                                :class="{ 'text-red-600': isFavorite }"
+                            >
+                                <Heart
+                                    class="h-5 w-5"
+                                    :class="{ 'fill-current text-red-600': isFavorite }"
+                                />
                             </Button>
+
                             <Button
                                 variant="outline"
                                 size="icon"

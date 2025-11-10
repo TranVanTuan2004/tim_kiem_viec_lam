@@ -226,4 +226,11 @@ class JobPosting extends Model
         return $this->belongsToMany(User::class, 'favorites')->withTimestamps();
     }
 
+    public function getIsFavoritedAttribute()
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        return $user->favorites()->where('job_posting_id', $this->id)->exists();
+    }
+
 }

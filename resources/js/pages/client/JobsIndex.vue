@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import axios from 'axios';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -24,6 +25,27 @@ import {
     X,
 } from 'lucide-vue-next';
 import { computed, defineProps, ref } from 'vue';
+
+const toggleFavorite = async (job: any) => {
+  const previousState = job.is_favorited;
+  job.is_favorited = !job.is_favorited;
+
+  try {
+    const response = await axios.post(`/candidate/favorites/toggle/${job.id}`);
+    job.is_favorited = response.data.is_favorited;
+    alert(response.data.message); // hiển thị message từ backend
+  } catch (error: unknown) {
+    job.is_favorited = previousState;
+
+    let msg = 'Thao tác thất bại, vui lòng thử lại.';
+
+    if (axios.isAxiosError(error) && error.response) {
+        msg = error.response.data?.message || msg;
+    }
+
+    alert(msg);
+    }
+};
 
 const props = defineProps({
     jobs: {
@@ -370,14 +392,23 @@ const hasActiveFilters = computed(
                                             </CardDescription>
                                         </div>
                                     </div>
-                                    <Button
+                                    <!-- <Button
                                         variant="ghost"
                                         size="icon"
                                         class="h-8 w-8 flex-shrink-0 text-muted-foreground transition-colors hover:text-red-600"
                                         @click.prevent
                                     >
                                         <Heart class="h-4 w-4" />
+                                    </Button> -->
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        :class="job.is_favorited ? 'text-red-600' : 'text-gray-400 hover:text-red-600'"
+                                        @click.prevent="toggleFavorite(job)"
+                                    >
+                                        <Heart :class="job.is_favorited ? 'fill-red-600 text-red-600' : ''" class="h-5 w-5" />
                                     </Button>
+
                                 </div>
                             </CardHeader>
                             <CardContent class="space-y-4">
