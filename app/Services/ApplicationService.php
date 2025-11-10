@@ -105,9 +105,19 @@ class ApplicationService
             return $cvFile->store('applications/cvs', 'public');
         }
 
-        // Use CV from candidate profile if available
-        if ($user->candidateProfile && $user->candidateProfile->cv_file) {
-            return $user->candidateProfile->cv_file;
+        // Prefer default CV from candidate_cvs if available
+        if ($user->candidateProfile) {
+            $candidate = $user->candidateProfile;
+            if (method_exists($candidate, 'defaultCv')) {
+                $defaultCv = $candidate->defaultCv()->first();
+                if ($defaultCv && $defaultCv->stored_path) {
+                    return $defaultCv->stored_path;
+                }
+            }
+            // Fallback to legacy single cv_file on candidate_profiles
+            if (!empty($candidate->cv_file)) {
+                return $candidate->cv_file;
+            }
         }
 
         return null;
