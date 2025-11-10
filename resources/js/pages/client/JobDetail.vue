@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import axios from 'axios';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -110,21 +111,31 @@ const locationText = computed(
 //     }
 // };
 
-const toggleFavoriteJob = () => {
+const toggleFavoriteJob = async () => {
     if (!auth.value.user) {
         router.visit('/login');
         return;
     }
 
-    // TODO: Gọi API lưu yêu thích
+    const previousState = isFavorite.value;
     isFavorite.value = !isFavorite.value;
 
-    if (isFavorite.value) {
-        console.log('Đã thêm vào danh sách yêu thích.');
-    } else {
-        console.log('Đã xóa khỏi danh sách yêu thích.');
+    try {
+        const response = await axios.post(`/candidate/favorites/toggle/${jobData.value.id}`);
+        isFavorite.value = response.data.is_favorited;
+        alert(response.data.message);
+    } catch (error: unknown) {
+        isFavorite.value = previousState;
+
+        let msg = 'Thao tác thất bại, vui lòng thử lại.';
+        if (axios.isAxiosError(error) && error.response) {
+            msg = error.response.data?.message || msg;
+        }
+
+        alert(msg);
     }
 };
+
 
 const shareJob = () => {
     if (navigator.share) {

@@ -66,9 +66,30 @@ class FavoriteController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $favorites = $user->favorites()->latest()->get();
-        return view('favorites.index', compact('favorites'));
+
+        $favorites = $user->favorites()->with('company')->latest()->get();
+
+        return \Inertia\Inertia::render('client/FavoriteJobs', [
+            'favorites' => $favorites->map(function ($job) use ($user) {
+                return [
+                    'id' => $job->id,
+                    'title' => $job->title,
+                    'slug' => $job->slug,
+                    'location' => $job->location,
+                    'salary' => $job->getSalaryRange(), // dùng helper trong JobPosting.php
+                    'posted' => $job->created_at ? $job->created_at->diffForHumans() : 'Mới đăng',
+                    'company' => $job->company->name ?? null,   // tên công ty dưới dạng chuỗi
+                    'company_logo' => $job->company->logo ? '/storage/' . $job->company->logo : null, // logo đường dẫn đầy đủ
+                    'skills' => $job->skills->pluck('name')->toArray() ?? [],
+                    'job_type' => $job->job_type,
+                    'is_featured' => $job->is_featured,
+                    'is_favorited' => $user->favorites()->where('job_posting_id', $job->id)->exists(),
+                ];
+            }),
+        ]);
     }
+
+
 
     // Xóa tất cả
     public function clear()
