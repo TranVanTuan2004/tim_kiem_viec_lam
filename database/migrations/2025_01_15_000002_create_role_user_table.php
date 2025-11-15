@@ -11,16 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('role_user', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('user_id');
-            $table->unsignedBigInteger('role_id');
-            $table->timestamps();
+        // Schema::create('role_user', function (Blueprint $table) {
+        //     $table->id();
+        //     $table->unsignedBigInteger('user_id');
+        //     $table->unsignedBigInteger('role_id');
+        //     $table->timestamps();
             
-            $table->unique(['user_id', 'role_id']);
-            $table->index('user_id');
-            $table->index('role_id');
-        });
+        //     $table->unique(['user_id', 'role_id']);
+        //     $table->index('user_id');
+        //     $table->index('role_id');
+        // });
     }
 
     /**
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('role_user');
+        // Schema::dropIfExists('role_user');
     }
 };
