@@ -18,6 +18,7 @@ class PermissionSeeder extends Seeder
 
         // Create permissions
         $permissions = [
+            'view job applications',
             // User Management
             'view users',
         
@@ -67,6 +68,34 @@ class PermissionSeeder extends Seeder
             'save jobs',
             'view saved jobs',
 
+            // Applications for their jobs
+            'view job applications',
+
+            // Their company
+            'create company',
+
+            // View profiles
+            'view profiles',
+
+            // Reviews
+            'view reviews',
+
+            // Messages
+            'send messages',
+            
+            // Subscriptions
+            'view subscriptions',
+
+            // Reports
+            'create report',
+
+            // Packages
+            'view packages',
+
+            // Analytics
+            'view own analytics',
+
+
         ];
 
         foreach ($permissions as $permission) {
@@ -91,8 +120,8 @@ class PermissionSeeder extends Seeder
                 // Applications for their jobs
                 'view job applications',
 
-                // Their company
-                'create company',
+                    // Their company
+                    'create company',
 
                 // View profiles
                 'view profiles',
