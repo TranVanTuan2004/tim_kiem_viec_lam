@@ -21,6 +21,7 @@ use App\Http\Controllers\Employer\PostingController;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Employer\CompanyController as EmployerCompanyController;
 use App\Http\Controllers\Employer\ApplicationController as EmployerApplicationController;
+use App\Http\Controllers\Employer\CandidateSearchController;
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -194,6 +195,7 @@ Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer
     Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
     Route::get('/applications', [EmployerApplicationController::class, 'index'])->name('applications.index');
     Route::get('/applications/{id}', [EmployerApplicationController::class, 'show'])->name('applications.show');
+    Route::get('candidates/search', [CandidateSearchController::class, 'index'])->name('employer.candidates.search');
 });
 Route::prefix('employer')->name('employer.')->group(function () {
     // Danh sách tin tuyển dụng
