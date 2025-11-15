@@ -80,6 +80,7 @@ class ProfileController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'birth_date' => ['nullable', 'date', 'before:today'],
             'gender' => ['nullable', 'in:male,female,other'],
             'address' => ['nullable', 'string', 'max:255'],
@@ -97,6 +98,12 @@ class ProfileController extends Controller
         ]);
 
         $user = Auth::user();
+
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $validated['avatar'] = $avatarPath;
+        }
 
         // Handle CV file upload
         if ($request->hasFile('cv_file')) {
@@ -155,6 +162,7 @@ class ProfileController extends Controller
     public function update(Request $request)
     {
         $validated = $request->validate([
+            'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'birth_date' => ['nullable', 'date', 'before:today'],
             'gender' => ['nullable', 'in:male,female,other'],
             'address' => ['nullable', 'string', 'max:255'],
@@ -178,6 +186,16 @@ class ProfileController extends Controller
 
         if (!$profile) {
             return redirect()->route('candidate.profile.create');
+        }
+
+        // Handle avatar upload
+        if ($request->hasFile('avatar')) {
+            // Delete old avatar if exists
+            if ($profile->avatar) {
+                Storage::disk('public')->delete($profile->avatar);
+            }
+            $avatarPath = $request->file('avatar')->store('avatars', 'public');
+            $validated['avatar'] = $avatarPath;
         }
 
         // Handle CV file upload
@@ -239,6 +257,8 @@ class ProfileController extends Controller
     {
         return [
             'id' => $profile->id,
+            'avatar' => $profile->avatar,
+            'avatar_url' => $profile->avatar ? Storage::url($profile->avatar) : null,
             'birth_date' => $profile->birth_date?->format('Y-m-d'),
             'age' => $profile->getAge(),
             'gender' => $profile->gender,

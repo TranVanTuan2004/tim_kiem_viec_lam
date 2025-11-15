@@ -15,6 +15,53 @@
                     </div>
 
                     <form @submit.prevent="submit" class="space-y-6 p-6">
+                        <!-- Avatar Upload -->
+                        <div>
+                            <h2
+                                class="mb-4 text-lg font-semibold text-gray-900"
+                            >
+                                Profile Picture
+                            </h2>
+                            <div class="flex items-center space-x-6">
+                                <div v-if="avatarPreview" class="flex-shrink-0">
+                                    <img
+                                        :src="avatarPreview"
+                                        alt="Profile Avatar"
+                                        class="h-24 w-24 rounded-full object-cover border-2 border-gray-300"
+                                    />
+                                </div>
+                                <div v-else class="flex-shrink-0">
+                                    <div class="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300">
+                                        <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <label
+                                        class="block text-sm font-medium text-gray-700 mb-2"
+                                    >
+                                        Upload Avatar (JPG, PNG, GIF - Max 2MB)
+                                    </label>
+                                    <input
+                                        @change="handleAvatarUpload"
+                                        type="file"
+                                        accept="image/*"
+                                        class="block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100"
+                                    />
+                                    <p
+                                        v-if="form.errors.avatar"
+                                        class="mt-1 text-sm text-red-600"
+                                    >
+                                        {{ form.errors.avatar }}
+                                    </p>
+                                    <p class="mt-1 text-xs text-gray-500">
+                                        Recommended size: 400x400 pixels
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Personal Information -->
                         <div>
                             <h2
@@ -256,6 +303,7 @@ import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
 import { home } from '@/routes';
 import { store } from '@/routes/candidate/profile';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 interface Props {
     allSkills?: Array<any>;
@@ -265,6 +313,7 @@ interface Props {
 defineProps<Props>();
 
 const form = useForm({
+    avatar: null as File | null,
     birth_date: '',
     gender: '',
     address: '',
@@ -279,6 +328,21 @@ const form = useForm({
     is_available: true,
     skills: [] as number[],
 });
+
+const avatarPreview = ref<string | null>(null);
+
+const handleAvatarUpload = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (target.files && target.files[0]) {
+        form.avatar = target.files[0];
+        // Create preview
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            avatarPreview.value = e.target?.result as string;
+        };
+        reader.readAsDataURL(target.files[0]);
+    }
+};
 
 const handleFileUpload = (event: Event) => {
     const target = event.target as HTMLInputElement;

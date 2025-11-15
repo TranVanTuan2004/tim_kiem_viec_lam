@@ -82,8 +82,8 @@ class DashboardController extends Controller
     private function getRecommendedJobs($candidateProfile)
     {
         $query = \App\Models\JobPosting::with(['company', 'industry'])
-            ->where('status', 'active')
-            ->where('deadline', '>=', now());
+            ->where('status', 'approved')
+            ->where('application_deadline', '>=', now());
 
         // Filter by candidate's skills
         if ($candidateProfile->skills()->count() > 0) {
@@ -110,7 +110,7 @@ class DashboardController extends Controller
                     'experience_level' => $job->experience_level,
                     'salary_min' => $job->salary_min,
                     'salary_max' => $job->salary_max,
-                    'deadline' => $job->deadline ? $job->deadline->format('Y-m-d') : null,
+                    'deadline' => $job->application_deadline ? $job->application_deadline->format('Y-m-d') : null,
                     'company' => [
                         'id' => $job->company->id,
                         'name' => $job->company->name,
