@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import ClientLayout from '@/layouts/ClientLayout.vue';
-import { Link, router } from '@inertiajs/vue3';
+import WriteReviewModal from '@/components/reviews/WriteReviewModal.vue';
+import { Link, router, usePage } from '@inertiajs/vue3';
 import {
     Briefcase,
     Building2,
@@ -17,8 +18,13 @@ import {
     MapPin,
     Star,
     Users,
+    ThumbsUp,
+    MessageSquare,
+    Edit,
+    Trash2,
 } from 'lucide-vue-next';
-import { computed, defineProps } from 'vue';
+import { computed, defineProps, ref, onMounted } from 'vue';
+import axios from 'axios';
 
 const props = defineProps({
     company: {
@@ -125,6 +131,62 @@ const getRatingPercentage = (starCount: number) => {
     if (totalReviews.value === 0) return 0;
     return Math.round((starCount / totalReviews.value) * 100);
 };
+
+// Review modal state
+const showReviewModal = ref(false);
+const userReview = ref<any>(null);
+const page = usePage();
+const authUser = computed(() => page.props.auth?.user);
+
+// Check if user has reviewed
+onMounted(async () => {
+    if (authUser.value) {
+        try {
+            const response = await axios.get(`/companies/${companyData.value.slug}/reviews/user`);
+            userReview.value = response.data.review;
+        } catch (error) {
+            console.error('Error fetching user review:', error);
+        }
+    }
+});
+
+const openReviewModal = () => {
+    if (!authUser.value) {
+        router.visit('/login');
+        return;
+    }
+    showReviewModal.value = true;
+};
+
+const handleReviewSuccess = () => {
+    // Reload page to show new review
+    router.reload({ only: ['reviews', 'ratingStats'] });
+};
+
+const handleDeleteReview = async (reviewId: number) => {
+    if (!confirm('Bạn có chắc muốn xóa đánh giá này?')) return;
+    
+    try {
+        await router.delete(`/companies/${companyData.value.slug}/reviews/${reviewId}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                userReview.value = null;
+            }
+        });
+    } catch (error) {
+        console.error('Error deleting review:', error);
+    }
+};
+
+const getRecommendPercentage = computed(() => {
+    if (totalReviews.value === 0) return 0;
+    const highRatings = (ratingStatsData.value.five_star || 0) + (ratingStatsData.value.four_star || 0);
+    return Math.round((highRatings / totalReviews.value) * 100);
+});
+
+const openWebsite = (url: string) => {
+    window.open(url, '_blank');
+};
 </script>
 
 <template>
@@ -223,22 +285,61 @@ const getRatingPercentage = (starCount: number) => {
                             </div>
                         </div>
 
-                        <!-- Action Buttons -->
-                        <div class="flex gap-2">
-                            <Button
-                                v-if="companyData.website"
-                                variant="outline"
-                                @click="
-                                    window.open(companyData.website, '_blank')
-                                "
-                            >
-                                <Globe class="mr-2 h-4 w-4" />
-                                Website
-                            </Button>
-                            <Button variant="default">
-                                <Briefcase class="mr-2 h-4 w-4" />
-                                Xem việc làm
-                            </Button>
+                        <!-- Rating & Action Section (giống ITViec) -->
+                        <div class="flex flex-col gap-4">
+                            <!-- Rating Badge -->
+                            <div v-if="totalReviews > 0" class="flex items-center gap-6 p-4 bg-white dark:bg-gray-900 rounded-lg border shadow-sm">
+                                <div class="text-center">
+                                    <div class="text-5xl font-bold text-primary mb-1">{{ averageRating }}</div>
+                                    <div class="flex items-center justify-center gap-0.5 mb-1">
+                                        <Star
+                                            v-for="i in 5"
+                                            :key="i"
+                                            class="h-4 w-4"
+                                            :class="
+                                                i <= Math.floor(averageRating)
+                                                    ? 'fill-yellow-500 text-yellow-500'
+                                                    : 'text-gray-300'
+                                            "
+                                        />
+                                    </div>
+                                    <div class="text-sm text-muted-foreground font-medium">
+                                        {{ totalReviews }} đánh giá
+                                    </div>
+                                </div>
+                                
+                                <Separator orientation="vertical" class="h-16" />
+                                
+                                <div class="text-center">
+                                    <div class="text-4xl font-bold text-green-600 mb-1">{{ getRecommendPercentage }}%</div>
+                                    <div class="text-sm text-muted-foreground flex items-center gap-1">
+                                        <ThumbsUp class="h-3 w-3" />
+                                        <span>Giới thiệu<br>bạn bè</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex gap-2">
+                                <Button
+                                    variant="destructive"
+                                    size="lg"
+                                    class="flex-1"
+                                    @click="openReviewModal"
+                                >
+                                    <MessageSquare class="mr-2 h-4 w-4" />
+                                    {{ userReview ? 'Sửa đánh giá' : 'Viết đánh giá' }}
+                                </Button>
+                                <Button
+                                    v-if="companyData.website"
+                                    variant="outline"
+                                    size="lg"
+                                    @click="openWebsite(companyData.website)"
+                                >
+                                    <Globe class="mr-2 h-4 w-4" />
+                                    Website
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -381,67 +482,125 @@ const getRatingPercentage = (starCount: number) => {
                         </Card>
 
                         <!-- Reviews Section -->
-                        <Card v-if="reviewsData.length > 0">
+                        <Card>
                             <CardHeader>
-                                <CardTitle>Đánh giá từ nhân viên</CardTitle>
+                                <div class="flex items-center justify-between">
+                                    <CardTitle class="flex items-center gap-2">
+                                        <MessageSquare class="h-5 w-5" />
+                                        Đánh giá từ nhân viên
+                                        <Badge variant="secondary" class="ml-1">{{ totalReviews }}</Badge>
+                                    </CardTitle>
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm"
+                                        @click="openReviewModal"
+                                    >
+                                        <MessageSquare class="mr-2 h-4 w-4" />
+                                        Viết đánh giá
+                                    </Button>
+                                </div>
                             </CardHeader>
                             <CardContent>
-                                <div class="space-y-6">
+                                <div v-if="reviewsData.length > 0" class="space-y-6">
                                     <div
                                         v-for="review in reviewsData"
                                         :key="review.id"
-                                        class="border-b pb-4 last:border-b-0"
+                                        class="border-b pb-6 last:border-b-0"
                                     >
                                         <div class="flex items-start gap-4">
+                                            <!-- Avatar -->
                                             <div class="flex-shrink-0">
                                                 <div
-                                                    class="flex h-10 w-10 items-center justify-center rounded-full bg-muted"
+                                                    class="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-primary/20 to-primary/10 font-bold text-primary text-lg"
                                                 >
-                                                    <Users
-                                                        class="h-5 w-5 text-muted-foreground"
-                                                    />
+                                                    {{ review.candidate?.user?.name?.charAt(0).toUpperCase() || 'U' }}
                                                 </div>
                                             </div>
+
+                                            <!-- Review Content -->
                                             <div class="flex-1">
-                                                <div
-                                                    class="mb-2 flex items-center gap-2"
-                                                >
-                                                    <div
-                                                        class="flex items-center gap-1"
-                                                    >
-                                                        <Star
-                                                            v-for="i in 5"
-                                                            :key="i"
-                                                            class="h-4 w-4"
-                                                            :class="
-                                                                i <=
-                                                                review.rating
-                                                                    ? 'fill-current text-yellow-500'
-                                                                    : 'text-gray-300'
-                                                            "
-                                                        />
+                                                <!-- Header -->
+                                                <div class="mb-3 flex items-start justify-between">
+                                                    <div>
+                                                        <div class="font-semibold text-base">
+                                                            {{ review.candidate?.user?.name || 'Ẩn danh' }}
+                                                        </div>
+                                                        <div class="flex items-center gap-3 mt-1.5">
+                                                            <div class="flex items-center gap-0.5">
+                                                                <Star
+                                                                    v-for="i in 5"
+                                                                    :key="i"
+                                                                    class="h-4 w-4"
+                                                                    :class="
+                                                                        i <= review.rating
+                                                                            ? 'fill-yellow-500 text-yellow-500'
+                                                                            : 'text-gray-300'
+                                                                    "
+                                                                />
+                                                            </div>
+                                                            <span class="text-sm text-muted-foreground">
+                                                                {{ formatDate(review.created_at) }}
+                                                            </span>
+                                                        </div>
                                                     </div>
-                                                    <span
-                                                        class="text-sm text-muted-foreground"
+
+                                                    <!-- Actions for own review -->
+                                                    <div 
+                                                        v-if="authUser && userReview?.id === review.id"
+                                                        class="flex gap-2"
                                                     >
-                                                        {{
-                                                            formatDate(
-                                                                review.created_at,
-                                                            )
-                                                        }}
-                                                    </span>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            @click="openReviewModal"
+                                                        >
+                                                            <Edit class="h-4 w-4 mr-1" />
+                                                            Sửa
+                                                        </Button>
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            @click="handleDeleteReview(review.id)"
+                                                        >
+                                                            <Trash2 class="h-4 w-4 mr-1 text-red-500" />
+                                                            <span class="text-red-500">Xóa</span>
+                                                        </Button>
+                                                    </div>
                                                 </div>
-                                                <h4 class="mb-1 font-semibold">
+
+                                                <!-- Title & Content -->
+                                                <h4 class="mb-2 text-lg font-bold text-foreground">
                                                     {{ review.title }}
                                                 </h4>
-                                                <p
-                                                    class="text-muted-foreground"
-                                                >
+                                                <p class="text-muted-foreground leading-relaxed">
                                                     {{ review.review }}
                                                 </p>
+
+                                                <!-- Status Badge (if pending) -->
+                                                <div v-if="review.status === 'pending'" class="mt-3">
+                                                    <Badge variant="outline" class="bg-yellow-50 text-yellow-700 border-yellow-300 dark:bg-yellow-950/30 dark:text-yellow-400">
+                                                        <Clock class="mr-1 h-3 w-3" />
+                                                        Đang chờ xét duyệt
+                                                    </Badge>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+
+                                <!-- Empty State -->
+                                <div v-else class="text-center py-16">
+                                    <div class="mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+                                        <MessageSquare class="h-8 w-8 text-muted-foreground" />
+                                    </div>
+                                    <h3 class="text-xl font-bold mb-2">Chưa có đánh giá nào</h3>
+                                    <p class="text-muted-foreground mb-6 max-w-md mx-auto">
+                                        Hãy là người đầu tiên chia sẻ trải nghiệm của bạn về công ty này
+                                    </p>
+                                    <Button @click="openReviewModal" size="lg">
+                                        <MessageSquare class="mr-2 h-5 w-5" />
+                                        Viết đánh giá đầu tiên
+                                    </Button>
                                 </div>
                             </CardContent>
                         </Card>
@@ -585,13 +744,7 @@ const getRatingPercentage = (starCount: number) => {
                                 v-if="companyData.website"
                                 variant="outline"
                                 class="w-full"
-                                @click="
-                                    () =>
-                                        (globalThis as any).window.open(
-                                            companyData.website,
-                                            '_blank',
-                                        )
-                                "
+                                @click="openWebsite(companyData.website)"
                             >
                                 <Globe class="mr-2 h-4 w-4" />
                                 Truy cập website
@@ -613,6 +766,16 @@ const getRatingPercentage = (starCount: number) => {
                 </div>
             </div>
         </div>
+
+        <!-- Write Review Modal -->
+        <WriteReviewModal
+            :open="showReviewModal"
+            @update:open="showReviewModal = $event"
+            :company-id="companyData.id"
+            :company-slug="companyData.slug"
+            :existing-review="userReview"
+            @success="handleReviewSuccess"
+        />
     </ClientLayout>
 </template>
 
