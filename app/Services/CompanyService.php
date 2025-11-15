@@ -107,15 +107,26 @@ class CompanyService
     }
 
     /**
-     * Get approved reviews for company
+     * Get approved reviews for company (and pending reviews from current user)
      */
     public function getCompanyReviews(Company $company, int $perPage = 10): LengthAwarePaginator
     {
-        return $company->reviews()
-            ->where('status', 'approved')
-            ->with('candidate.user')
-            ->orderBy('created_at', 'desc')
-            ->paginate($perPage);
+        $query = $company->reviews()
+            ->with(['candidate.user'])
+            ->where(function ($q) {
+                $q->where('status', 'approved');
+                
+                // Also show pending reviews if it's the current user's review
+                if (auth()->check() && auth()->user()->candidateProfile) {
+                    $q->orWhere(function ($subQ) {
+                        $subQ->where('status', 'pending')
+                            ->where('candidate_id', auth()->user()->candidateProfile->id);
+                    });
+                }
+            })
+            ->orderBy('created_at', 'desc');
+
+        return $query->paginate($perPage);
     }
 
     /**
