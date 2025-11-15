@@ -5,6 +5,8 @@ use App\Http\Controllers\Client\CompanyController;
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Candidate\PortfolioController;
 use App\Http\Controllers\Candidate\DashboardController;
+use App\Http\Controllers\Candidate\EducationController;
+use App\Http\Controllers\Candidate\WorkExperienceController;
 use App\Http\Controllers\Employer\DashboardController as EmployerDashboardController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Candidate\ProfileController;
@@ -65,27 +67,27 @@ Route::get('dashboard', function () {
 
     // Debug: Log user info
     Log::info('Dashboard access', [
-        'user_id' => $user->id,
-        'user_name' => $user->name,
-        'roles' => $user->roles->pluck('name')->toArray()
+        'user_id' => $user?->id,
+        'user_name' => $user?->name,
+        'roles' => $user?->roles?->pluck('name')?->toArray()
     ]);
 
     // Redirect based on user role
-    // if ($user->hasRole('Candidate')) {
-    //     Log::info('Redirecting to candidate dashboard');
-    //     return redirect()->route('candidate.dashboard');
-    // } elseif ($user->hasRole('Employer')) {
-    //     Log::info('Redirecting to employer dashboard');
-    //     return redirect()->route('employer.dashboard');
-    // } elseif ($user->hasRole('Admin')) {
-    //     Log::info('Redirecting to admin dashboard');
-    //     return redirect()->route('admin.dashboard');
-    // }
+    if ($user->hasRole('Candidate')) {
+        Log::info('Redirecting to candidate dashboard');
+        return redirect()->route('candidate.dashboard');
+    } elseif ($user->hasRole('Employer')) {
+        Log::info('Redirecting to employer dashboard');
+        return redirect()->route('employer.dashboard');
+    } elseif ($user->hasRole('Admin')) {
+        Log::info('Redirecting to admin dashboard');
+        return redirect()->route('admin.dashboard');
+    }
 
     // Default fallback
-    Log::info('No role found, using default dashboard');
+    Log::warning('No role found for authenticated user, using default dashboard');
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth'])->name('dashboard');
 
 // Employer Routes
 Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer'])->group(function () {
@@ -93,7 +95,7 @@ Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer
     Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
 });
 // Admin Routes - Using Spatie Permission
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->group(function () {
     // Dashboard
     Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
@@ -109,7 +111,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(
 });
 
 // Admin Routes - Subscription Management (for Employers)
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'permission:view subscriptions'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin', 'permission:view subscriptions'])->group(function () {
     Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions');
     Route::post('subscriptions/subscribe', [SubscriptionController::class, 'subscribe'])->middleware('permission:manage subscriptions')->name('subscribe');
     Route::post('subscriptions/upgrade', [SubscriptionController::class, 'upgrade'])->middleware('permission:manage subscriptions')->name('upgrade');
@@ -186,6 +188,12 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'role:Candid
     Route::post('portfolios/reorder', [PortfolioController::class, 'reorder'])->name('portfolios.reorder');
     Route::post('portfolios/{portfolio}/toggle-featured', [PortfolioController::class, 'toggleFeatured'])->name('portfolios.toggle-featured');
     Route::post('portfolios/{portfolio}/toggle-public', [PortfolioController::class, 'togglePublic'])->name('portfolios.toggle-public');
+
+    // Education Management
+    Route::resource('educations', EducationController::class);
+
+    // Work Experience Management
+    Route::resource('work-experiences', WorkExperienceController::class);
 });
 
 

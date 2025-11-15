@@ -14,7 +14,7 @@ import {
 import { usePermissions } from '@/composables/usePermissions';
 import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import {
     Activity,
     BookOpen,
@@ -33,11 +33,16 @@ import { computed } from 'vue';
 import AppLogo from './AppLogo.vue';
 
 const { can, currentUser, hasRole } = usePermissions();
-console.log(can('view users'));
+const page = usePage();
+
+// Fallback: coi như candidate context nếu URL đang ở /candidate
+const isCandidateContext = computed(() => {
+    return hasRole('Candidate') || page.url.startsWith('/candidate');
+});
 
 // Determine dashboard link based on role
 const getDashboardLink = () => {
-    if (hasRole('Candidate')) {
+    if (isCandidateContext.value) {
         return '/candidate/dashboard';
     } else if (hasRole('Employer')) {
         return '/dashboard'; // Update when employer dashboard is ready
@@ -58,7 +63,7 @@ const candidateNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
-        title: 'My Profile',
+        title: 'Hồ sơ cá nhân',
         href: '/candidate/profile',
         icon: User,
     },
@@ -122,11 +127,9 @@ const adminNavItems: NavItem[] = [
     },
 ];
 
-console.log(currentUser.value);
-
 // Get navigation items based on user role
 const mainNavItems = computed(() => {
-    if (hasRole('Candidate')) {
+    if (isCandidateContext.value) {
         return candidateNavItems;
     } else if (hasRole('Employer')) {
         return adminNavItems; // Update when employer nav is ready
@@ -135,8 +138,16 @@ const mainNavItems = computed(() => {
 });
 
 // Filter items theo permission (giống @can trong Blade)
+// Items không có permission sẽ luôn được hiển thị (dành cho candidate items)
 const filteredMainNavItems = computed(() => {
-    return mainNavItems.value.filter((item) => can(item.permission));
+    return mainNavItems.value.filter((item) => {
+        // Nếu item không có permission, luôn hiển thị (ví dụ: candidate menu items)
+        if (!item.permission) {
+            return true;
+        }
+        // Nếu có permission, kiểm tra quyền (ví dụ: admin menu items)
+        return can(item.permission);
+    });
 });
 
 // Footer navigation items - hide for candidates

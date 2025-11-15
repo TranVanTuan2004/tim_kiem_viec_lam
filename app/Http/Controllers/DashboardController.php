@@ -42,7 +42,7 @@ class DashboardController extends Controller
         $jobStats = [
             'published' => JobPosting::where('status', 'approved')->count(),
             'pending' => JobPosting::where('status', 'pending')->count(),
-            'expired' => JobPosting::where('application_deadline', '<', now())->count(),
+            'expired' => JobPosting::where('application_deadline', '<', now())->whereNull('deleted_at')->count(),
             'featured' => JobPosting::where('is_featured', true)->count(),
         ];
 
