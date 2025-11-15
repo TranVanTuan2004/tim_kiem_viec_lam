@@ -41,6 +41,14 @@ Route::get('/companies', [CompanyController::class, 'index'])->name('companies.i
 Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
 Route::get('/companies/{company}/jobs', [CompanyController::class, 'jobs'])->name('companies.jobs');
 
+// Company Reviews (require authentication)
+Route::middleware(['auth'])->group(function () {
+    Route::post('/companies/{company}/reviews', [\App\Http\Controllers\Client\CompanyReviewController::class, 'store'])->name('companies.reviews.store');
+    Route::put('/companies/{company}/reviews/{review}', [\App\Http\Controllers\Client\CompanyReviewController::class, 'update'])->name('companies.reviews.update');
+    Route::delete('/companies/{company}/reviews/{review}', [\App\Http\Controllers\Client\CompanyReviewController::class, 'destroy'])->name('companies.reviews.destroy');
+    Route::get('/companies/{company}/reviews/user', [\App\Http\Controllers\Client\CompanyReviewController::class, 'getUserReview'])->name('companies.reviews.user');
+});
+
 // Static Pages
 Route::get('/about', function () {
     return Inertia::render('client/About');
@@ -206,13 +214,21 @@ Route::prefix('employer')->name('employer.')->group(function () {
     Route::patch('/settings/company', [EmployerCompanyController::class, 'update'])->name('company.update');
 });
 
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
     Route::get('activity-logs/statistics', [ActivityLogController::class, 'statistics'])->name('activity-logs.statistics');
     Route::get('activity-logs/recent', [ActivityLogController::class, 'recent'])->name('activity-logs.recent');
     Route::get('activity-logs/top-users', [ActivityLogController::class, 'topUsers'])->name('activity-logs.top-users');
     Route::get('activity-logs/export', [ActivityLogController::class, 'export'])->name('activity-logs.export');
     Route::post('activity-logs/clean', [ActivityLogController::class, 'clean'])->name('activity-logs.clean');
+
+    // Company Reviews Management
+    Route::get('company-reviews', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'index'])->name('company-reviews.index');
+    Route::post('company-reviews/{review}/approve', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'approve'])->name('company-reviews.approve');
+    Route::post('company-reviews/{review}/reject', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'reject'])->name('company-reviews.reject');
+    Route::delete('company-reviews/{review}', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'destroy'])->name('company-reviews.destroy');
+    Route::post('company-reviews/bulk-approve', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'bulkApprove'])->name('company-reviews.bulk-approve');
+    Route::post('company-reviews/bulk-reject', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'bulkReject'])->name('company-reviews.bulk-reject');
 });
 
 

@@ -51,20 +51,6 @@
                         </div>
                     </div>
                     
-                    <!-- Error State -->
-                    <div v-else-if="error" class="flex flex-col items-center justify-center py-8 text-red-500">
-                        <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mb-3">
-                            <AlertCircle class="h-6 w-6 text-red-400" />
-                        </div>
-                        <p class="text-sm font-medium">{{ error }}</p>
-                        <button 
-                            @click="toggleDropdown"
-                            class="mt-2 px-3 py-1 bg-red-100 text-red-600 rounded text-xs hover:bg-red-200 transition-colors"
-                        >
-                            Thử lại
-                        </button>
-                    </div>
-                    
                     <!-- Provinces List -->
                     <div v-else>
                         <div
@@ -113,12 +99,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch, Transition } from 'vue';
 import { Input } from '@/components/ui/input';
-import { MapPin, ChevronDown, Search, AlertCircle } from 'lucide-vue-next';
+import { MapPin, ChevronDown, Search } from 'lucide-vue-next';
 import { useProvinces } from '@/composables/useProvinces';
 
-// Interface
 interface Province {
     name: string;
     code: number;
@@ -128,7 +113,6 @@ interface Province {
     wards: any[];
 }
 
-// Props
 interface Props {
     modelValue?: string;
     placeholder?: string;
@@ -139,30 +123,32 @@ const props = withDefaults(defineProps<Props>(), {
     placeholder: 'Địa điểm: Hà Nội, TP.HCM...'
 });
 
-// Emits
 const emit = defineEmits<{
     'update:modelValue': [value: string];
     'search': [location: string];
 }>();
 
-// Sử dụng composable
-const { loadProvinces, searchProvinces, loading, error } = useProvinces();
+const { loadProvinces, searchProvinces } = useProvinces();
 
-// State
 const searchQuery = ref(props.modelValue);
 const isOpen = ref(false);
 const searchFilter = ref('');
+const provinces = ref<Province[]>([]);
+const loading = ref(false);
 
 // Computed
 const filteredProvinces = computed(() => {
+    if (!searchFilter.value) return provinces.value;
     return searchProvinces(searchFilter.value);
 });
 
 // Methods
 const toggleDropdown = async () => {
     isOpen.value = !isOpen.value;
-    if (isOpen.value) {
-        await loadProvinces();
+    if (isOpen.value && provinces.value.length === 0) {
+        loading.value = true;
+        provinces.value = await loadProvinces();
+        loading.value = false;
     }
 };
 

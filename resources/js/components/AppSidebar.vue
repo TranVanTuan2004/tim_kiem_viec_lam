@@ -26,6 +26,7 @@ import {
     Home,
     LayoutGrid,
     MessageSquare,
+    Star,
     User,
     Users,
 } from 'lucide-vue-next';
@@ -101,6 +102,12 @@ const adminNavItems: NavItem[] = [
         href: '/admin/chat',
         icon: MessageSquare,
         permission: 'view messages',
+    },
+    {
+        title: 'Quản lý đánh giá',
+        href: '/admin/company-reviews',
+        icon: Star,
+        // permission: 'view users',
     },
     {
         title: 'Activity Logs',
