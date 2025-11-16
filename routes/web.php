@@ -204,7 +204,6 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'role:Candid
     Route::post('favorites/toggle/{job}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
     Route::delete('favorites/clear', [FavoriteController::class, 'clear'])->name('favorites.clear');
 
-=======
     // Education Management
     Route::resource('educations', EducationController::class);
 
