@@ -135,7 +135,7 @@ const { currentLanguage, setLanguage, t } = useLanguage();
                 </DropdownMenu>
 
                 <template v-if="isAuthenticated">
-                    <Link href="/saved-jobs">
+                    <Link href="/candidate/favorites">
                         <Button variant="ghost" size="icon">
                             <Heart class="h-5 w-5" />
                         </Button>

@@ -220,4 +220,19 @@ class JobPosting extends Model
             ->dontSubmitEmptyLogs()
             ->setDescriptionForEvent(fn(string $eventName) => "Job Posting {$eventName}");
     }
+
+    public function favoritedBy()
+    {
+        return $this->belongsToMany(User::class, 'favorites')
+                    ->withPivot('is_favorited')
+                    ->withTimestamps();
+    }   
+
+    public function getIsFavoritedAttribute()
+    {
+        $user = auth()->user();
+        if (!$user) return false;
+        return $user->favorites()->where('job_posting_id', $this->id)->exists();
+    }
+
 }

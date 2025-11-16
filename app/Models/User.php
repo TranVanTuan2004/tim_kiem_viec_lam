@@ -152,4 +152,12 @@ class User extends Authenticatable implements MustVerifyEmail
             ->dontSubmitEmptyLogs()
             ->setDescriptionForEvent(fn(string $eventName) => "User {$eventName}");
     }
+
+    public function favorites()
+    {
+        return $this->belongsToMany(JobPosting::class, 'favorites')
+                    ->withPivot('is_favorited')
+                    ->withTimestamps();
+    }
+
 }
