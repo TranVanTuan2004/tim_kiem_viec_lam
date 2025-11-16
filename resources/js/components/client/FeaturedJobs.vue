@@ -15,23 +15,44 @@ import { Building2, Clock, DollarSign, Heart, MapPin } from 'lucide-vue-next';
 import { defineProps } from 'vue';
 
 const toggleFavorite = async (job: any) => {
-  const previousState = job.is_favorited;
-  job.is_favorited = !job.is_favorited;
+//   const previousState = job.is_favorited;
+//   job.is_favorited = !job.is_favorited;
 
-  try {
-    const response = await axios.post(`/candidate/favorites/toggle/${job.id}`);
-    job.is_favorited = response.data.is_favorited;
-    alert(response.data.message); // hiển thị message từ backend
-  } catch (error: unknown) {
-    job.is_favorited = previousState;
+//   try {
+//     const response = await axios.post(`/candidate/favorites/toggle/${job.id}`);
+//     job.is_favorited = response.data.is_favorited;
+//     alert(response.data.message); // hiển thị message từ backend
+//   } catch (error: unknown) {
+//     job.is_favorited = previousState;
 
-    let msg = 'Thao tác thất bại, vui lòng thử lại.';
+//     let msg = 'Thao tác thất bại, vui lòng thử lại.';
 
-    if (axios.isAxiosError(error) && error.response) {
+//     if (axios.isAxiosError(error) && error.response) {
+//         msg = error.response.data?.message || msg;
+//     }
+
+//     alert(msg);
+//     }
+    job = job || { is_favorited: false };
+
+    const previousState = job.is_favorited;
+
+    job.is_favorited = !previousState;
+
+    try {
+        const response = await axios.post(`/candidate/favorites/toggle/${job.id}`);
+
+        job.is_favorited = response.data.is_favorited;
+
+        alert(response.data.message);
+    } catch (error: unknown) {
+        job.is_favorited = previousState;
+
+        let msg = 'Thao tác thất bại, vui lòng thử lại.';
+        if (axios.isAxiosError(error) && error.response) {
         msg = error.response.data?.message || msg;
-    }
-
-    alert(msg);
+        }
+        alert(msg);
     }
 };
 
@@ -150,10 +171,13 @@ const { t } = useLanguage();
                                 <Button
                                     variant="ghost"
                                     size="icon"
-                                    :class="job.is_favorited ? 'text-red-600' : 'text-gray-400 hover:text-red-600'"
+                                    :class="job?.is_favorited == 1 ? 'text-red-600' : 'text-gray-400 hover:text-red-600'"
                                     @click.prevent="toggleFavorite(job)"
                                 >
-                                    <Heart :class="job.is_favorited ? 'fill-red-600 text-red-600' : ''" class="h-5 w-5" />
+                                    <Heart
+                                            :class="job.is_favorited ? 'fill-red-600 text-red-600' : 'text-gray-400'"
+                                            class="h-5 w-5"
+                                        />
                                 </Button>
 
                             </div>

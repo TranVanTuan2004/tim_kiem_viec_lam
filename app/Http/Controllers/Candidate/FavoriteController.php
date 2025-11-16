@@ -29,20 +29,33 @@ class FavoriteController extends Controller
     //     }
     // }
 
-    public function toggle(Request $request, $id)
+     public function toggle(Request $request, int $id)
     {
+        $user = Auth::user();
+
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'is_favorited' => null,
+                'message' => 'Bạn cần đăng nhập để thực hiện thao tác này.',
+            ], 401);
+        }
+
         try {
             $job = JobPosting::findOrFail($id);
-            $user = Auth::user();
 
-            if ($user->favorites()->where('job_posting_id', $id)->exists()) {
-                // Xóa favorite
-                $user->favorites()->detach($job->id);
-                $isFavorited = false;
-                $message = 'Đã xóa công việc khỏi danh sách yêu thích.';
+            $favorite = $user->favorites()->where('job_posting_id', $id)->first();
+
+            if ($favorite) {
+                $favorite->pivot->is_favorited = !$favorite->pivot->is_favorited;
+                $favorite->pivot->save();
+
+                $isFavorited = $favorite->pivot->is_favorited;
+                $message = $isFavorited
+                    ? 'Đã lưu tin tuyển dụng vào danh sách yêu thích.'
+                    : 'Đã xóa công việc khỏi danh sách yêu thích.';
             } else {
-                // Thêm favorite
-                $user->favorites()->attach($job->id);
+                $user->favorites()->attach($job->id, ['is_favorited' => true]);
                 $isFavorited = true;
                 $message = 'Đã lưu tin tuyển dụng vào danh sách yêu thích.';
             }
@@ -62,34 +75,81 @@ class FavoriteController extends Controller
     }
 
 
+
     // Hiển thị danh sách yêu thích
     public function index()
     {
         $user = Auth::user();
 
-        $favorites = $user->favorites()->with('company')->latest()->get();
+        // $favorites = $user->favorites()->with('company')->latest()->get();
+
+        // return \Inertia\Inertia::render('client/FavoriteJobs', [
+        //     'favorites' => $favorites->map(function ($job) use ($user) {
+        //         return [
+        //             'id' => $job->id,
+        //             'title' => $job->title,
+        //             'slug' => $job->slug,
+        //             'location' => $job->location,
+        //             'salary' => $job->getSalaryRange(), // dùng helper trong JobPosting.php
+        //             'posted' => $job->created_at ? $job->created_at->diffForHumans() : 'Mới đăng',
+        //             'company' => $job->company->company_name ?? null,
+        //             'company_logo' => $job->company->logo ? asset('storage/' . $job->company->logo) : null,
+        //             'skills' => $job->skills->pluck('name')->toArray() ?? [],
+        //             'job_type' => $job->job_type,
+        //             'is_featured' => $job->is_featured,
+        //             'is_favorited' => $user->favorites()->where('job_posting_id', $job->id)->exists(),
+        //         ];
+        //     }),
+        // ]);
+
+        // $favorites = $user->favorites()
+        //     ->with([
+        //         'company:id,company_name,logo',
+        //         'skills:id,name',
+        //     ])
+        //     ->latest()
+        //     ->get();
+
+        $favorites = $user->favorites()
+        ->wherePivot('is_favorited', 1)
+        ->with([
+            'company:id,company_name,logo',
+            'skills:id,name',
+        ])
+        ->latest()
+        ->get();
 
         return \Inertia\Inertia::render('client/FavoriteJobs', [
-            'favorites' => $favorites->map(function ($job) use ($user) {
+            'favorites' => $favorites->map(function ($job) {
                 return [
                     'id' => $job->id,
                     'title' => $job->title,
                     'slug' => $job->slug,
                     'location' => $job->location,
-                    'salary' => $job->getSalaryRange(), // dùng helper trong JobPosting.php
-                    'posted' => $job->created_at ? $job->created_at->diffForHumans() : 'Mới đăng',
-                    'company' => $job->company->name ?? null,   // tên công ty dưới dạng chuỗi
-                    'company_logo' => $job->company->logo ? '/storage/' . $job->company->logo : null, // logo đường dẫn đầy đủ
-                    'skills' => $job->skills->pluck('name')->toArray() ?? [],
-                    'job_type' => $job->job_type,
+                    'salary' => $job->getSalaryRange(),
+                    'posted' => $job->created_at->diffForHumans(),
+
+                    // Company
+                    'company' => $job->company->company_name ?? null,
+                    'company_logo' => $job->company->logo
+                        ? (str_starts_with($job->company->logo, 'http') 
+                            ? $job->company->logo 
+                            : asset('storage/' . $job->company->logo))
+                        : null,
+
+                    // Job type
+                    'type' => $job->job_type,
+
+                    // Skills
+                    'skills' => $job->skills->pluck('name')->toArray(),
+                    
                     'is_featured' => $job->is_featured,
-                    'is_favorited' => $user->favorites()->where('job_posting_id', $job->id)->exists(),
+                    'is_favorited' => true,
                 ];
-            }),
+            })
         ]);
+
     }
-
-
 
     // Xóa tất cả
     public function clear()

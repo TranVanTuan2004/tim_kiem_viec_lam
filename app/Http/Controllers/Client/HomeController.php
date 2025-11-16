@@ -28,7 +28,6 @@ class HomeController extends Controller
         // Get featured jobs
         $featuredJobs = $this->jobPostingService->getFeaturedJobs(6)
             ->map(fn($job) => $this->jobPostingService->transformForHome($job));
-
         // Get top companies
         $topCompanies = $this->companyService->getTopCompanies(4)
             ->map(fn($company) => $this->companyService->transformForHome($company));

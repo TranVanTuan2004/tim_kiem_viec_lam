@@ -19,6 +19,28 @@ class JobPostingController extends Controller
     /**
      * Display a listing of all jobs.
      */
+    // public function index()
+    // {
+    //     // Get and validate filters from request
+    //     $filters = $this->jobPostingService->validateFilters([
+    //         'featured' => request('featured', false),
+    //         'q' => request('q', ''),
+    //         'location' => request('location', ''),
+    //     ]);
+
+    //     // // Get filtered jobs
+    //     // $jobs = $this->jobPostingService->getFilteredJobs($filters, 12);
+
+    //     return Inertia::render('client/JobsIndex', [
+    //         'jobs' => $jobs,
+    //         'filters' => [
+    //             'featured' => request('featured', false),
+    //             'q' => request('q', ''),
+    //             'location' => request('location', ''),
+    //         ],
+    //     ]);
+    // }
+
     public function index()
     {
         // Get and validate filters from request
@@ -28,9 +50,20 @@ class JobPostingController extends Controller
             'location' => request('location', ''),
         ]);
 
-        // Get filtered jobs
-        $jobs = $this->jobPostingService->getFilteredJobs($filters, 12)
-            ->through(fn($job) => $this->jobPostingService->transformForListing($job));
+        $user = auth()->user();
+
+        $paginatedJobs = $this->jobPostingService->getFilteredJobs($filters, 12);
+
+        $jobs = [
+            'data' => $paginatedJobs,
+            'total' => $paginatedJobs->total(),
+            'from' => $paginatedJobs->firstItem(),
+            'to' => $paginatedJobs->lastItem(),
+            'last_page' => $paginatedJobs->lastPage(),
+            'links' => $paginatedJobs->links(),
+        ];
+
+        
 
         return Inertia::render('client/JobsIndex', [
             'jobs' => $jobs,

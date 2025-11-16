@@ -13,8 +13,13 @@ class JobPostingService
      */
     public function getFilteredJobs(array $filters = [], int $perPage = 12): LengthAwarePaginator
     {
+        $userId = auth()->user()->id;
         $query = JobPosting::published()
-            ->with(['company', 'skills'])
+            ->with(['company', 'skills', 'favoritedBy' => function($q) use ($userId) {
+                if ($userId) {
+                    $q->where('user_id', $userId);
+                }
+            }])
             ->orderBy('published_at', 'desc');
 
         // Apply filters
@@ -45,8 +50,10 @@ class JobPostingService
         if (!empty($filters['min_salary']) && !empty($filters['max_salary'])) {
             $query->bySalaryRange($filters['min_salary'], $filters['max_salary']);
         }
+        
+        $paginated = $query->paginate($perPage)->withQueryString();
 
-        return $query->paginate($perPage)->withQueryString();
+        return $paginated;
     }
 
     /**
@@ -54,13 +61,19 @@ class JobPostingService
      */
     public function getFeaturedJobs(int $limit = 6): Collection
     {
+        $userId = auth()->id();
         return JobPosting::published()
             ->featured()
-            ->with(['company', 'skills'])
+            ->with(['company', 'skills', 'favoritedBy' => function($q) use ($userId) {
+                if ($userId) {
+                    $q->where('user_id', $userId);
+                }
+            }])
             ->orderBy('published_at', 'desc')
             ->limit($limit)
             ->get();
     }
+
 
     /**
      * Get job by slug with relations
@@ -88,6 +101,15 @@ class JobPostingService
      */
     public function transformForListing(JobPosting $job): array
     {
+        $user = auth()->user();
+        $isFavorited = false;
+
+        if ($user && $user->candidateProfile) {
+            $isFavorited = $user->candidateProfile->savedJobPostings()
+                ->where('job_posting_id', $job->id)
+                ->exists();
+        }
+
         return [
             'id' => $job->id,
             'slug' => $job->slug,
@@ -102,6 +124,7 @@ class JobPostingService
             'skills' => $job->skills->take(3)->pluck('name')->toArray(),
             'posted' => $job->published_at ? $job->published_at->diffForHumans() : 'Vừa đăng',
             'is_featured' => $job->is_featured,
+            'is_favorited' => $job->favoritedBy->first()?->pivot->is_favorited ?? 0,
         ];
     }
 
@@ -122,6 +145,7 @@ class JobPostingService
             'type' => $job->employment_type ? str_replace('_', ' ', ucfirst($job->employment_type)) : 'Full-time',
             'skills' => $job->skills->take(3)->pluck('name')->toArray(),
             'posted' => $job->published_at ? $job->published_at->diffForHumans() : 'Vừa đăng',
+            'is_favorited' => $job->favoritedBy->first()?->pivot->is_favorited ?? 0,
         ];
     }
 

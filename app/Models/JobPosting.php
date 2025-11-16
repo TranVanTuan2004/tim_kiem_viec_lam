@@ -223,8 +223,10 @@ class JobPosting extends Model
 
     public function favoritedBy()
     {
-        return $this->belongsToMany(User::class, 'favorites')->withTimestamps();
-    }
+        return $this->belongsToMany(User::class, 'favorites')
+                    ->withPivot('is_favorited')
+                    ->withTimestamps();
+    }   
 
     public function getIsFavoritedAttribute()
     {

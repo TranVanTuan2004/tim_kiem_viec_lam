@@ -19,7 +19,6 @@ interface Job {
   skills: string[];
   type: string;
   is_favorited: boolean;
-  logo?: string;
   company_logo?: string;
   slug?: string;
   is_featured?: boolean;
