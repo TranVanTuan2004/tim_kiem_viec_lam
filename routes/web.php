@@ -5,6 +5,8 @@ use App\Http\Controllers\Client\CompanyController;
 use App\Http\Controllers\Client\HomeController;
 use App\Http\Controllers\Candidate\PortfolioController;
 use App\Http\Controllers\Candidate\DashboardController;
+use App\Http\Controllers\Candidate\EducationController;
+use App\Http\Controllers\Candidate\WorkExperienceController;
 use App\Http\Controllers\Employer\DashboardController as EmployerDashboardController;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboardController;
 use App\Http\Controllers\Candidate\ProfileController;
@@ -22,6 +24,7 @@ use App\Http\Controllers\Employer\PostingController;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Employer\CompanyController as EmployerCompanyController;
 use App\Http\Controllers\Employer\ApplicationController as EmployerApplicationController;
+use App\Http\Controllers\Employer\CandidateSearchController;
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -42,6 +45,14 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
 Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
 Route::get('/companies/{company}/jobs', [CompanyController::class, 'jobs'])->name('companies.jobs');
+
+// Company Reviews (require authentication)
+Route::middleware(['auth'])->group(function () {
+    Route::post('/companies/{company}/reviews', [\App\Http\Controllers\Client\CompanyReviewController::class, 'store'])->name('companies.reviews.store');
+    Route::put('/companies/{company}/reviews/{review}', [\App\Http\Controllers\Client\CompanyReviewController::class, 'update'])->name('companies.reviews.update');
+    Route::delete('/companies/{company}/reviews/{review}', [\App\Http\Controllers\Client\CompanyReviewController::class, 'destroy'])->name('companies.reviews.destroy');
+    Route::get('/companies/{company}/reviews/user', [\App\Http\Controllers\Client\CompanyReviewController::class, 'getUserReview'])->name('companies.reviews.user');
+});
 
 // Static Pages
 Route::get('/about', function () {
@@ -65,27 +76,27 @@ Route::get('dashboard', function () {
 
     // Debug: Log user info
     Log::info('Dashboard access', [
-        'user_id' => $user->id,
-        'user_name' => $user->name,
-        'roles' => $user->roles->pluck('name')->toArray()
+        'user_id' => $user?->id,
+        'user_name' => $user?->name,
+        'roles' => $user?->roles?->pluck('name')?->toArray()
     ]);
 
     // Redirect based on user role
-    // if ($user->hasRole('Candidate')) {
-    //     Log::info('Redirecting to candidate dashboard');
-    //     return redirect()->route('candidate.dashboard');
-    // } elseif ($user->hasRole('Employer')) {
-    //     Log::info('Redirecting to employer dashboard');
-    //     return redirect()->route('employer.dashboard');
-    // } elseif ($user->hasRole('Admin')) {
-    //     Log::info('Redirecting to admin dashboard');
-    //     return redirect()->route('admin.dashboard');
-    // }
+    if ($user->hasRole('Candidate')) {
+        Log::info('Redirecting to candidate dashboard');
+        return redirect()->route('candidate.dashboard');
+    } elseif ($user->hasRole('Employer')) {
+        Log::info('Redirecting to employer dashboard');
+        return redirect()->route('employer.dashboard');
+    } elseif ($user->hasRole('Admin')) {
+        Log::info('Redirecting to admin dashboard');
+        return redirect()->route('admin.dashboard');
+    }
 
     // Default fallback
-    Log::info('No role found, using default dashboard');
+    Log::warning('No role found for authenticated user, using default dashboard');
     return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+})->middleware(['auth'])->name('dashboard');
 
 // Employer Routes
 Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer'])->group(function () {
@@ -93,7 +104,7 @@ Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer
     Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
 });
 // Admin Routes - Using Spatie Permission
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->group(function () {
     // Dashboard
     Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
@@ -109,7 +120,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(
 });
 
 // Admin Routes - Subscription Management (for Employers)
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified', 'permission:view subscriptions'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin', 'permission:view subscriptions'])->group(function () {
     Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions');
     Route::post('subscriptions/subscribe', [SubscriptionController::class, 'subscribe'])->middleware('permission:manage subscriptions')->name('subscribe');
     Route::post('subscriptions/upgrade', [SubscriptionController::class, 'upgrade'])->middleware('permission:manage subscriptions')->name('upgrade');
@@ -187,10 +198,18 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'role:Candid
     Route::post('portfolios/{portfolio}/toggle-featured', [PortfolioController::class, 'toggleFeatured'])->name('portfolios.toggle-featured');
     Route::post('portfolios/{portfolio}/toggle-public', [PortfolioController::class, 'togglePublic'])->name('portfolios.toggle-public');
 
+
     // Favorite
     Route::get('favorites', [FavoriteController::class, 'index'])->name('favorites.index');
     Route::post('favorites/toggle/{job}', [FavoriteController::class, 'toggle'])->name('favorites.toggle');
     Route::delete('favorites/clear', [FavoriteController::class, 'clear'])->name('favorites.clear');
+
+=======
+    // Education Management
+    Route::resource('educations', EducationController::class);
+
+    // Work Experience Management
+    Route::resource('work-experiences', WorkExperienceController::class);
 
 });
 
@@ -201,6 +220,7 @@ Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer
     Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
     Route::get('/applications', [EmployerApplicationController::class, 'index'])->name('applications.index');
     Route::get('/applications/{id}', [EmployerApplicationController::class, 'show'])->name('applications.show');
+    Route::get('candidates/search', [CandidateSearchController::class, 'index'])->name('employer.candidates.search');
 });
 Route::prefix('employer')->name('employer.')->group(function () {
     // Danh sách tin tuyển dụng
@@ -221,13 +241,21 @@ Route::prefix('employer')->name('employer.')->group(function () {
     Route::patch('/settings/company', [EmployerCompanyController::class, 'update'])->name('company.update');
 });
 
-Route::prefix('admin')->name('admin.')->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
     Route::get('activity-logs/statistics', [ActivityLogController::class, 'statistics'])->name('activity-logs.statistics');
     Route::get('activity-logs/recent', [ActivityLogController::class, 'recent'])->name('activity-logs.recent');
     Route::get('activity-logs/top-users', [ActivityLogController::class, 'topUsers'])->name('activity-logs.top-users');
     Route::get('activity-logs/export', [ActivityLogController::class, 'export'])->name('activity-logs.export');
     Route::post('activity-logs/clean', [ActivityLogController::class, 'clean'])->name('activity-logs.clean');
+
+    // Company Reviews Management
+    Route::get('company-reviews', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'index'])->name('company-reviews.index');
+    Route::post('company-reviews/{review}/approve', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'approve'])->name('company-reviews.approve');
+    Route::post('company-reviews/{review}/reject', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'reject'])->name('company-reviews.reject');
+    Route::delete('company-reviews/{review}', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'destroy'])->name('company-reviews.destroy');
+    Route::post('company-reviews/bulk-approve', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'bulkApprove'])->name('company-reviews.bulk-approve');
+    Route::post('company-reviews/bulk-reject', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'bulkReject'])->name('company-reviews.bulk-reject');
 });
 
 

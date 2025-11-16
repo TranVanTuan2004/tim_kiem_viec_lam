@@ -142,7 +142,7 @@ class ApplicationController extends Controller
                 'experience_level' => $application->jobPosting->experience_level,
                 'salary_min' => $application->jobPosting->salary_min,
                 'salary_max' => $application->jobPosting->salary_max,
-                'deadline' => $application->jobPosting->deadline ? $application->jobPosting->deadline->format('Y-m-d') : null,
+                'deadline' => $application->jobPosting->application_deadline ? $application->jobPosting->application_deadline->format('Y-m-d') : null,
                 'status' => $application->jobPosting->status,
                 'company' => [
                     'id' => $application->jobPosting->company->id,

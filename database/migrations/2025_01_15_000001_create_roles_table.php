@@ -11,15 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Schema::create('role_user', function (Blueprint $table) {
+        // Schema::create('roles', function (Blueprint $table) {
         //     $table->id();
-        //     $table->unsignedBigInteger('user_id');
-        //     $table->unsignedBigInteger('role_id');
+        //     $table->string('name')->unique(); // Admin, Nhà tuyển dụng, Ứng viên
+        //     $table->string('slug')->nullable(); // admin, employer, candidate
+        //     $table->text('description')->nullable();
+        //     $table->boolean('is_active')->default(true);
         //     $table->timestamps();
-            
-        //     $table->unique(['user_id', 'role_id']);
-        //     $table->index('user_id');
-        //     $table->index('role_id');
         // });
     }
 
@@ -28,6 +26,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        // Schema::dropIfExists('role_user');
+        // Schema::dropIfExists('roles');
     }
 };

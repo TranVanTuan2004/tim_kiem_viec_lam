@@ -3,8 +3,8 @@
 namespace App\Http\Controllers\Employer;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
@@ -48,7 +48,7 @@ class DashboardController extends Controller
                     'job_type' => $job->job_type,
                     'applications_count' => $job->applications->count(),
                     'created_at' => $job->created_at ? $job->created_at->format('Y-m-d H:i:s') : null,
-                    'deadline' => $job->deadline ? $job->deadline->format('Y-m-d') : null,
+                    'deadline' => $job->application_deadline ? $job->application_deadline->format('Y-m-d') : null,
                 ];
             });
 
