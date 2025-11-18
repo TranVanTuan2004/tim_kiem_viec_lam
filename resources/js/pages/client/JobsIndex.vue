@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import axios from 'axios';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -23,7 +24,7 @@ import {
     TrendingUp,
     X,
 } from 'lucide-vue-next';
-import { computed, defineProps, ref } from 'vue';
+import { computed, defineProps, reactive, ref } from 'vue';
 
 const props = defineProps({
     jobs: {
@@ -39,12 +40,35 @@ const props = defineProps({
         }),
     },
 });
+const toggleFavorite = async (job: any) => {
+    const previousState = job?.favorited_by[0]?.pivot.is_favorited;
 
+    job.favorited_by[0].pivot.is_favorited = !previousState;
+
+  try {
+    const response = await axios.post(`/candidate/favorites/toggle/${job.id}`);
+    job.favorited_by[0].pivot.is_favorited = response.data.is_favorited;
+    alert(response.data.message);
+  } catch (error: unknown) {
+    job.favorited_by[0].pivot.is_favorited = previousState;
+
+    let msg = 'Thao tác thất bại, vui lòng thử lại.';
+    if (axios.isAxiosError(error) && error.response) {
+      msg = error.response.data?.message || msg;
+    }
+    alert(msg);
+  }
+};
+const formatDate = (dateStr: string) => {
+  return new Intl.DateTimeFormat('vi-VN').format(new Date(dateStr));
+};  
 const showFilters = ref(false);
-
-const pageTitle = computed(() =>
-    props.filters.featured ? 'Việc làm nổi bật' : 'Tất cả việc làm IT',
-);
+const jobs = ref<any[]>([]);
+const pageTitle = computed(() =>{
+    props.filters.featured ? 'Việc làm nổi bật' : 'Tất cả việc làm IT';
+    jobs.value = props?.jobs?.data?.data ?? [];
+     console.log(jobs.value);
+});
 
 const pageDescription = computed(() => {
     const total = props.jobs.total || 0;
@@ -316,11 +340,11 @@ const hasActiveFilters = computed(
 
                 <!-- Jobs Grid -->
                 <div
-                    v-if="props.jobs.data && props.jobs.data.length > 0"
+                    v-if="jobs && jobs.length > 0"
                     class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
                 >
                     <Link
-                        v-for="job in props.jobs.data"
+                        v-for="job in jobs"
                         :key="job.id"
                         :href="`/jobs/${job.slug}`"
                         class="group"
@@ -335,9 +359,9 @@ const hasActiveFilters = computed(
                                             class="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-orange-50 ring-2 ring-red-100 transition-transform duration-300 group-hover:scale-110 group-hover:ring-red-200"
                                         >
                                             <img
-                                                v-if="job.company_logo"
-                                                :src="job.company_logo"
-                                                :alt="job.company"
+                                                v-if="job.company.logo"
+                                                :src="job.company.logo"
+                                                :alt="job.company.company_name"
                                                 class="h-full w-full object-contain p-2"
                                             />
                                             <div v-else class="text-2xl">
@@ -349,7 +373,7 @@ const hasActiveFilters = computed(
                                                 <CardTitle
                                                     class="line-clamp-2 text-lg leading-tight font-bold transition-colors group-hover:text-red-600"
                                                 >
-                                                    {{ job.title }}
+                                                    {{ job.title }} 
                                                 </CardTitle>
                                                 <Badge
                                                     v-if="job.is_featured"
@@ -365,19 +389,31 @@ const hasActiveFilters = computed(
                                                     class="h-3.5 w-3.5 flex-shrink-0"
                                                 />
                                                 <span class="truncate">{{
-                                                    job.company
+                                                    job.company.company_name
                                                 }}</span>
                                             </CardDescription>
                                         </div>
                                     </div>
-                                    <Button
+                                    <!-- <Button
                                         variant="ghost"
                                         size="icon"
                                         class="h-8 w-8 flex-shrink-0 text-muted-foreground transition-colors hover:text-red-600"
                                         @click.prevent
                                     >
                                         <Heart class="h-4 w-4" />
+                                    </Button> -->
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        :class="job?.favorited_by[0]?.pivot?.is_favorited ? 'text-red-600' : 'text-gray-400 hover:text-red-600'"
+                                        @click.prevent="toggleFavorite(job)"
+                                    >
+                                        <Heart
+                                            :class="job?.favorited_by[0]?.pivot?.is_favorited ? 'fill-red-600 text-red-600' : 'text-gray-400'"
+                                            class="h-5 w-5"
+                                        />
                                     </Button>
+
                                 </div>
                             </CardHeader>
                             <CardContent class="space-y-4">
@@ -391,13 +427,11 @@ const hasActiveFilters = computed(
                                     </div>
                                     <div class="flex items-center gap-1.5">
                                         <DollarSign class="h-3.5 w-3.5" />
-                                        <span class="font-medium">{{
-                                            job.salary
-                                        }}</span>
+                                        <span class="font-medium">{{ Number(job.min_salary).toFixed(0) }}$ - {{ Number(job.max_salary).toFixed(0) }}$</span>
                                     </div>
                                     <div class="flex items-center gap-1.5">
                                         <Clock class="h-3.5 w-3.5" />
-                                        <span>{{ job.posted }}</span>
+                                        <span>{{ formatDate(job.created_at) }}</span>
                                     </div>
                                 </div>
 

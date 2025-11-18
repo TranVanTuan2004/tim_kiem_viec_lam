@@ -120,6 +120,8 @@ class DashboardController extends Controller
                         'id' => $job->industry->id,
                         'name' => $job->industry->name,
                     ] : null,
+                    // **Thêm trạng thái favorite**
+                    'is_favorited' => $candidateProfile->savedJobPostings()->where('job_posting_id', $job->id)->exists(),
                 ];
             });
     }
