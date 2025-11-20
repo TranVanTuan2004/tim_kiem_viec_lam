@@ -44,7 +44,7 @@ const isAdmin = computed(() =>
 
 const profileLink = computed(() => {
     if (isCandidate.value) {
-        return '/candidate/profile';
+        return '/profile';
     } else if (isEmployer.value) {
         return '/employer/profile'; // Update this when employer profile is ready
     } else if (isAdmin.value) {
@@ -55,13 +55,13 @@ const profileLink = computed(() => {
 
 const dashboardLink = computed(() => {
     if (isCandidate.value) {
-        return '/candidate/dashboard';
+        return '/profile';
     } else if (isEmployer.value) {
-        return '/dashboard'; // Update this when employer dashboard is ready
+        return '/employer/dashboard';
     } else if (isAdmin.value) {
-        return '/dashboard';
+        return '/admin/dashboard';
     }
-    return '/dashboard';
+    return '/candidate/dashboard'; // Default to candidate
 });
 </script>
 

@@ -2,7 +2,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import AppLayout from '@/layouts/AppLayout.vue';
+import ClientLayout from '@/layouts/ClientLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import {
     Calendar,
@@ -39,7 +39,7 @@ interface Props {
 const props = defineProps<Props>();
 
 const breadcrumbs = [
-    { title: 'Dashboard', href: '/dashboard' },
+    { title: 'Dashboard', href: '/candidate/dashboard' },
     { title: 'Portfolio', href: '/candidate/portfolios' },
     {
         title: props.portfolio.title,
@@ -51,7 +51,7 @@ const breadcrumbs = [
 <template>
     <Head :title="portfolio.title" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
+    <ClientLayout>
         <div class="mx-auto flex max-w-5xl flex-col gap-6 p-4">
             <!-- Header with Actions -->
             <div class="flex items-start justify-between">
@@ -331,5 +331,5 @@ const breadcrumbs = [
                 </Link>
             </div>
         </div>
-    </AppLayout>
+    </ClientLayout>
 </template>

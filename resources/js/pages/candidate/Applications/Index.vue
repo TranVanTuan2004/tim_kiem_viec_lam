@@ -1,257 +1,308 @@
 <template>
-    <AuthenticatedLayout>
-        <Head title="My Applications" />
+    <ClientLayout>
+        <Head title="Đơn ứng tuyển của tôi" />
 
-        <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <div
+            class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 py-8"
+        >
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <!-- Header -->
                 <div
-                    class="mb-6 overflow-hidden bg-white shadow-sm sm:rounded-lg"
+                    class="mb-8 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 shadow-xl"
                 >
-                    <div class="p-6">
-                        <h1 class="text-3xl font-bold text-gray-900">
-                            My Applications
+                    <!-- <div class="inset-0 bg-black/10"></div> -->
+                    <div class="relative px-8 py-10 sm:px-12">
+                        <h1 class="text-3xl font-bold text-white sm:text-4xl">
+                            Đơn ứng tuyển của tôi
                         </h1>
-                        <p class="mt-2 text-gray-600">
-                            Track your job application status
+                        <p class="mt-3 text-lg text-blue-100">
+                            Theo dõi trạng thái các đơn ứng tuyển của bạn
                         </p>
                     </div>
                 </div>
 
                 <!-- Statistics -->
                 <div
-                    class="mb-6 grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6"
+                    class="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6"
                 >
-                    <div class="rounded-lg bg-white p-4 shadow-sm">
-                        <div class="text-2xl font-bold text-gray-900">
-                            {{ stats.total }}
-                        </div>
-                        <div class="text-sm text-gray-600">Total</div>
-                    </div>
-                    <div class="rounded-lg bg-yellow-50 p-4 shadow-sm">
-                        <div class="text-2xl font-bold text-yellow-900">
-                            {{ stats.pending }}
-                        </div>
-                        <div class="text-sm text-yellow-700">Pending</div>
-                    </div>
-                    <div class="rounded-lg bg-blue-50 p-4 shadow-sm">
-                        <div class="text-2xl font-bold text-blue-900">
-                            {{ stats.reviewed }}
-                        </div>
-                        <div class="text-sm text-blue-700">Reviewed</div>
-                    </div>
-                    <div class="rounded-lg bg-green-50 p-4 shadow-sm">
-                        <div class="text-2xl font-bold text-green-900">
-                            {{ stats.shortlisted }}
-                        </div>
-                        <div class="text-sm text-green-700">Shortlisted</div>
-                    </div>
-                    <div class="rounded-lg bg-purple-50 p-4 shadow-sm">
-                        <div class="text-2xl font-bold text-purple-900">
-                            {{ stats.accepted }}
-                        </div>
-                        <div class="text-sm text-purple-700">Accepted</div>
-                    </div>
-                    <div class="rounded-lg bg-red-50 p-4 shadow-sm">
-                        <div class="text-2xl font-bold text-red-900">
-                            {{ stats.rejected }}
-                        </div>
-                        <div class="text-sm text-red-700">Rejected</div>
-                    </div>
+                    <Card class="transition-shadow hover:shadow-md">
+                        <CardContent class="p-4">
+                            <div class="text-2xl font-bold text-gray-900">
+                                {{ stats.total }}
+                            </div>
+                            <div class="text-sm text-gray-600">Tổng cộng</div>
+                        </CardContent>
+                    </Card>
+                    <Card
+                        class="border-yellow-200 bg-yellow-50 transition-shadow hover:shadow-md"
+                    >
+                        <CardContent class="p-4">
+                            <div class="text-2xl font-bold text-yellow-700">
+                                {{ stats.pending }}
+                            </div>
+                            <div class="text-sm text-yellow-700">Đang chờ</div>
+                        </CardContent>
+                    </Card>
+                    <Card
+                        class="border-blue-200 bg-blue-50 transition-shadow hover:shadow-md"
+                    >
+                        <CardContent class="p-4">
+                            <div class="text-2xl font-bold text-blue-700">
+                                {{ stats.reviewed }}
+                            </div>
+                            <div class="text-sm text-blue-700">Đã xem</div>
+                        </CardContent>
+                    </Card>
+                    <Card
+                        class="border-green-200 bg-green-50 transition-shadow hover:shadow-md"
+                    >
+                        <CardContent class="p-4">
+                            <div class="text-2xl font-bold text-green-700">
+                                {{ stats.shortlisted }}
+                            </div>
+                            <div class="text-sm text-green-700">Đã chọn</div>
+                        </CardContent>
+                    </Card>
+                    <Card
+                        class="border-purple-200 bg-purple-50 transition-shadow hover:shadow-md"
+                    >
+                        <CardContent class="p-4">
+                            <div class="text-2xl font-bold text-purple-700">
+                                {{ stats.accepted }}
+                            </div>
+                            <div class="text-sm text-purple-700">Chấp nhận</div>
+                        </CardContent>
+                    </Card>
+                    <Card
+                        class="border-red-200 bg-red-50 transition-shadow hover:shadow-md"
+                    >
+                        <CardContent class="p-4">
+                            <div class="text-2xl font-bold text-red-700">
+                                {{ stats.rejected }}
+                            </div>
+                            <div class="text-sm text-red-700">Từ chối</div>
+                        </CardContent>
+                    </Card>
                 </div>
 
                 <!-- Filters -->
-                <div
-                    class="mb-6 overflow-hidden bg-white shadow-sm sm:rounded-lg"
-                >
-                    <div class="p-6">
+                <Card class="mb-6">
+                    <CardHeader>
+                        <CardTitle class="text-lg">Bộ lọc</CardTitle>
+                    </CardHeader>
+                    <CardContent>
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <div>
                                 <label
                                     class="mb-2 block text-sm font-medium text-gray-700"
-                                    >Status</label
                                 >
+                                    Trạng thái
+                                </label>
                                 <select
                                     v-model="localFilters.status"
                                     @change="applyFilters"
                                     class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                 >
-                                    <option value="all">All Status</option>
-                                    <option value="pending">Pending</option>
-                                    <option value="reviewed">Reviewed</option>
-                                    <option value="shortlisted">
-                                        Shortlisted
+                                    <option value="all">
+                                        Tất cả trạng thái
                                     </option>
-                                    <option value="rejected">Rejected</option>
-                                    <option value="accepted">Accepted</option>
-                                    <option value="withdrawn">Withdrawn</option>
+                                    <option value="pending">Đang chờ</option>
+                                    <option value="reviewed">Đã xem</option>
+                                    <option value="shortlisted">Đã chọn</option>
+                                    <option value="rejected">Từ chối</option>
+                                    <option value="accepted">Chấp nhận</option>
+                                    <option value="withdrawn">Đã rút</option>
                                 </select>
                             </div>
                             <div>
                                 <label
                                     class="mb-2 block text-sm font-medium text-gray-700"
-                                    >Sort By</label
                                 >
+                                    Sắp xếp theo
+                                </label>
                                 <select
                                     v-model="localFilters.sort_by"
                                     @change="applyFilters"
                                     class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                 >
                                     <option value="created_at">
-                                        Application Date
+                                        Ngày ứng tuyển
                                     </option>
                                     <option value="updated_at">
-                                        Last Updated
+                                        Cập nhật gần nhất
                                     </option>
                                 </select>
                             </div>
                             <div>
                                 <label
                                     class="mb-2 block text-sm font-medium text-gray-700"
-                                    >Search</label
                                 >
-                                <input
-                                    v-model="localFilters.search"
-                                    @input="debounceSearch"
-                                    type="text"
-                                    placeholder="Search jobs or companies..."
-                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                />
+                                    Tìm kiếm
+                                </label>
+                                <div class="relative">
+                                    <Search
+                                        class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400"
+                                    />
+                                    <input
+                                        v-model="localFilters.search"
+                                        @input="debounceSearch"
+                                        type="text"
+                                        placeholder="Tìm việc làm hoặc công ty..."
+                                        class="block w-full rounded-md border-gray-300 pl-10 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    />
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
 
                 <!-- Applications List -->
-                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                    <div class="divide-y divide-gray-200">
-                        <div
-                            v-for="application in applications.data"
-                            :key="application.id"
-                            class="p-6 transition hover:bg-gray-50"
+                <Card>
+                    <CardHeader>
+                        <CardTitle class="text-lg"
+                            >Danh sách đơn ứng tuyển</CardTitle
                         >
-                            <div class="flex items-start justify-between">
-                                <div class="flex-1">
-                                    <div class="flex items-center">
-                                        <img
-                                            v-if="
-                                                application.job_posting.company
-                                                    .logo
-                                            "
-                                            :src="
-                                                application.job_posting.company
-                                                    .logo
-                                            "
-                                            :alt="
-                                                application.job_posting.company
-                                                    .name
-                                            "
-                                            class="mr-4 h-16 w-16 rounded object-cover"
-                                        />
-                                        <div>
-                                            <Link
-                                                :href="`/jobs/${application.job_posting.id}`"
-                                                class="text-xl font-semibold text-gray-900 hover:text-blue-600"
-                                            >
-                                                {{
+                    </CardHeader>
+                    <CardContent class="p-0">
+                        <div class="divide-y divide-gray-200">
+                            <div
+                                v-for="application in applications.data"
+                                :key="application.id"
+                                class="p-6 transition hover:bg-gray-50"
+                            >
+                                <div class="flex items-start justify-between">
+                                    <div class="flex-1">
+                                        <div class="flex items-start space-x-4">
+                                            <img
+                                                v-if="
                                                     application.job_posting
-                                                        .title
-                                                }}
-                                            </Link>
-                                            <p class="mt-1 text-gray-600">
-                                                {{
+                                                        .company.logo
+                                                "
+                                                :src="
+                                                    application.job_posting
+                                                        .company.logo
+                                                "
+                                                :alt="
                                                     application.job_posting
                                                         .company.name
-                                                }}
-                                                •
-                                                {{
-                                                    application.job_posting
-                                                        .location
-                                                }}
-                                            </p>
+                                                "
+                                                class="h-16 w-16 rounded-lg border border-gray-200 object-cover"
+                                            />
                                             <div
-                                                class="mt-2 flex items-center space-x-4 text-sm text-gray-500"
+                                                v-else
+                                                class="flex h-16 w-16 items-center justify-center rounded-lg bg-gray-100"
                                             >
-                                                <span
-                                                    >Applied
+                                                <Building2
+                                                    class="h-8 w-8 text-gray-400"
+                                                />
+                                            </div>
+                                            <div class="flex-1">
+                                                <Link
+                                                    :href="`/jobs/${application.job_posting.id}`"
+                                                    class="text-xl font-semibold text-gray-900 transition-colors hover:text-blue-600"
+                                                >
                                                     {{
-                                                        formatDate(
-                                                            application.applied_at,
-                                                        )
-                                                    }}</span
+                                                        application.job_posting
+                                                            .title
+                                                    }}
+                                                </Link>
+                                                <p class="mt-1 text-gray-600">
+                                                    {{
+                                                        application.job_posting
+                                                            .company.name
+                                                    }}
+                                                    •
+                                                    {{
+                                                        application.job_posting
+                                                            .location
+                                                    }}
+                                                </p>
+                                                <div
+                                                    class="mt-3 flex items-center gap-3"
                                                 >
-                                                <span>•</span>
-                                                <span
-                                                    :class="
-                                                        getStatusClass(
-                                                            application.status,
-                                                        )
-                                                    "
-                                                    class="rounded-full px-2 py-1 text-xs font-medium"
-                                                >
-                                                    {{ application.status }}
-                                                </span>
+                                                    <Badge
+                                                        :variant="
+                                                            getStatusVariant(
+                                                                application.status,
+                                                            )
+                                                        "
+                                                    >
+                                                        {{
+                                                            getStatusLabel(
+                                                                application.status,
+                                                            )
+                                                        }}
+                                                    </Badge>
+                                                    <span
+                                                        class="flex items-center text-sm text-gray-500"
+                                                    >
+                                                        <Calendar
+                                                            class="mr-1 h-4 w-4"
+                                                        />
+                                                        Đã ứng tuyển
+                                                        {{
+                                                            formatDate(
+                                                                application.applied_at,
+                                                            )
+                                                        }}
+                                                    </span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="ml-4 flex items-center space-x-2">
-                                    <Link
-                                        :href="`/candidate/applications/${application.id}`"
-                                        class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+                                    <div
+                                        class="ml-4 flex items-center space-x-2"
                                     >
-                                        View Details
-                                    </Link>
-                                    <button
-                                        v-if="
-                                            ['pending', 'reviewed'].includes(
-                                                application.status,
-                                            )
-                                        "
-                                        @click="
-                                            withdrawApplication(application.id)
-                                        "
-                                        class="rounded-md border border-red-600 px-4 py-2 text-red-600 hover:bg-red-50"
-                                    >
-                                        Withdraw
-                                    </button>
+                                        <Link
+                                            :href="`/candidate/applications/${application.id}`"
+                                            class="inline-flex items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
+                                        >
+                                            Xem chi tiết
+                                        </Link>
+                                        <Button
+                                            v-if="
+                                                [
+                                                    'pending',
+                                                    'reviewed',
+                                                ].includes(application.status)
+                                            "
+                                            @click="
+                                                withdrawApplication(
+                                                    application.id,
+                                                )
+                                            "
+                                            variant="destructive"
+                                            size="sm"
+                                        >
+                                            Rút đơn
+                                        </Button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div
-                            v-if="applications.data.length === 0"
-                            class="p-12 text-center"
-                        >
-                            <svg
-                                class="mx-auto h-12 w-12 text-gray-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
+                            <div
+                                v-if="applications.data.length === 0"
+                                class="p-12 text-center"
                             >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                <FileText
+                                    class="mx-auto h-12 w-12 text-gray-400"
                                 />
-                            </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">
-                                No applications found
-                            </h3>
-                            <p class="mt-1 text-sm text-gray-500">
-                                Start applying to jobs to see them here!
-                            </p>
-                            <div class="mt-6">
-                                <Link
-                                    href="/jobs"
-                                    class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
+                                <h3
+                                    class="mt-4 text-sm font-medium text-gray-900"
                                 >
-                                    Browse Jobs
-                                </Link>
+                                    Không tìm thấy đơn ứng tuyển
+                                </h3>
+                                <p class="mt-2 text-sm text-gray-500">
+                                    Bắt đầu ứng tuyển để xem chúng ở đây!
+                                </p>
+                                <div class="mt-6">
+                                    <Button as-child>
+                                        <Link href="/jobs"> Tìm việc làm </Link>
+                                    </Button>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </CardContent>
 
                     <!-- Pagination -->
                     <div
@@ -260,9 +311,9 @@
                     >
                         <div class="flex items-center justify-between">
                             <div class="text-sm text-gray-700">
-                                Showing {{ applications.from }} to
-                                {{ applications.to }} of
-                                {{ applications.total }} applications
+                                Hiển thị {{ applications.from }} đến
+                                {{ applications.to }} trong tổng số
+                                {{ applications.total }} đơn ứng tuyển
                             </div>
                             <div class="flex space-x-2">
                                 <Link
@@ -284,15 +335,19 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                </Card>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </ClientLayout>
 </template>
 
 <script setup lang="ts">
-import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import ClientLayout from '@/layouts/ClientLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import { Building2, Calendar, FileText, Search } from 'lucide-vue-next';
 import { reactive } from 'vue';
 
 interface Props {
@@ -308,23 +363,40 @@ let searchTimeout: number | null = null;
 
 const formatDate = (date: string) => {
     if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString('vi-VN', {
         year: 'numeric',
-        month: 'short',
+        month: 'long',
         day: 'numeric',
     });
 };
 
-const getStatusClass = (status: string) => {
-    const classes: Record<string, string> = {
-        pending: 'bg-yellow-100 text-yellow-800',
-        reviewed: 'bg-blue-100 text-blue-800',
-        shortlisted: 'bg-green-100 text-green-800',
-        rejected: 'bg-red-100 text-red-800',
-        accepted: 'bg-purple-100 text-purple-800',
-        withdrawn: 'bg-gray-100 text-gray-800',
+const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+        pending: 'Đang chờ',
+        reviewed: 'Đã xem',
+        shortlisted: 'Đã chọn',
+        rejected: 'Từ chối',
+        accepted: 'Chấp nhận',
+        withdrawn: 'Đã rút',
     };
-    return classes[status] || 'bg-gray-100 text-gray-800';
+    return labels[status] || status;
+};
+
+const getStatusVariant = (
+    status: string,
+): 'default' | 'secondary' | 'destructive' | 'outline' => {
+    const variants: Record<
+        string,
+        'default' | 'secondary' | 'destructive' | 'outline'
+    > = {
+        pending: 'secondary',
+        reviewed: 'outline',
+        shortlisted: 'default',
+        rejected: 'destructive',
+        accepted: 'default',
+        withdrawn: 'secondary',
+    };
+    return variants[status] || 'secondary';
 };
 
 const applyFilters = () => {
@@ -342,7 +414,7 @@ const debounceSearch = () => {
 };
 
 const withdrawApplication = (id: number) => {
-    if (confirm('Are you sure you want to withdraw this application?')) {
+    if (confirm('Bạn có chắc muốn rút đơn ứng tuyển này?')) {
         router.post(
             `/candidate/applications/${id}/withdraw`,
             {},

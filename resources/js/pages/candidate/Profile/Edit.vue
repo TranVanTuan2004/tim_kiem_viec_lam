@@ -1,5 +1,5 @@
 <template>
-    <AuthenticatedLayout>
+    <ClientLayout>
         <Head title="Edit Profile" />
 
         <div class="py-12">
@@ -23,23 +23,40 @@
                                 Profile Picture
                             </h2>
                             <div class="flex items-center space-x-6">
-                                <div v-if="profile.avatar_url || avatarPreview" class="flex-shrink-0">
+                                <div
+                                    v-if="profile.avatar_url || avatarPreview"
+                                    class="flex-shrink-0"
+                                >
                                     <img
-                                        :src="avatarPreview || profile.avatar_url"
+                                        :src="
+                                            avatarPreview || profile.avatar_url
+                                        "
                                         alt="Profile Avatar"
-                                        class="h-24 w-24 rounded-full object-cover border-2 border-gray-300"
+                                        class="h-24 w-24 rounded-full border-2 border-gray-300 object-cover"
                                     />
                                 </div>
                                 <div v-else class="flex-shrink-0">
-                                    <div class="h-24 w-24 rounded-full bg-gray-200 flex items-center justify-center border-2 border-gray-300">
-                                        <svg class="h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                    <div
+                                        class="flex h-24 w-24 items-center justify-center rounded-full border-2 border-gray-300 bg-gray-200"
+                                    >
+                                        <svg
+                                            class="h-12 w-12 text-gray-400"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <path
+                                                stroke-linecap="round"
+                                                stroke-linejoin="round"
+                                                stroke-width="2"
+                                                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                            />
                                         </svg>
                                     </div>
                                 </div>
                                 <div class="flex-1">
                                     <label
-                                        class="block text-sm font-medium text-gray-700 mb-2"
+                                        class="mb-2 block text-sm font-medium text-gray-700"
                                     >
                                         Upload Avatar (JPG, PNG, GIF - Max 2MB)
                                     </label>
@@ -275,11 +292,11 @@
                         </div>
 
                         <!-- Skills -->
-                        <div v-if="allSkills && allSkills.length > 0">
+                        <div>
                             <h2
                                 class="mb-4 text-lg font-semibold text-gray-900"
                             >
-                                Skills
+                                Kỹ năng
                             </h2>
                             <div class="space-y-3">
                                 <div
@@ -287,49 +304,12 @@
                                     :key="index"
                                     class="flex items-start space-x-3 rounded-lg border border-gray-200 p-3"
                                 >
-                                    <div class="grid flex-1 grid-cols-3 gap-3">
-                                        <select
-                                            v-model="skill.id"
-                                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        >
-                                            <option value="">
-                                                Select Skill
-                                            </option>
-                                            <option
-                                                v-for="s in allSkills"
-                                                :key="s.id"
-                                                :value="s.id"
-                                            >
-                                                {{ s.name }}
-                                            </option>
-                                        </select>
-                                        <select
-                                            v-model="skill.level"
-                                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        >
-                                            <option value="beginner">
-                                                Beginner
-                                            </option>
-                                            <option value="intermediate">
-                                                Intermediate
-                                            </option>
-                                            <option value="advanced">
-                                                Advanced
-                                            </option>
-                                            <option value="expert">
-                                                Expert
-                                            </option>
-                                        </select>
-                                        <input
-                                            v-model.number="
-                                                skill.years_experience
-                                            "
-                                            type="number"
-                                            min="0"
-                                            placeholder="Years"
-                                            class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        />
-                                    </div>
+                                    <input
+                                        v-model="skill.name"
+                                        type="text"
+                                        placeholder="Nhập tên kỹ năng (ví dụ: JavaScript, Python, React...)"
+                                        class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    />
                                     <button
                                         type="button"
                                         @click="removeSkill(index)"
@@ -355,7 +335,248 @@
                                     @click="addSkill"
                                     class="w-full rounded-lg border-2 border-dashed border-gray-300 py-2 text-gray-600 hover:border-blue-500 hover:text-blue-600"
                                 >
-                                    + Add Skill
+                                    + Thêm kỹ năng
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Work Experience -->
+                        <div>
+                            <h2
+                                class="mb-4 text-lg font-semibold text-gray-900"
+                            >
+                                Kinh nghiệm làm việc
+                            </h2>
+                            <div class="space-y-3">
+                                <div
+                                    v-for="(
+                                        exp, index
+                                    ) in form.work_experiences"
+                                    :key="index"
+                                    class="space-y-3 rounded-lg border border-gray-200 p-4"
+                                >
+                                    <div
+                                        class="grid grid-cols-1 gap-4 md:grid-cols-2"
+                                    >
+                                        <div>
+                                            <label
+                                                class="block text-sm font-medium text-gray-700"
+                                                >Công ty</label
+                                            >
+                                            <input
+                                                v-model="exp.company_name"
+                                                type="text"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                placeholder="Tên công ty"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="block text-sm font-medium text-gray-700"
+                                                >Vị trí</label
+                                            >
+                                            <input
+                                                v-model="exp.position"
+                                                type="text"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                placeholder="Vị trí công việc"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="block text-sm font-medium text-gray-700"
+                                                >Ngày bắt đầu</label
+                                            >
+                                            <input
+                                                v-model="exp.start_date"
+                                                type="date"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="block text-sm font-medium text-gray-700"
+                                                >Ngày kết thúc</label
+                                            >
+                                            <input
+                                                v-model="exp.end_date"
+                                                type="date"
+                                                :disabled="exp.is_current"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input
+                                            v-model="exp.is_current"
+                                            type="checkbox"
+                                            class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <label
+                                            class="ml-2 block text-sm text-gray-700"
+                                        >
+                                            Đang làm việc tại đây
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label
+                                            class="block text-sm font-medium text-gray-700"
+                                            >Mô tả công việc</label
+                                        >
+                                        <textarea
+                                            v-model="exp.description"
+                                            rows="3"
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            placeholder="Mô tả về công việc và thành tích của bạn"
+                                        ></textarea>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        @click="removeWorkExperience(index)"
+                                        class="text-sm text-red-600 hover:text-red-800"
+                                    >
+                                        Xóa kinh nghiệm này
+                                    </button>
+                                </div>
+                                <button
+                                    type="button"
+                                    @click="addWorkExperience"
+                                    class="w-full rounded-lg border-2 border-dashed border-gray-300 py-2 text-gray-600 hover:border-blue-500 hover:text-blue-600"
+                                >
+                                    + Thêm kinh nghiệm làm việc
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Education -->
+                        <div>
+                            <h2
+                                class="mb-4 text-lg font-semibold text-gray-900"
+                            >
+                                Học vấn
+                            </h2>
+                            <div class="space-y-3">
+                                <div
+                                    v-for="(edu, index) in form.educations"
+                                    :key="index"
+                                    class="space-y-3 rounded-lg border border-gray-200 p-4"
+                                >
+                                    <div
+                                        class="grid grid-cols-1 gap-4 md:grid-cols-2"
+                                    >
+                                        <div>
+                                            <label
+                                                class="block text-sm font-medium text-gray-700"
+                                                >Trường học / Tổ chức</label
+                                            >
+                                            <input
+                                                v-model="edu.institution"
+                                                type="text"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                placeholder="Tên trường học"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="block text-sm font-medium text-gray-700"
+                                                >Bằng cấp</label
+                                            >
+                                            <input
+                                                v-model="edu.degree"
+                                                type="text"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                placeholder="Ví dụ: Cử nhân, Thạc sĩ..."
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="block text-sm font-medium text-gray-700"
+                                                >Chuyên ngành</label
+                                            >
+                                            <input
+                                                v-model="edu.field_of_study"
+                                                type="text"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                placeholder="Chuyên ngành học"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="block text-sm font-medium text-gray-700"
+                                                >GPA</label
+                                            >
+                                            <input
+                                                v-model.number="edu.gpa"
+                                                type="number"
+                                                step="0.01"
+                                                min="0"
+                                                max="4"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                placeholder="0.00 - 4.00"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="block text-sm font-medium text-gray-700"
+                                                >Ngày bắt đầu</label
+                                            >
+                                            <input
+                                                v-model="edu.start_date"
+                                                type="date"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label
+                                                class="block text-sm font-medium text-gray-700"
+                                                >Ngày kết thúc</label
+                                            >
+                                            <input
+                                                v-model="edu.end_date"
+                                                type="date"
+                                                :disabled="edu.is_current"
+                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input
+                                            v-model="edu.is_current"
+                                            type="checkbox"
+                                            class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                        />
+                                        <label
+                                            class="ml-2 block text-sm text-gray-700"
+                                        >
+                                            Đang học
+                                        </label>
+                                    </div>
+                                    <div>
+                                        <label
+                                            class="block text-sm font-medium text-gray-700"
+                                            >Mô tả</label
+                                        >
+                                        <textarea
+                                            v-model="edu.description"
+                                            rows="3"
+                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            placeholder="Mô tả về quá trình học tập, thành tích..."
+                                        ></textarea>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        @click="removeEducation(index)"
+                                        class="text-sm text-red-600 hover:text-red-800"
+                                    >
+                                        Xóa học vấn này
+                                    </button>
+                                </div>
+                                <button
+                                    type="button"
+                                    @click="addEducation"
+                                    class="w-full rounded-lg border-2 border-dashed border-gray-300 py-2 text-gray-600 hover:border-blue-500 hover:text-blue-600"
+                                >
+                                    + Thêm học vấn
                                 </button>
                             </div>
                         </div>
@@ -386,13 +607,13 @@
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </ClientLayout>
 </template>
 
 <script setup lang="ts">
-import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
+import ClientLayout from '@/layouts/ClientLayout.vue';
 import { index, update } from '@/routes/candidate/profile';
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Head, Link, router, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 interface Props {
@@ -402,6 +623,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+
+// Ensure allSkills is always an array
+const allSkills = props.allSkills || [];
 
 const form = useForm({
     avatar: null as File | null,
@@ -417,7 +641,32 @@ const form = useForm({
     expected_salary: props.profile.expected_salary || null,
     experience_level: props.profile.experience_level || '',
     is_available: props.profile.is_available ?? true,
-    skills: props.profile.skills || [],
+    skills:
+        props.profile.skills?.map((skill: any) => ({
+            name: skill.name || '',
+        })) || [],
+    work_experiences:
+        props.profile.work_experiences?.map((exp: any) => ({
+            id: exp.id,
+            company_name: exp.company_name || '',
+            position: exp.position || '',
+            description: exp.description || '',
+            start_date: exp.start_date || '',
+            end_date: exp.end_date || '',
+            is_current: exp.is_current || false,
+        })) || [],
+    educations:
+        props.profile.educations?.map((edu: any) => ({
+            id: edu.id,
+            institution: edu.institution || '',
+            degree: edu.degree || '',
+            field_of_study: edu.field_of_study || '',
+            start_date: edu.start_date || '',
+            end_date: edu.end_date || '',
+            gpa: edu.gpa || null,
+            description: edu.description || '',
+            is_current: !edu.end_date, // Compute is_current from end_date
+        })) || [],
 });
 
 const avatarPreview = ref<string | null>(null);
@@ -444,9 +693,7 @@ const handleFileUpload = (event: Event) => {
 
 const addSkill = () => {
     form.skills.push({
-        id: '',
-        level: 'intermediate',
-        years_experience: 1,
+        name: '',
     });
 };
 
@@ -454,9 +701,119 @@ const removeSkill = (index: number) => {
     form.skills.splice(index, 1);
 };
 
+const addWorkExperience = () => {
+    form.work_experiences.push({
+        id: undefined,
+        company_name: '',
+        position: '',
+        description: '',
+        start_date: '',
+        end_date: '',
+        is_current: false,
+    });
+};
+
+const removeWorkExperience = (index: number) => {
+    form.work_experiences.splice(index, 1);
+};
+
+const addEducation = () => {
+    form.educations.push({
+        id: undefined,
+        institution: '',
+        degree: '',
+        field_of_study: '',
+        start_date: '',
+        end_date: '',
+        gpa: null,
+        description: '',
+        is_current: false,
+    });
+};
+
+const removeEducation = (index: number) => {
+    form.educations.splice(index, 1);
+};
+
 const submit = () => {
-    form.put(update.url(), {
-        preserveScroll: true,
+    // Transform form data
+    form.transform((data) => {
+        const transformed = { ...data };
+        
+        // IMPORTANT: Keep avatar and cv_file as File objects
+        // Don't transform them - they need to stay as File instances
+        if (data.avatar instanceof File) {
+            transformed.avatar = data.avatar;
+        }
+        if (data.cv_file instanceof File) {
+            transformed.cv_file = data.cv_file;
+        }
+
+        // Transform skills - only keep skills with names, always send array (even if empty)
+        if (transformed.skills) {
+            transformed.skills = transformed.skills
+                .filter((skill: any) => {
+                    return skill.name && skill.name.trim() !== '';
+                })
+                .map((skill: any) => {
+                    return {
+                        name: skill.name.trim(),
+                    };
+                });
+        } else {
+            transformed.skills = [];
+        }
+
+        // For work_experiences, if is_current is true, set end_date to null
+        // Always send array to ensure data is synced
+        if (transformed.work_experiences) {
+            transformed.work_experiences = transformed.work_experiences.map(
+                (exp: any) => {
+                    const expData = { ...exp };
+                    if (expData.is_current) {
+                        expData.end_date = null;
+                    }
+                    return expData;
+                },
+            );
+        } else {
+            transformed.work_experiences = [];
+        }
+
+        // For educations, if is_current is true, set end_date to null
+        // Always send array to ensure data is synced
+        if (transformed.educations) {
+            transformed.educations = transformed.educations.map((edu: any) => {
+                const eduData = { ...edu };
+                if (eduData.is_current) {
+                    eduData.end_date = null;
+                }
+                delete eduData.is_current; // Remove is_current as it's not in the model
+                return eduData;
+            });
+        } else {
+            transformed.educations = [];
+        }
+
+        return transformed;
+    });
+    
+    // Debug: Check if avatar is in form data
+    console.log('Form data before submit:', {
+        hasAvatar: !!form.avatar,
+        avatarFile: form.avatar,
+        skills: form.skills,
+    });
+    
+    form.post(update.url(), {
+        forceFormData: true,
+        preserveScroll: false,
+        onSuccess: () => {
+            // Navigate to profile index with full reload
+            router.visit(index.url(), {
+                preserveState: false,
+            });
+        },
     });
 };
 </script>

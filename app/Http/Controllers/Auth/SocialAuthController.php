@@ -43,10 +43,25 @@ class SocialAuthController extends Controller
                 ]
             );
 
+            // Tự động gán role Candidate nếu user chưa có role nào
+            if ($user->roles->isEmpty()) {
+                $user->assignRole('Candidate');
+            }
+
             Auth::login($user);
 
-            // ✅ Truyền flash message đúng chuẩn Laravel
-            return redirect()->intended('dashboard')->with('success', 'Đăng nhập Google thành công!');
+            // ✅ Redirect based on role - use direct route instead of intended
+            // to avoid redirecting to generic /dashboard
+            if ($user->hasRole('Candidate')) {
+                return redirect()->route('candidate.dashboard')->with('success', 'Đăng nhập Google thành công!');
+            } elseif ($user->hasRole('Employer')) {
+                return redirect()->route('employer.dashboard')->with('success', 'Đăng nhập Google thành công!');
+            } elseif ($user->hasRole('Admin')) {
+                return redirect()->route('admin.dashboard')->with('success', 'Đăng nhập Google thành công!');
+            }
+            
+            // Default redirect - redirect to candidate dashboard
+            return redirect()->route('candidate.dashboard')->with('success', 'Đăng nhập Google thành công!');
         } catch (\Laravel\Socialite\Two\InvalidStateException $e) {
             return redirect('/login')->with('error', 'Đăng nhập thất bại. Vui lòng thử lại sau.');
         } catch (\Illuminate\Http\Client\RequestException $e) {

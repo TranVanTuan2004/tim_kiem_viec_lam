@@ -101,6 +101,14 @@ return new class extends Migration
 
         // Remove guard_name from roles (if column exists)
         if (Schema::hasTable('roles') && Schema::hasColumn('roles', 'guard_name')) {
+            // Drop unique index first if it exists (required before dropping column)
+            try {
+                DB::statement('ALTER TABLE `roles` DROP INDEX `roles_name_guard_name_unique`');
+            } catch (\Exception $e) {
+                // Index might not exist, ignore error
+            }
+            
+            // Now drop the column
             Schema::table('roles', function (Blueprint $table) {
                 $table->dropColumn('guard_name');
             });

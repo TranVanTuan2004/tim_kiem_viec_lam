@@ -74,28 +74,37 @@ Route::get('/privacy', function () {
 Route::get('dashboard', function () {
     $user = auth()->user();
 
+    if (!$user) {
+        return redirect()->route('login');
+    }
+
     // Debug: Log user info
     Log::info('Dashboard access', [
-        'user_id' => $user?->id,
-        'user_name' => $user?->name,
-        'roles' => $user?->roles?->pluck('name')?->toArray()
+        'user_id' => $user->id,
+        'user_name' => $user->name,
+        'roles' => $user->roles->pluck('name')->toArray()
     ]);
 
-    // Redirect based on user role
+    // Redirect based on user role - check roles first
     if ($user->hasRole('Candidate')) {
         Log::info('Redirecting to candidate dashboard');
         return redirect()->route('candidate.dashboard');
-    } elseif ($user->hasRole('Employer')) {
+    }
+    
+    if ($user->hasRole('Employer')) {
         Log::info('Redirecting to employer dashboard');
         return redirect()->route('employer.dashboard');
-    } elseif ($user->hasRole('Admin')) {
+    }
+    
+    if ($user->hasRole('Admin')) {
         Log::info('Redirecting to admin dashboard');
         return redirect()->route('admin.dashboard');
     }
 
-    // Default fallback
-    Log::warning('No role found for authenticated user, using default dashboard');
-    return Inertia::render('Dashboard');
+    // Default fallback - redirect to candidate dashboard if no role found
+    // This handles cases where user hasn't been assigned a role yet
+    Log::warning('No role found for authenticated user, redirecting to candidate dashboard');
+    return redirect()->route('candidate.dashboard');
 })->middleware(['auth'])->name('dashboard');
 
 // Employer Routes
@@ -179,7 +188,7 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'role:Candid
     Route::get('profile/create', [ProfileController::class, 'create'])->name('profile.create');
     Route::post('profile', [ProfileController::class, 'store'])->name('profile.store');
     Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::put('profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::post('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('profile/toggle-availability', [ProfileController::class, 'toggleAvailability'])->name('profile.toggle-availability');
 
     // Applications Management

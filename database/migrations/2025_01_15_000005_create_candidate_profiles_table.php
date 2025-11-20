@@ -24,11 +24,11 @@ return new class extends Migration
             $table->string('current_position')->nullable();
             $table->string('current_company')->nullable();
             $table->decimal('expected_salary', 10, 2)->nullable();
-            $table->enum('experience_level', ['fresher', 'junior', 'middle', 'senior', 'lead'])->nullable();
+            $table->enum('experience_level', ['intern', 'fresher', 'junior', 'middle', 'senior', 'lead'])->nullable();
             $table->boolean('is_available')->default(true);
             $table->timestamps();
             $table->softDeletes();
-            
+
             $table->index(['is_available', 'city']);
             $table->index(['experience_level', 'expected_salary']);
             $table->index('user_id');
