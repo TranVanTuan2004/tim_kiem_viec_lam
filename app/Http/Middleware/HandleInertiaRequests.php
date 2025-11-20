@@ -52,6 +52,22 @@ class HandleInertiaRequests extends Middleware
                     'permissions' => $request->user()->getAllPermissions()->pluck('name'),
                 ] : null,
             ],
+            'candidateProfile' => function () use ($request) {
+                if (!$request->user()) {
+                    return null;
+                }
+                
+                $candidateProfile = $request->user()->candidateProfile;
+                if (!$candidateProfile) {
+                    return null;
+                }
+                
+                return [
+                    'avatar_url' => $candidateProfile->avatar 
+                        ? asset('storage/' . $candidateProfile->avatar) 
+                        : null,
+                ];
+            },
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         
             'flash' => [

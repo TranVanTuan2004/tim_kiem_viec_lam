@@ -26,7 +26,6 @@ import {
     Home,
     LayoutGrid,
     MessageSquare,
-    Star,
     User,
     Users,
 } from 'lucide-vue-next';
@@ -46,9 +45,11 @@ const getDashboardLink = () => {
     if (isCandidateContext.value) {
         return '/candidate/dashboard';
     } else if (hasRole('Employer')) {
-        return '/dashboard'; // Update when employer dashboard is ready
+        return '/employer/dashboard';
+    } else if (hasRole('Admin')) {
+        return '/admin/dashboard';
     }
-    return dashboard(); // Admin or default
+    return '/candidate/dashboard'; // Default to candidate
 };
 
 // Define different navigation items for different roles
@@ -65,7 +66,7 @@ const candidateNavItems: NavItem[] = [
     },
     {
         title: 'Hồ sơ cá nhân',
-        href: '/candidate/profile',
+        href: '/profile',
         icon: User,
     },
     {
@@ -107,12 +108,6 @@ const adminNavItems: NavItem[] = [
         href: '/admin/chat',
         icon: MessageSquare,
         permission: 'view messages',
-    },
-    {
-        title: 'Quản lý đánh giá',
-        href: '/admin/company-reviews',
-        icon: Star,
-        // permission: 'view users',
     },
     {
         title: 'Activity Logs',

@@ -46,6 +46,9 @@ class RegisteredUserController extends Controller
             'password' => Hash::make($request->password),
         ]);
 
+        // Tự động gán role Candidate cho user mới
+        $user->assignRole('Candidate');
+
         event(new Registered($user));
 
         Auth::login($user);

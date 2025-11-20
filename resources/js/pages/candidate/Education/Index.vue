@@ -1,104 +1,162 @@
 <template>
-    <AuthenticatedLayout>
-        <Head title="My Education" />
+    <ClientLayout>
+        <Head title="Học vấn" />
 
         <div class="py-12">
-            <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
-                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                    <div class="border-b border-gray-200 p-6">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h1 class="text-2xl font-bold text-gray-900">
-                                    My Education
-                                </h1>
-                                <p class="mt-2 text-gray-600">
-                                    Manage your educational background
-                                </p>
-                            </div>
-                            <Link
-                                :href="route('candidate.educations.create')"
-                                class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
-                            >
-                                + Add Education
-                            </Link>
-                        </div>
+            <div class="mx-auto max-w-6xl sm:px-6 lg:px-8">
+                <div class="mb-6 flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">
+                            Học vấn
+                        </h1>
+                        <p class="mt-2 text-gray-600">
+                            Quản lý thông tin học vấn của bạn
+                        </p>
                     </div>
+                    <Link
+                        :href="create.url()"
+                        class="rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 flex items-center gap-2"
+                    >
+                        <Plus class="h-5 w-5" />
+                        Thêm học vấn
+                    </Link>
+                </div>
 
-                    <div class="p-6">
-                        <div v-if="educations.length === 0" class="text-center py-12">
-                            <p class="text-gray-500">No education added yet</p>
-                            <Link
-                                :href="route('candidate.educations.create')"
-                                class="mt-4 inline-block text-blue-600 hover:text-blue-700"
-                            >
-                                Add your first education
-                            </Link>
-                        </div>
+                <div
+                    v-if="educations.length === 0"
+                    class="rounded-lg border-2 border-dashed border-gray-300 bg-white p-12 text-center"
+                >
+                    <GraduationCap class="mx-auto h-12 w-12 text-gray-400" />
+                    <h3 class="mt-4 text-lg font-medium text-gray-900">
+                        Chưa có thông tin học vấn
+                    </h3>
+                    <p class="mt-2 text-sm text-gray-500">
+                        Bắt đầu bằng cách thêm thông tin học vấn đầu tiên của
+                        bạn
+                    </p>
+                    <div class="mt-6">
+                        <Link
+                            :href="create.url()"
+                            class="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+                        >
+                            <Plus class="mr-2 h-4 w-4" />
+                            Thêm học vấn
+                        </Link>
+                    </div>
+                </div>
 
-                        <div v-else class="space-y-4">
-                            <div
-                                v-for="education in educations"
-                                :key="education.id"
-                                class="rounded-lg border border-gray-200 p-4 hover:shadow-md transition"
-                            >
-                                <div class="flex items-start justify-between">
+                <div v-else class="space-y-4">
+                    <div
+                        v-for="education in educations"
+                        :key="education.id"
+                        class="group rounded-lg border border-gray-200 bg-white p-6 shadow-sm transition-all hover:shadow-md"
+                    >
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-3">
+                                    <div
+                                        class="flex h-12 w-12 items-center justify-center rounded-lg bg-green-100"
+                                    >
+                                        <GraduationCap
+                                            class="h-6 w-6 text-green-600"
+                                        />
+                                    </div>
                                     <div class="flex-1">
-                                        <h3 class="text-lg font-semibold text-gray-900">
-                                            {{ education.degree }}
-                                        </h3>
-                                        <p class="text-gray-600">
+                                        <div class="flex items-center gap-2">
+                                            <h3
+                                                class="text-xl font-semibold text-gray-900"
+                                            >
+                                                {{ education.degree }}
+                                            </h3>
+                                            <Badge
+                                                v-if="!education.is_completed"
+                                                variant="default"
+                                                class="bg-blue-100 text-blue-800"
+                                            >
+                                                Đang học
+                                            </Badge>
+                                        </div>
+                                        <p
+                                            class="mt-1 text-lg font-medium text-gray-700"
+                                        >
                                             {{ education.institution }}
                                         </p>
-                                        <p class="mt-1 text-sm text-gray-500">
+                                        <p
+                                            v-if="education.field_of_study"
+                                            class="mt-1 text-sm text-gray-600"
+                                        >
                                             {{ education.field_of_study }}
                                         </p>
-                                        <p class="mt-2 text-sm text-gray-600">
-                                            <span class="font-medium">Period:</span>
-                                            {{ education.period }}
-                                        </p>
-                                        <p v-if="education.gpa" class="text-sm text-gray-600">
-                                            <span class="font-medium">GPA:</span>
-                                            {{ education.gpa }}/4.0
-                                        </p>
-                                        <p v-if="education.description" class="mt-2 text-sm text-gray-700">
+                                        <div
+                                            class="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-600"
+                                        >
+                                            <div class="flex items-center gap-1">
+                                                <Calendar class="h-4 w-4" />
+                                                <span>{{ education.period }}</span>
+                                            </div>
+                                            <div
+                                                v-if="education.gpa"
+                                                class="flex items-center gap-1"
+                                            >
+                                                <Award class="h-4 w-4" />
+                                                <span>GPA: {{ education.gpa }}/4.0</span>
+                                            </div>
+                                        </div>
+                                        <p
+                                            v-if="education.description"
+                                            class="mt-4 text-sm leading-relaxed text-gray-700"
+                                        >
                                             {{ education.description }}
                                         </p>
                                     </div>
-                                    <div class="ml-4 flex space-x-2">
-                                        <Link
-                                            :href="route('candidate.educations.edit', education.id)"
-                                            class="text-blue-600 hover:text-blue-700"
-                                        >
-                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                        </Link>
-                                        <button
-                                            @click="deleteEducation(education.id)"
-                                            class="text-red-600 hover:text-red-700"
-                                        >
-                                            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
-                                    </div>
                                 </div>
+                            </div>
+                            <div class="ml-4 flex gap-2">
+                                <Button
+                                    as-child
+                                    variant="ghost"
+                                    size="sm"
+                                >
+                                    <Link :href="edit.url(education.id)">
+                                        <Edit class="h-4 w-4" />
+                                    </Link>
+                                </Button>
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    @click="deleteEducation(education.id)"
+                                    class="text-red-600 hover:text-red-700"
+                                >
+                                    <Trash2 class="h-4 w-4" />
+                                </Button>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </ClientLayout>
 </template>
 
 <script setup lang="ts">
-import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
-import { Head, Link, router, usePage } from '@inertiajs/vue3';
-
-const route = (name: string, params?: any) => {
-    return window.route(name, params);
-};
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import ClientLayout from '@/layouts/ClientLayout.vue';
+import {
+    create,
+    destroy,
+    edit,
+    index,
+} from '@/routes/candidate/educations';
+import { Head, Link, router } from '@inertiajs/vue3';
+import {
+    Award,
+    Calendar,
+    Edit,
+    GraduationCap,
+    Plus,
+    Trash2,
+} from 'lucide-vue-next';
 
 interface Props {
     educations: Array<any>;
@@ -107,8 +165,8 @@ interface Props {
 defineProps<Props>();
 
 const deleteEducation = (id: number) => {
-    if (confirm('Are you sure you want to delete this education?')) {
-        router.delete(route('candidate.educations.destroy', id));
+    if (confirm('Bạn có chắc chắn muốn xóa thông tin học vấn này không?')) {
+        router.delete(destroy(id).url());
     }
 };
 </script>
