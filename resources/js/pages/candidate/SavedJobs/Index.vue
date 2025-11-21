@@ -102,159 +102,109 @@
                     </CardContent>
                 </Card>
 
-                <!-- Saved Jobs Grid -->
-                <div
-                    v-if="savedJobs.data.length > 0"
-                    class="grid grid-cols-1 gap-6 md:grid-cols-2"
-                >
-                    <Card
-                        v-for="job in savedJobs.data"
-                        :key="job.id"
-                        class="group transition-all hover:border-blue-300 hover:shadow-lg"
-                    >
-                        <CardContent class="p-6">
-                            <div class="flex items-start justify-between">
-                                <div class="flex flex-1 items-start space-x-4">
-                                    <img
-                                        v-if="job.company.logo"
-                                        :src="job.company.logo"
-                                        :alt="job.company.name"
-                                        class="h-16 w-16 rounded-lg border border-gray-200 object-cover"
-                                    />
-                                    <div
-                                        v-else
-                                        class="flex h-16 w-16 items-center justify-center rounded-lg bg-gray-100"
-                                    >
-                                        <Building2
-                                            class="h-8 w-8 text-gray-400"
-                                        />
-                                    </div>
-                                    <div class="flex-1">
-                                        <div
-                                            class="flex items-start justify-between"
-                                        >
-                                            <div class="flex-1">
+                <!-- Saved Jobs List -->
+                <div v-if="savedJobs.data.length > 0" class="bg-white rounded-md shadow overflow-hidden">
+                    <div class="responsive-table-wrapper">
+                        <table class="w-full text-sm text-left mobile-card-view">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+                                <tr>
+                                    <th class="px-6 py-3">Công việc</th>
+                                    <th class="px-6 py-3">Địa điểm</th>
+                                    <th class="px-6 py-3">Lương</th>
+                                    <th class="px-6 py-3">Ngày lưu</th>
+                                    <th class="px-6 py-3 text-right">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    v-for="job in savedJobs.data"
+                                    :key="job.id"
+                                    class="bg-white border-b hover:bg-gray-50"
+                                >
+                                    <td class="px-6 py-4" data-label="Công việc">
+                                        <div class="flex items-center gap-3">
+                                            <img
+                                                v-if="job.company.logo"
+                                                :src="job.company.logo"
+                                                :alt="job.company.name"
+                                                class="h-10 w-10 rounded-lg border border-gray-200 object-cover"
+                                            />
+                                            <div v-else class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
+                                                <Building2 class="h-5 w-5 text-gray-400" />
+                                            </div>
+                                            <div>
                                                 <Link
                                                     :href="`/jobs/${job.id}`"
-                                                    class="line-clamp-2 text-xl font-semibold text-gray-900 transition-colors hover:text-blue-600"
+                                                    class="font-medium text-blue-600 hover:underline block"
                                                 >
                                                     {{ job.title }}
                                                 </Link>
                                                 <Link
                                                     :href="`/companies/${job.company.id}`"
-                                                    class="mt-1 block text-gray-600 transition-colors hover:text-blue-600"
+                                                    class="text-xs text-gray-500 hover:text-blue-600"
                                                 >
                                                     {{ job.company.name }}
                                                 </Link>
+                                                <div class="mt-1 flex gap-1">
+                                                    <Badge variant="outline" class="text-[10px] px-1 py-0 h-5">
+                                                        {{ getJobTypeLabel(job.job_type) }}
+                                                    </Badge>
+                                                    <Badge v-if="job.industry" variant="outline" class="text-[10px] px-1 py-0 h-5">
+                                                        {{ job.industry.name }}
+                                                    </Badge>
+                                                </div>
                                             </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4" data-label="Địa điểm">
+                                        <div class="flex items-center text-gray-600">
+                                            <MapPin class="mr-1 h-3 w-3" />
+                                            {{ job.location }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4" data-label="Lương">
+                                        <div class="flex items-center text-gray-600">
+                                            <DollarSign class="mr-1 h-3 w-3" />
+                                            {{ formatSalary(job.salary_min, job.salary_max) }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4" data-label="Ngày lưu">
+                                        <div class="flex items-center text-gray-500">
+                                            <Calendar class="mr-1 h-3 w-3" />
+                                            {{ formatDate(job.saved_at) }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-right" data-label="Hành động">
+                                        <div class="flex items-center justify-end gap-2 flex-wrap">
+                                            <Link
+                                                :href="`/jobs/${job.id}`"
+                                                class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
+                                            >
+                                                Xem
+                                            </Link>
+                                            <Link
+                                                v-if="!job.has_applied"
+                                                :href="`/jobs/${job.id}/apply`"
+                                                class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                                            >
+                                                Ứng tuyển
+                                            </Link>
+                                            <Badge v-else variant="secondary">
+                                                Đã ứng tuyển
+                                            </Badge>
                                             <button
                                                 @click="unsaveJob(job.id)"
-                                                class="ml-4 flex h-8 w-8 items-center justify-center rounded-full text-red-600 transition-colors hover:bg-red-50"
+                                                class="ml-2 text-red-600 hover:text-red-800"
                                                 title="Bỏ lưu"
                                             >
                                                 <X class="h-5 w-5" />
                                             </button>
                                         </div>
-
-                                        <div
-                                            class="mt-4 flex flex-wrap items-center gap-2"
-                                        >
-                                            <Badge
-                                                variant="outline"
-                                                class="text-xs"
-                                            >
-                                                <MapPin class="mr-1 h-3 w-3" />
-                                                {{ job.location }}
-                                            </Badge>
-                                            <Badge
-                                                variant="outline"
-                                                class="text-xs capitalize"
-                                            >
-                                                <Briefcase
-                                                    class="mr-1 h-3 w-3"
-                                                />
-                                                {{
-                                                    getJobTypeLabel(
-                                                        job.job_type,
-                                                    )
-                                                }}
-                                            </Badge>
-                                            <Badge
-                                                v-if="
-                                                    job.salary_min ||
-                                                    job.salary_max
-                                                "
-                                                variant="secondary"
-                                                class="text-xs"
-                                            >
-                                                <DollarSign
-                                                    class="mr-1 h-3 w-3"
-                                                />
-                                                {{
-                                                    formatSalary(
-                                                        job.salary_min,
-                                                        job.salary_max,
-                                                    )
-                                                }}
-                                            </Badge>
-                                            <Badge
-                                                v-if="job.industry"
-                                                variant="outline"
-                                                class="text-xs"
-                                            >
-                                                <Building2
-                                                    class="mr-1 h-3 w-3"
-                                                />
-                                                {{ job.industry.name }}
-                                            </Badge>
-                                        </div>
-
-                                        <p
-                                            v-if="job.description"
-                                            class="mt-4 line-clamp-2 text-sm text-gray-600"
-                                        >
-                                            {{ stripHtml(job.description) }}
-                                        </p>
-
-                                        <div
-                                            class="mt-4 flex items-center justify-between"
-                                        >
-                                            <span class="text-xs text-gray-500">
-                                                <Calendar
-                                                    class="mr-1 inline h-3 w-3"
-                                                />
-                                                Đã lưu
-                                                {{ formatDate(job.saved_at) }}
-                                            </span>
-                                            <div
-                                                class="flex items-center gap-2"
-                                            >
-                                                <Link
-                                                    :href="`/jobs/${job.id}`"
-                                                    class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
-                                                >
-                                                    Xem chi tiết
-                                                </Link>
-                                                <Link
-                                                    v-if="!job.has_applied"
-                                                    :href="`/jobs/${job.id}/apply`"
-                                                    class="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
-                                                >
-                                                    Ứng tuyển ngay
-                                                </Link>
-                                                <Badge
-                                                    v-else
-                                                    variant="secondary"
-                                                >
-                                                    Đã ứng tuyển
-                                                </Badge>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
 
                 <!-- Empty State -->

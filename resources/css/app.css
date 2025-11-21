@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import './responsive-utilities.css';
 
 @import 'tw-animate-css';
 
@@ -70,6 +71,7 @@
   color utility to any element that depends on these defaults.
 */
 @layer base {
+
     *,
     ::after,
     ::before,
@@ -80,6 +82,7 @@
 }
 
 @layer utilities {
+
     body,
     html {
         --font-sans:
@@ -166,6 +169,7 @@
     * {
         @apply border-border outline-ring/50;
     }
+
     body {
         @apply bg-background text-foreground;
     }

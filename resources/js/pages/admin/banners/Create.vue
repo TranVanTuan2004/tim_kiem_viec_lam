@@ -109,12 +109,12 @@ const breadcrumbs = [
                 <div class="space-y-2">
                   <Label for="description">Mô tả</Label>
                   <Textarea
-                    id="description"
-                    v-model="form.description"
-                    placeholder="Nhập mô tả banner"
-                    :rows="3"
-                    :class="{ 'border-red-500': form.errors.description }"
-                  />
+                  id="description"
+                  v-model="form.description"
+                  :rows="4"
+                  placeholder="Nhập mô tả cho banner..."
+                  :class="form.errors.description ? 'border-red-500' : ''"
+                />
                   <p v-if="form.errors.description" class="text-sm text-red-500">{{ form.errors.description }}</p>
                 </div>
 
@@ -128,7 +128,7 @@ const breadcrumbs = [
                   <p v-if="form.errors.type" class="text-sm text-red-500">{{ form.errors.type }}</p>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div class="space-y-2">
                     <Label for="link_url">Link URL</Label>
                     <Input

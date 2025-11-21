@@ -104,55 +104,72 @@ const breadcrumbs = [
         </CardContent>
       </Card>
 
-      <!-- Users List -->
-      <div class="space-y-4">
-        <div
-          v-for="user in users.data"
-          :key="user.id"
-          class="border rounded-lg p-4 hover:bg-muted/50 transition-colors flex justify-between items-center"
-        >
-          <div>
-            <div class="font-bold text-lg">{{ user.name }}</div>
-            <div class="text-sm text-muted-foreground">{{ user.email }}</div>
-            <Badge 
-              variant="default" 
-              :class="user.roles?.[0]?.name === 'Admin' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'"
-            >
-              {{ user.roles?.[0]?.name ?? '-' }}
-            </Badge>
+      <!-- Users Table -->
+      <div class="bg-white rounded-md shadow overflow-hidden">
+        <div class="responsive-table-wrapper">
+          <table class="w-full text-sm text-left mobile-card-view">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+              <tr>
+                <th class="px-4 py-3">Tên</th>
+                <th class="px-4 py-3">Email</th>
+                <th class="px-4 py-3">Vai trò</th>
+                <th class="px-4 py-3">Trạng thái</th>
+                <th class="px-4 py-3 text-right">Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="user in users.data" :key="user.id" class="border-b hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium text-gray-900" data-label="Tên">
+                  {{ user.name }}
+                </td>
+                <td class="px-4 py-3" data-label="Email">
+                  {{ user.email }}
+                </td>
+                <td class="px-4 py-3" data-label="Vai trò">
+                  <Badge 
+                    variant="default" 
+                    :class="user.roles?.[0]?.name === 'Admin' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'"
+                  >
+                    {{ user.roles?.[0]?.name ?? '-' }}
+                  </Badge>
+                </td>
+                <td class="px-4 py-3" data-label="Trạng thái">
+                  <Badge 
+                    variant="default" 
+                    :class="user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                  >
+                    {{ user.is_active ? 'Hoạt động' : 'Bị khóa' }}
+                  </Badge>
+                </td>
+                <td class="px-4 py-3 text-right" data-label="Hành động">
+                  <div class="flex items-center justify-end gap-2 flex-wrap">
+                    <Button size="sm" variant="outline" @click="toggleActive(user.id)">
+                      {{ user.is_active ? 'Khóa' : 'Mở khóa' }}
+                    </Button>
 
-            <Badge 
-              variant="default" 
-              :class="user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
-            >
-              {{ user.is_active ? 'Hoạt động' : 'Bị khóa' }}
-            </Badge>
+                    <Button size="sm" variant="outline" @click="resetPassword(user.id)">
+                      Reset Pass
+                    </Button>
 
-            <div class="flex gap-2 mt-2">
-              <Button size="sm" variant="outline" @click="toggleActive(user.id)">
-                {{ user.is_active ? 'Khóa' : 'Mở khóa' }}
-              </Button>
+                    <Button size="sm" variant="outline" @click="sendResetLink(user.id)">
+                      Email Reset
+                    </Button>
 
-              <Button size="sm" variant="outline" @click="resetPassword(user.id)">
-                Reset password
-              </Button>
-
-              <Button size="sm" variant="outline" @click="sendResetLink(user.id)">
-                Email Reset
-              </Button>
-
-              <Button size="sm" variant="outline" @click="router.get(`/admin/users/${user.id}/activity-logs`)">
-                Logs
-              </Button>
-            </div>
-          </div>
+                    <Button size="sm" variant="outline" @click="router.get(`/admin/users/${user.id}/activity-logs`)">
+                      Logs
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
+      </div>
 
-        <!-- Empty State -->
-        <div v-if="users.data.length === 0" class="text-center py-12 text-muted-foreground">
-          <UserIcon class="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
-          <p>Không tìm thấy người dùng nào</p>
-        </div>
+      <!-- Empty State -->
+      <div v-if="users.data.length === 0" class="text-center py-12 text-muted-foreground">
+        <UserIcon class="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
+        <p>Không tìm thấy người dùng nào</p>
       </div>
 
       <!-- Pagination -->

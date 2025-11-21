@@ -315,8 +315,8 @@
             <p class="text-gray-500 mt-2">Chưa có ứng viên nào ứng tuyển phù hợp với bộ lọc của bạn</p>
           </div>
 
-          <div v-else class="overflow-x-auto">
-            <table class="w-full">
+          <div v-else class="responsive-table-wrapper">
+            <table class="w-full mobile-card-view">
               <thead class="bg-gray-50 border-b border-gray-200">
                 <tr>
                   <th class="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
@@ -342,7 +342,7 @@
                   :key="app.id"
                   class="hover:bg-gray-50 transition"
                 >
-                  <td class="px-6 py-4">
+                  <td class="px-6 py-4" data-label="Ứng viên">
                     <div class="flex items-center">
                       <div class="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
                         <span class="text-white font-semibold">
@@ -359,17 +359,17 @@
                       </div>
                     </div>
                   </td>
-                  <td class="px-6 py-4">
+                  <td class="px-6 py-4" data-label="Vị trí ứng tuyển">
                     <div class="text-sm font-medium text-gray-900">
                       {{ app.job_posting.title }}
                     </div>
                   </td>
-                  <td class="px-6 py-4">
+                  <td class="px-6 py-4" data-label="Ngày ứng tuyển">
                     <div class="text-sm text-gray-900">
                       {{ formatDate(app.created_at) }}
                     </div>
                   </td>
-                  <td class="px-6 py-4">
+                  <td class="px-6 py-4" data-label="Trạng thái">
                     <select
                       :value="app.status"
                       class="px-3 py-1 rounded-full text-xs font-semibold border-0 focus:ring-2 focus:ring-offset-1 transition"
@@ -383,7 +383,7 @@
                       <option value="rejected">Từ chối</option>
                     </select>
                   </td>
-                  <td class="px-6 py-4 text-right">
+                  <td class="px-6 py-4 text-right" data-label="Hành động">
                     <Link
                       :href="route('employer.applications.show', app.id)"
                       class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition shadow-sm hover:shadow-md"

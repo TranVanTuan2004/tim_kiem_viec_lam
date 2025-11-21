@@ -289,8 +289,8 @@ const hasActiveFilters = computed(() => {
 
                 <!-- Table -->
                 <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full divide-y divide-slate-100 text-sm">
+                    <div class="responsive-table-wrapper">
+                        <table class="w-full text-sm text-left mobile-card-view">
                             <thead class="bg-slate-50 text-left text-xs font-semibold uppercase tracking-wide text-slate-500">
                                 <tr>
                                     <th class="px-6 py-4">Ứng viên</th>
@@ -307,7 +307,7 @@ const hasActiveFilters = computed(() => {
                                     :key="app.id"
                                     class="hover:bg-slate-50/60 transition-colors"
                                 >
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4" data-label="Ứng viên">
                                         <div class="flex items-center gap-3">
                                             <div class="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-sm font-semibold text-white">
                                                 {{ app.candidate.user.name.charAt(0).toUpperCase() }}
@@ -322,7 +322,7 @@ const hasActiveFilters = computed(() => {
                                             </div>
                                         </div>
                                     </td>
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4" data-label="Công ty">
                                         <p class="font-medium text-slate-900">
                                             {{
                                                 app.jobPosting?.company?.company_name
@@ -333,17 +333,17 @@ const hasActiveFilters = computed(() => {
                                             ID: {{ app.jobPosting.company.id }}
                                         </p>
                                     </td>
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4" data-label="Vị trí">
                                         <p class="font-medium">
                                             {{ app.jobPosting?.title || 'Chưa cập nhật' }}
                                         </p>
                                     </td>
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4" data-label="Ngày ứng tuyển">
                                         <span class="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
                                             {{ new Date(app.created_at).toLocaleDateString('vi-VN') }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4" data-label="Trạng thái">
                                         <select
                                             :value="app.status"
                                             class="rounded-full border border-transparent px-3 py-1 text-xs font-semibold text-white shadow-sm"
@@ -355,7 +355,7 @@ const hasActiveFilters = computed(() => {
                                             </option>
                                         </select>
                                     </td>
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4 text-right" data-label="Hành động">
                                         <div class="flex items-center justify-end gap-2">
                                             <Link
                                                 :href="`/employer/applications/${app.id}`"

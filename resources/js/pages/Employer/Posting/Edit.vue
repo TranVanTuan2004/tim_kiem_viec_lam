@@ -98,7 +98,7 @@ const submit = () => {
                         <!-- Quyền lợi -->
                         <div>
                             <Label for="benefits">Quyền lợi</Label>
-                            <Textarea id="benefits" v-model="form.benefits" :ows="3" />
+                            <Textarea id="benefits" v-model="form.benefits" :rows="3" />
                             <p v-if="form.errors.benefits" class="text-red-500 text-sm mt-1">{{ form.errors.benefits }}</p>
                         </div>
 
@@ -110,7 +110,7 @@ const submit = () => {
                         </div>
 
                         <!-- Hình thức & cấp bậc -->
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <Label for="employment_type">Hình thức làm việc</Label>
                                 <select id="employment_type" v-model="form.employment_type" class="w-full rounded-md border p-2">
@@ -132,7 +132,7 @@ const submit = () => {
                         </div>
 
                         <!-- Tỉnh & Quận/Huyện -->
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <Label>Tỉnh / Thành phố *</Label>
                                 <select v-model="form.province" class="w-full rounded-lg border p-2">
@@ -163,7 +163,7 @@ const submit = () => {
                         </div>
 
                         <!-- Lương -->
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <Label for="min_salary">Lương tối thiểu</Label>
                                 <Input id="min_salary" type="number" v-model="form.min_salary" step="100" />
