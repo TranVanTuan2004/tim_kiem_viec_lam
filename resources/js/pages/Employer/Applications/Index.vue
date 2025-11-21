@@ -429,18 +429,18 @@
               </div>
 
               <div class="flex gap-2">
-                <Link
-                  v-for="link in applications.links"
-                  :key="link.label"
+                <component
+                  :is="link.url ? Link : 'span'"
+                  v-for="(link, index) in applications.links"
+                  :key="index"
                   :href="link.url"
+                  class="px-4 py-2 text-sm font-medium rounded-lg transition"
                   :class="[
-                    'px-4 py-2 text-sm font-medium rounded-lg transition',
                     link.active
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md'
                       : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-300',
                     !link.url && 'opacity-50 cursor-not-allowed',
                   ]"
-                  :disabled="!link.url"
                   v-html="link.label"
                 />
               </div>
@@ -449,13 +449,20 @@
         </div>
       </div>
     </div>
+    <UpdateStatusModal
+      v-model:open="showStatusModal"
+      :application="selectedApplication"
+      :new-status="targetStatus"
+      @success="onStatusUpdateSuccess"
+    />
   </AppLayout>
 </template>
 
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
+import UpdateStatusModal from './UpdateStatusModal.vue'
 
 const props = defineProps({
   applications: Object,
@@ -498,19 +505,22 @@ const clearFilters = () => {
   applyFilters()
 }
 
+const showStatusModal = ref(false)
+const selectedApplication = ref(null)
+const targetStatus = ref('')
+
 const updateStatus = (applicationId, newStatus) => {
-  if (confirm('Bạn có chắc muốn cập nhật trạng thái?')) {
-    router.patch(
-      route('employer.applications.update-status', applicationId),
-      { status: newStatus },
-      {
-        preserveScroll: true,
-        onSuccess: () => {
-          // Show success message
-        },
-      }
-    )
+  const application = props.applications.data.find(a => a.id === applicationId)
+  if (application) {
+    selectedApplication.value = application
+    targetStatus.value = newStatus
+    showStatusModal.value = true
   }
+}
+
+const onStatusUpdateSuccess = () => {
+  // Refresh data or show notification if needed
+  // Inertia automatically handles page refresh on successful request
 }
 
 const getStatusClass = (status) => {
@@ -525,6 +535,7 @@ const getStatusClass = (status) => {
 }
 
 const getInitials = (name) => {
+  if (!name) return ''
   return name
     .split(' ')
     .map((n) => n[0])

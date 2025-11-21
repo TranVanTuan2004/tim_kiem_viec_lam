@@ -188,7 +188,7 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'role:Candid
     Route::get('profile/create', [ProfileController::class, 'create'])->name('profile.create');
     Route::post('profile', [ProfileController::class, 'store'])->name('profile.store');
     Route::get('profile/edit', [ProfileController::class, 'edit'])->name('profile.edit');
-    Route::post('profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::post('profile/toggle-availability', [ProfileController::class, 'toggleAvailability'])->name('profile.toggle-availability');
 
     // Applications Management

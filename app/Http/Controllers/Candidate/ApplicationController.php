@@ -54,8 +54,8 @@ class ApplicationController extends Controller
         $stats = [
             'total' => $candidateProfile->applications()->count(),
             'pending' => $candidateProfile->applications()->where('status', 'pending')->count(),
-            'reviewed' => $candidateProfile->applications()->where('status', 'reviewed')->count(),
-            'shortlisted' => $candidateProfile->applications()->where('status', 'shortlisted')->count(),
+            'reviewing' => $candidateProfile->applications()->where('status', 'reviewing')->count(),
+            'interview' => $candidateProfile->applications()->where('status', 'interview')->count(),
             'rejected' => $candidateProfile->applications()->where('status', 'rejected')->count(),
             'accepted' => $candidateProfile->applications()->where('status', 'accepted')->count(),
         ];
@@ -112,7 +112,7 @@ class ApplicationController extends Controller
         }
 
         // Only allow withdrawal of pending or reviewed applications
-        if (!in_array($application->status, ['pending', 'reviewed'])) {
+        if (!in_array($application->status, ['pending', 'reviewing'])) {
             return back()->with('error', 'Cannot withdraw this application.');
         }
 

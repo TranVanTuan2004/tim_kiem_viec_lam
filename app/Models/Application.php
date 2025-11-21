@@ -40,6 +40,11 @@ class Application extends Model
         return $this->belongsTo(CandidateProfile::class, 'candidate_id');
     }
 
+    public function candidateProfile(): BelongsTo
+    {
+        return $this->belongsTo(CandidateProfile::class, 'candidate_id');
+    }
+
     // Scopes
     public function scopeByStatus($query, $status)
     {

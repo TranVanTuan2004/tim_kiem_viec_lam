@@ -29,8 +29,8 @@ class ApplicationController extends Controller
         }
 
         // Build query
-        $query = Application::whereHas('jobPosting.company', function ($q) use ($user) {
-            $q->where('user_id', $user->id);
+        $query = Application::whereHas('jobPosting', function ($q) use ($company) {
+            $q->where('company_id', $company->id);
         })
         ->with(['candidate.user', 'jobPosting']);
 
@@ -68,12 +68,10 @@ class ApplicationController extends Controller
         $applications = $query->paginate(15)->withQueryString();
 
         // Get statistics
-        $statistics = $this->getStatistics($user->id);
+        $statistics = $this->getStatistics($company->id);
 
         // Get job postings for filter
-        $jobPostings = JobPosting::whereHas('company', function ($q) use ($user) {
-            $q->where('user_id', $user->id);
-        })
+        $jobPostings = JobPosting::where('company_id', $company->id)
         ->select('id', 'title')
         ->orderBy('title')
         ->get();
@@ -95,8 +93,8 @@ class ApplicationController extends Controller
             'candidate.educations',
             'jobPosting'
         ])
-        ->whereHas('jobPosting.company', function ($q) {
-            $q->where('user_id', auth()->id());
+        ->whereHas('jobPosting', function ($q) {
+            $q->where('company_id', auth()->user()->company->id);
         })
         ->findOrFail($id);
 
@@ -113,8 +111,8 @@ class ApplicationController extends Controller
             'interview_date' => 'nullable|date|after:now',
         ]);
 
-        $application = Application::whereHas('jobPosting.company', function ($q) {
-            $q->where('user_id', auth()->id());
+        $application = Application::whereHas('jobPosting', function ($q) {
+            $q->where('company_id', auth()->user()->company->id);
         })->findOrFail($id);
 
         $application->update([
@@ -126,10 +124,10 @@ class ApplicationController extends Controller
         return back()->with('success', 'Cập nhật trạng thái thành công!');
     }
 
-    private function getStatistics($userId)
+    private function getStatistics($companyId)
     {
-        $stats = Application::whereHas('jobPosting.company', function ($q) use ($userId) {
-            $q->where('user_id', $userId);
+        $stats = Application::whereHas('jobPosting', function ($q) use ($companyId) {
+            $q->where('company_id', $companyId);
         })
         ->select('status', DB::raw('count(*) as count'))
         ->groupBy('status')
