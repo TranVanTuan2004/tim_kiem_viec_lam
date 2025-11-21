@@ -235,11 +235,11 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'active', 'r
 
 
 // Employer Routes
-Route::prefix('employer')->name('employer.')->middleware(['auth', 'active', 'role:Employer'])->group(function () {
-    // Dashboard
+Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer'])->group(function () {
     Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
     Route::get('/applications', [EmployerApplicationController::class, 'index'])->name('applications.index');
     Route::get('/applications/{id}', [EmployerApplicationController::class, 'show'])->name('applications.show');
+    Route::patch('/applications/{id}/status', [EmployerApplicationController::class, 'updateStatus'])->name('applications.update-status');
     Route::get('candidates/search', [CandidateSearchController::class, 'index'])->name('employer.candidates.search');
 });
 Route::prefix('employer')->name('employer.')->group(function () {
@@ -268,6 +268,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'verified'
     Route::get('activity-logs/top-users', [ActivityLogController::class, 'topUsers'])->name('activity-logs.top-users');
     Route::get('activity-logs/export', [ActivityLogController::class, 'export'])->name('activity-logs.export');
     Route::post('activity-logs/clean', [ActivityLogController::class, 'clean'])->name('activity-logs.clean');
+
+    // Application Management (Admin)
+    Route::get('/applications', [\App\Http\Controllers\Admin\ApplicationController::class, 'index'])->name('applications.index');
+    Route::delete('/applications/{id}', [\App\Http\Controllers\Admin\ApplicationController::class, 'destroy'])->name('applications.destroy');
+    Route::patch('/applications/{id}/status', [\App\Http\Controllers\Admin\ApplicationController::class, 'updateStatus'])->name('applications.update-status');
 
     // Company Reviews Management
     Route::get('company-reviews', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'index'])->name('company-reviews.index');

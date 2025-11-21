@@ -202,6 +202,9 @@
                                             <option value="">
                                                 Select Experience Level
                                             </option>
+                                            <option value="intern">
+                                                Intern
+                                            </option>
                                             <option value="fresher">
                                                 Fresher
                                             </option>
@@ -585,7 +588,6 @@
 <script setup lang="ts">
 import ClientLayout from '@/layouts/ClientLayout.vue';
 import { home } from '@/routes';
-import { store } from '@/routes/candidate/profile';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
@@ -742,7 +744,7 @@ const submit = () => {
         }
         
         return transformed;
-    }).post(store.url(), {
+    }).post('/candidate/profile', {
         preserveScroll: true,
     });
 };
