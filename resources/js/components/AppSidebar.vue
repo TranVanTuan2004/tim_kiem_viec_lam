@@ -104,6 +104,12 @@ const adminNavItems: NavItem[] = [
         permission: 'view users',
     },
     {
+        title: 'Quản lý ứng tuyển',
+        href: '/admin/applications',
+        icon: FileText,
+        permission: 'view applications',
+    },
+    {
         title: 'Chat',
         href: '/admin/chat',
         icon: MessageSquare,
@@ -129,12 +135,45 @@ const adminNavItems: NavItem[] = [
     },
 ];
 
+const employerNavItems: NavItem[] = [
+    {
+        title: 'Home',
+        href: '/',
+        icon: Home,
+    },
+    {
+        title: 'Dashboard',
+        href: '/employer/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Tin tuyển dụng',
+        href: '/employer/posting',
+        icon: Briefcase,
+    },
+    {
+        title: 'Lịch sử ứng tuyển',
+        href: '/employer/applications',
+        icon: FileText,
+    },
+    {
+        title: 'Tìm ứng viên',
+        href: '/employer/candidates/search',
+        icon: Users,
+    },
+    {
+        title: 'Cài đặt công ty',
+        href: '/employer/settings/company',
+        icon: User,
+    },
+];
+
 // Get navigation items based on user role
 const mainNavItems = computed(() => {
     if (isCandidateContext.value) {
         return candidateNavItems;
     } else if (hasRole('Employer')) {
-        return adminNavItems; // Update when employer nav is ready
+        return employerNavItems;
     }
     return adminNavItems; // Default to admin nav
 });

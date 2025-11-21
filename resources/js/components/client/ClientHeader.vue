@@ -368,33 +368,37 @@ const { currentLanguage, setLanguage, t } = useLanguage();
                         </DropdownMenuContent>
                     </DropdownMenu>
 
-                    <!-- Dropdown Menu for non-candidate users -->
-                    <DropdownMenu v-else>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" class="h-9 px-3">
-                                <User class="mr-2 h-4 w-4" />
-                                <span class="hidden sm:inline">{{
-                                    user.value?.name
-                                }}</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" class="w-48">
-                            <DropdownMenuItem as-child>
-                                <Link :href="dashboardLink">{{
-                                    t.dashboard
-                                }}</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem v-if="isCandidate" as-child>
-                                <Link :href="profileLink">Hồ sơ cá nhân</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem as-child>
-                                <Link href="/saved-jobs">Saved Jobs</Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem as-child>
-                                <Link href="/logout" method="post">Logout</Link>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
+                    <!-- Beautiful Avatar for Employer/Admin (no dropdown) -->
+                    <Link v-else :href="dashboardLink">
+                        <button
+                            class="relative flex h-10 w-10 cursor-pointer items-center justify-center rounded-full transition-all hover:ring-2 hover:ring-red-500 hover:scale-105 focus:ring-2 focus:ring-red-500 focus:outline-none"
+                            :title="`Go to ${isEmployer ? 'Employer' : 'Admin'} Dashboard`"
+                        >
+                            <Avatar
+                                class="h-10 w-10 border-2 border-gray-200 transition-all hover:border-red-500 hover:shadow-lg"
+                            >
+                                <AvatarImage
+                                    v-if="userAvatar"
+                                    :src="userAvatar"
+                                    :alt="user.value?.name || 'User'"
+                                />
+                                <AvatarFallback
+                                    :class="[
+                                        'text-sm font-bold text-white',
+                                        isEmployer 
+                                            ? 'bg-gradient-to-br from-indigo-500 to-purple-600' 
+                                            : 'bg-gradient-to-br from-red-500 to-orange-600'
+                                    ]"
+                                >
+                                    {{
+                                        getInitials(user.value?.name || '')
+                                    }}
+                                </AvatarFallback>
+                            </Avatar>
+                            <!-- Online indicator dot -->
+                            <span class="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-green-500"></span>
+                        </button>
+                    </Link>
                 </template>
                 <template v-else>
                     <Link href="/login">
