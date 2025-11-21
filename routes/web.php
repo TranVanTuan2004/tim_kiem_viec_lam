@@ -105,12 +105,6 @@ Route::get('dashboard', function () {
     Log::warning('No role found for authenticated user, using default dashboard');
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'active'])->name('dashboard');
-=======
-    // Default fallback - redirect to candidate dashboard if no role found
-    // This handles cases where user hasn't been assigned a role yet
-    Log::warning('No role found for authenticated user, redirecting to candidate dashboard');
-    return redirect()->route('candidate.dashboard');
-})->middleware(['auth'])->name('dashboard');
 
 
 // Employer Routes
