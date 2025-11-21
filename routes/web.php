@@ -138,6 +138,23 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admi
 
     Route::get('users/{user}/activity-logs', [UserController::class, 'activityLogs'])
         ->name('users.activity-logs');
+
+    // Banner Management
+    Route::resource('banners', \App\Http\Controllers\Admin\BannerController::class);
+    Route::post('banners/{banner}/toggle-active', [\App\Http\Controllers\Admin\BannerController::class, 'toggleActive'])
+        ->name('banners.toggle-active');
+    Route::post('banners/update-order', [\App\Http\Controllers\Admin\BannerController::class, 'updateOrder'])
+        ->name('banners.update-order');
+
+    // Homepage Section Management
+    Route::get('homepage', [\App\Http\Controllers\Admin\HomepageSectionController::class, 'index'])
+        ->name('homepage.index');
+    Route::patch('homepage/{section}', [\App\Http\Controllers\Admin\HomepageSectionController::class, 'update'])
+        ->name('homepage.update');
+    Route::post('homepage/{section}/toggle-active', [\App\Http\Controllers\Admin\HomepageSectionController::class, 'toggleActive'])
+        ->name('homepage.toggle-active');
+    Route::post('homepage/update-order', [\App\Http\Controllers\Admin\HomepageSectionController::class, 'updateOrder'])
+        ->name('homepage.update-order');
 });
 
 // Admin Routes - Subscription Management (for Employers)

@@ -24,6 +24,8 @@ import {
     FileText,
     Folder,
     Home,
+    Image,
+    Layout,
     LayoutGrid,
     MessageSquare,
     User,
@@ -108,6 +110,18 @@ const adminNavItems: NavItem[] = [
         href: '/admin/applications',
         icon: FileText,
         permission: 'view applications',
+    },
+    {
+        title: 'Quản lý Banner',
+        href: '/admin/banners',
+        icon: Image,
+        permission: 'view users',
+    },
+    {
+        title: 'Nội dung Trang chủ',
+        href: '/admin/homepage',
+        icon: Layout,
+        permission: 'view users',
     },
     {
         title: 'Chat',
