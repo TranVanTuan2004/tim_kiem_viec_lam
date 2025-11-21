@@ -203,110 +203,81 @@ const breadcrumbs = [
       </Card>
 
       <!-- Banners List -->
-      <div class="space-y-4">
-        <Card
-          v-for="banner in banners.data"
-          :key="banner.id"
-          class="overflow-hidden hover:shadow-lg transition-shadow"
-        >
-          <div class="flex flex-col md:flex-row">
-            <!-- Banner Image -->
-            <div class="md:w-1/3 relative">
-              <img 
-                :src="banner.image_url" 
-                :alt="banner.title"
-                class="w-full h-48 md:h-full object-cover"
-              />
-              <div class="absolute top-2 right-2 flex gap-2">
-                <Badge :class="getBannerTypeBadgeClass(banner.type)">
-                  {{ getBannerTypeLabel(banner.type) }}
-                </Badge>
-                <Badge :class="banner.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-                  {{ banner.is_active ? 'Hoạt động' : 'Đã tắt' }}
-                </Badge>
-              </div>
-            </div>
-
-            <!-- Banner Info -->
-            <div class="md:w-2/3 p-6">
-              <div class="flex justify-between items-start mb-4">
-                <div class="flex-1">
-                  <h3 class="text-xl font-bold mb-2">{{ banner.title }}</h3>
-                  <p v-if="banner.description" class="text-muted-foreground mb-3">
-                    {{ banner.description }}
-                  </p>
-                  
-                  <div class="flex flex-wrap gap-3 text-sm text-muted-foreground">
-                    <div v-if="banner.link_url" class="flex items-center gap-1">
-                      <span class="font-medium">Link:</span>
-                      <a :href="banner.link_url" target="_blank" class="text-primary hover:underline">
-                        {{ banner.link_url }}
-                      </a>
-                    </div>
-                    <div v-if="banner.button_text" class="flex items-center gap-1">
-                      <span class="font-medium">Nút:</span>
-                      <span>{{ banner.button_text }}</span>
-                    </div>
+      <!-- Banners Table -->
+      <div class="bg-white rounded-md shadow overflow-hidden">
+        <div class="responsive-table-wrapper">
+          <table class="w-full text-sm text-left mobile-card-view">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+              <tr>
+                <th class="px-4 py-3">Hình ảnh</th>
+                <th class="px-4 py-3">Tiêu đề / Mô tả</th>
+                <th class="px-4 py-3">Loại</th>
+                <th class="px-4 py-3">Thứ tự</th>
+                <th class="px-4 py-3">Trạng thái</th>
+                <th class="px-4 py-3 text-right">Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="banner in banners.data" :key="banner.id" class="border-b hover:bg-gray-50">
+                <td class="px-4 py-3" data-label="Hình ảnh">
+                  <div class="h-12 w-20 rounded overflow-hidden bg-gray-100">
+                    <img 
+                      :src="banner.image_url" 
+                      :alt="banner.title"
+                      class="h-full w-full object-cover"
+                    />
                   </div>
+                </td>
+                <td class="px-4 py-3 max-w-xs" data-label="Tiêu đề / Mô tả">
+                  <div class="font-medium text-gray-900 truncate" :title="banner.title">{{ banner.title }}</div>
+                  <div class="text-gray-500 truncate text-xs" :title="banner.description || ''">{{ banner.description }}</div>
+                </td>
+                <td class="px-4 py-3" data-label="Loại">
+                  <Badge :class="getBannerTypeBadgeClass(banner.type)">
+                    {{ getBannerTypeLabel(banner.type) }}
+                  </Badge>
+                </td>
+                <td class="px-4 py-3" data-label="Thứ tự">
+                  {{ banner.order }}
+                </td>
+                <td class="px-4 py-3" data-label="Trạng thái">
+                  <Badge :class="banner.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                    {{ banner.is_active ? 'Hiển thị' : 'Đã tắt' }}
+                  </Badge>
+                </td>
+                <td class="px-4 py-3 text-right" data-label="Hành động">
+                  <div class="flex items-center justify-end gap-2">
+                    <Link :href="`/admin/banners/${banner.id}/edit`">
+                      <Button size="sm" variant="outline" class="flex items-center gap-1">
+                        <Edit class="h-4 w-4" />
+                        Sửa
+                      </Button>
+                    </Link>
+                    
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      @click="openToggleDialog(banner)"
+                      class="flex items-center gap-1"
+                    >
+                      <component :is="banner.is_active ? EyeOff : Eye" class="h-4 w-4" />
+                      {{ banner.is_active ? 'Tắt' : 'Bật' }}
+                    </Button>
 
-                  <div v-if="banner.start_date || banner.end_date" class="flex items-center gap-2 mt-3 text-sm">
-                    <Calendar class="h-4 w-4 text-muted-foreground" />
-                    <span class="text-muted-foreground">
-                      <span v-if="banner.start_date">Từ {{ new Date(banner.start_date).toLocaleDateString('vi-VN') }}</span>
-                      <span v-if="banner.end_date"> đến {{ new Date(banner.end_date).toLocaleDateString('vi-VN') }}</span>
-                    </span>
+                    <Button 
+                      size="sm" 
+                      variant="destructive" 
+                      @click="openDeleteDialog(banner)"
+                      class="flex items-center gap-1"
+                    >
+                      <Trash2 class="h-4 w-4" />
+                      Xóa
+                    </Button>
                   </div>
-                </div>
-
-                <div class="flex items-center gap-1 text-muted-foreground ml-4">
-                  <GripVertical class="h-5 w-5" />
-                  <span class="text-sm font-medium">{{ banner.order }}</span>
-                </div>
-              </div>
-
-              <!-- Actions -->
-              <div class="flex gap-2">
-                <Link :href="`/admin/banners/${banner.id}/edit`">
-                  <Button size="sm" variant="outline" class="flex items-center gap-1">
-                    <Edit class="h-4 w-4" />
-                    Chỉnh sửa
-                  </Button>
-                </Link>
-
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  @click="openToggleDialog(banner)"
-                  class="flex items-center gap-1"
-                >
-                  <component :is="banner.is_active ? EyeOff : Eye" class="h-4 w-4" />
-                  {{ banner.is_active ? 'Tắt' : 'Bật' }}
-                </Button>
-
-                <Button 
-                  size="sm" 
-                  variant="destructive" 
-                  @click="openDeleteDialog(banner)"
-                  class="flex items-center gap-1"
-                >
-                  <Trash2 class="h-4 w-4" />
-                  Xóa
-                </Button>
-              </div>
-            </div>
-          </div>
-        </Card>
-
-        <!-- Empty State -->
-        <div v-if="banners.data.length === 0" class="text-center py-12">
-          <ImageIcon class="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
-          <p class="text-muted-foreground mb-4">Chưa có banner nào</p>
-          <Link href="/admin/banners/create">
-            <Button>
-              <Plus class="h-4 w-4 mr-2" />
-              Tạo Banner Đầu Tiên
-            </Button>
-          </Link>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 

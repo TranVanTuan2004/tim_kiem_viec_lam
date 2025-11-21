@@ -164,143 +164,97 @@
                         >
                     </CardHeader>
                     <CardContent class="p-0">
-                        <div class="divide-y divide-gray-200">
-                            <div
-                                v-for="application in applications.data"
-                                :key="application.id"
-                                class="p-6 transition hover:bg-gray-50"
-                            >
-                                <div class="flex items-start justify-between">
-                                    <div class="flex-1">
-                                        <div class="flex items-start space-x-4">
-                                            <img
-                                                v-if="
-                                                    application.job_posting
-                                                        .company.logo
-                                                "
-                                                :src="
-                                                    application.job_posting
-                                                        .company.logo
-                                                "
-                                                :alt="
-                                                    application.job_posting
-                                                        .company.name
-                                                "
-                                                class="h-16 w-16 rounded-lg border border-gray-200 object-cover"
-                                            />
-                                            <div
-                                                v-else
-                                                class="flex h-16 w-16 items-center justify-center rounded-lg bg-gray-100"
-                                            >
-                                                <Building2
-                                                    class="h-8 w-8 text-gray-400"
+                        <div v-if="applications.data.length === 0" class="p-12 text-center">
+                            <FileText class="mx-auto h-12 w-12 text-gray-400" />
+                            <h3 class="mt-4 text-sm font-medium text-gray-900">
+                                Không tìm thấy đơn ứng tuyển
+                            </h3>
+                            <p class="mt-2 text-sm text-gray-500">
+                                Bắt đầu ứng tuyển để xem chúng ở đây!
+                            </p>
+                            <div class="mt-6">
+                                <Button as-child>
+                                    <Link href="/jobs"> Tìm việc làm </Link>
+                                </Button>
+                            </div>
+                        </div>
+
+                        <div v-else class="responsive-table-wrapper">
+                            <table class="w-full text-sm text-left mobile-card-view">
+                                <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+                                    <tr>
+                                        <th class="px-6 py-3">Công ty</th>
+                                        <th class="px-6 py-3">Vị trí</th>
+                                        <th class="px-6 py-3">Trạng thái</th>
+                                        <th class="px-6 py-3">Ngày ứng tuyển</th>
+                                        <th class="px-6 py-3 text-right">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr
+                                        v-for="application in applications.data"
+                                        :key="application.id"
+                                        class="bg-white border-b hover:bg-gray-50"
+                                    >
+                                        <td class="px-6 py-4" data-label="Công ty">
+                                            <div class="flex items-center gap-3">
+                                                <img
+                                                    v-if="application.job_posting.company.logo"
+                                                    :src="application.job_posting.company.logo"
+                                                    :alt="application.job_posting.company.name"
+                                                    class="h-10 w-10 rounded-lg border border-gray-200 object-cover"
                                                 />
-                                            </div>
-                                            <div class="flex-1">
-                                                <Link
-                                                    :href="`/jobs/${application.job_posting.id}`"
-                                                    class="text-xl font-semibold text-gray-900 transition-colors hover:text-blue-600"
-                                                >
-                                                    {{
-                                                        application.job_posting
-                                                            .title
-                                                    }}
-                                                </Link>
-                                                <p class="mt-1 text-gray-600">
-                                                    {{
-                                                        application.job_posting
-                                                            .company.name
-                                                    }}
-                                                    •
-                                                    {{
-                                                        application.job_posting
-                                                            .location
-                                                    }}
-                                                </p>
-                                                <div
-                                                    class="mt-3 flex items-center gap-3"
-                                                >
-                                                    <Badge
-                                                        :variant="
-                                                            getStatusVariant(
-                                                                application.status,
-                                                            )
-                                                        "
-                                                    >
-                                                        {{
-                                                            getStatusLabel(
-                                                                application.status,
-                                                            )
-                                                        }}
-                                                    </Badge>
-                                                    <span
-                                                        class="flex items-center text-sm text-gray-500"
-                                                    >
-                                                        <Calendar
-                                                            class="mr-1 h-4 w-4"
-                                                        />
-                                                        Đã ứng tuyển
-                                                        {{
-                                                            formatDate(
-                                                                application.applied_at,
-                                                            )
-                                                        }}
-                                                    </span>
+                                                <div v-else class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
+                                                    <Building2 class="h-5 w-5 text-gray-400" />
+                                                </div>
+                                                <div class="font-medium text-gray-900">
+                                                    {{ application.job_posting.company.name }}
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                    <div
-                                        class="ml-4 flex items-center space-x-2"
-                                    >
-                                        <Link
-                                            :href="`/candidate/applications/${application.id}`"
-                                            class="inline-flex items-center justify-center rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-800 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
-                                        >
-                                            Xem chi tiết
-                                        </Link>
-                                        <Button
-                                            v-if="
-                                                [
-                                                    'pending',
-                                                    'reviewing',
-                                                ].includes(application.status)
-                                            "
-                                            @click="
-                                                withdrawApplication(
-                                                    application.id,
-                                                )
-                                            "
-                                            variant="destructive"
-                                            size="sm"
-                                        >
-                                            Rút đơn
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div
-                                v-if="applications.data.length === 0"
-                                class="p-12 text-center"
-                            >
-                                <FileText
-                                    class="mx-auto h-12 w-12 text-gray-400"
-                                />
-                                <h3
-                                    class="mt-4 text-sm font-medium text-gray-900"
-                                >
-                                    Không tìm thấy đơn ứng tuyển
-                                </h3>
-                                <p class="mt-2 text-sm text-gray-500">
-                                    Bắt đầu ứng tuyển để xem chúng ở đây!
-                                </p>
-                                <div class="mt-6">
-                                    <Button as-child>
-                                        <Link href="/jobs"> Tìm việc làm </Link>
-                                    </Button>
-                                </div>
-                            </div>
+                                        </td>
+                                        <td class="px-6 py-4" data-label="Vị trí">
+                                            <Link
+                                                :href="`/jobs/${application.job_posting.id}`"
+                                                class="font-medium text-blue-600 hover:underline"
+                                            >
+                                                {{ application.job_posting.title }}
+                                            </Link>
+                                            <div class="text-xs text-gray-500 mt-1">
+                                                {{ application.job_posting.location }}
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4" data-label="Trạng thái">
+                                            <Badge :variant="getStatusVariant(application.status)">
+                                                {{ getStatusLabel(application.status) }}
+                                            </Badge>
+                                        </td>
+                                        <td class="px-6 py-4" data-label="Ngày ứng tuyển">
+                                            <div class="flex items-center text-gray-500">
+                                                <Calendar class="mr-1 h-4 w-4" />
+                                                {{ formatDate(application.applied_at) }}
+                                            </div>
+                                        </td>
+                                        <td class="px-6 py-4 text-right" data-label="Hành động">
+                                            <div class="flex items-center justify-end gap-2 flex-wrap">
+                                                <Link
+                                                    :href="`/candidate/applications/${application.id}`"
+                                                    class="inline-flex items-center justify-center rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-gray-800 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
+                                                >
+                                                    Xem
+                                                </Link>
+                                                <Button
+                                                    v-if="['pending', 'reviewing'].includes(application.status)"
+                                                    @click="withdrawApplication(application.id)"
+                                                    variant="destructive"
+                                                    size="sm"
+                                                >
+                                                    Rút đơn
+                                                </Button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </CardContent>
 

@@ -156,7 +156,7 @@ const submit = () => {
                             </p>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <Label for="employment_type"
                                     >Hình thức làm việc</Label
@@ -202,7 +202,7 @@ const submit = () => {
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Tỉnh -->
                             <div>
                                 <label class="mb-1 block font-medium"
@@ -276,7 +276,7 @@ const submit = () => {
                             </p>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <Label for="min_salary">Lương tối thiểu</Label>
                                 <Input
