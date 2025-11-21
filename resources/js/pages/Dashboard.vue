@@ -38,10 +38,12 @@ onMounted(() => {
   }
 });
 
+// Note: This Dashboard.vue is a generic dashboard that should not be accessed directly
+// All users should be redirected to their role-specific dashboards via /dashboard route
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Dashboard',
-        href: dashboard().url,
+        href: '/dashboard', // This will redirect to role-specific dashboard
     },
 ];
 

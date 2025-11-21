@@ -1,5 +1,5 @@
 <template>
-    <AuthenticatedLayout>
+    <ClientLayout>
         <Head :title="`Application - ${application.job_posting.title}`" />
 
         <div class="py-12">
@@ -436,11 +436,11 @@
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </ClientLayout>
 </template>
 
 <script setup lang="ts">
-import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
+import ClientLayout from '@/layouts/ClientLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 
 interface Props {
