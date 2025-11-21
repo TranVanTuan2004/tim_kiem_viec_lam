@@ -738,7 +738,7 @@ const removeEducation = (index: number) => {
 const submit = () => {
     // Transform form data
     form.transform((data) => {
-        const transformed = { ...data };
+        const transformed: any = { ...data };
         
         // IMPORTANT: Keep avatar and cv_file as File objects
         // Don't transform them - they need to stay as File instances
@@ -794,6 +794,9 @@ const submit = () => {
         } else {
             transformed.educations = [];
         }
+
+        // Add method spoofing for Laravel to handle file uploads with PATCH
+        transformed._method = 'PATCH';
 
         return transformed;
     });

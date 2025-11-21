@@ -1,6 +1,6 @@
 <template>
     <ClientLayout>
-        <Head :title="`Application - ${application.job_posting.title}`" />
+        <Head :title="`Đơn ứng tuyển - ${application.job_posting.title}`" />
 
         <div class="py-12">
             <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
@@ -23,7 +23,7 @@
                                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
                             />
                         </svg>
-                        Back to Applications
+                        Quay lại danh sách
                     </Link>
                 </div>
 
@@ -35,10 +35,10 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <h1 class="text-2xl font-bold text-gray-900">
-                                    Application Details
+                                    Chi tiết đơn ứng tuyển
                                 </h1>
                                 <p class="mt-1 text-gray-600">
-                                    Applied on
+                                    Đã ứng tuyển vào
                                     {{ formatDate(application.applied_at) }}
                                 </p>
                             </div>
@@ -46,7 +46,7 @@
                                 :class="getStatusClass(application.status)"
                                 class="rounded-full px-4 py-2 text-sm font-medium"
                             >
-                                {{ application.status }}
+                                {{ getStatusLabel(application.status) }}
                             </span>
                         </div>
                     </div>
@@ -61,7 +61,7 @@
                         >
                             <div class="border-b border-gray-200 p-6">
                                 <h2 class="text-xl font-semibold text-gray-900">
-                                    Job Information
+                                    Thông tin công việc
                                 </h2>
                             </div>
                             <div class="p-6">
@@ -99,7 +99,7 @@
                                             <div>
                                                 <span
                                                     class="font-medium text-gray-700"
-                                                    >Location:</span
+                                                    >Địa điểm:</span
                                                 >
                                                 <span
                                                     class="ml-2 text-gray-600"
@@ -112,7 +112,7 @@
                                             <div>
                                                 <span
                                                     class="font-medium text-gray-700"
-                                                    >Job Type:</span
+                                                    >Loại công việc:</span
                                                 >
                                                 <span
                                                     class="ml-2 text-gray-600 capitalize"
@@ -125,7 +125,7 @@
                                             <div>
                                                 <span
                                                     class="font-medium text-gray-700"
-                                                    >Experience Level:</span
+                                                    >Kinh nghiệm:</span
                                                 >
                                                 <span
                                                     class="ml-2 text-gray-600 capitalize"
@@ -138,7 +138,7 @@
                                             <div>
                                                 <span
                                                     class="font-medium text-gray-700"
-                                                    >Salary:</span
+                                                    >Mức lương:</span
                                                 >
                                                 <span
                                                     class="ml-2 text-gray-600"
@@ -158,7 +158,7 @@
                                             <div>
                                                 <span
                                                     class="font-medium text-gray-700"
-                                                    >Application Deadline:</span
+                                                    >Hạn nộp hồ sơ:</span
                                                 >
                                                 <span
                                                     class="ml-2 text-gray-600"
@@ -179,7 +179,7 @@
                                             >
                                                 <span
                                                     class="font-medium text-gray-700"
-                                                    >Industry:</span
+                                                    >Ngành nghề:</span
                                                 >
                                                 <span
                                                     class="ml-2 text-gray-600"
@@ -195,7 +195,7 @@
 
                                 <div class="mt-6">
                                     <h4 class="mb-2 font-medium text-gray-900">
-                                        Job Description
+                                        Mô tả công việc
                                     </h4>
                                     <div
                                         class="prose prose-sm max-w-none text-gray-600"
@@ -214,7 +214,7 @@
                                     class="mt-6"
                                 >
                                     <h4 class="mb-2 font-medium text-gray-900">
-                                        Required Skills
+                                        Kỹ năng yêu cầu
                                     </h4>
                                     <div class="flex flex-wrap gap-2">
                                         <span
@@ -233,7 +233,7 @@
                                         :href="`/jobs/${application.job_posting.id}`"
                                         class="inline-flex items-center text-blue-600 hover:text-blue-800"
                                     >
-                                        View Full Job Posting →
+                                        Xem chi tiết tin tuyển dụng →
                                     </Link>
                                 </div>
                             </div>
@@ -245,7 +245,7 @@
                         >
                             <div class="border-b border-gray-200 p-6">
                                 <h2 class="text-xl font-semibold text-gray-900">
-                                    Your Cover Letter
+                                    Thư xin việc của bạn
                                 </h2>
                             </div>
                             <div class="p-6">
@@ -256,7 +256,7 @@
                                     {{ application.cover_letter }}
                                 </p>
                                 <p v-else class="text-gray-500 italic">
-                                    No cover letter provided
+                                    Không có thư xin việc
                                 </p>
                             </div>
                         </div>
@@ -270,7 +270,7 @@
                         >
                             <div class="border-b border-gray-200 p-6">
                                 <h2 class="text-lg font-semibold text-gray-900">
-                                    Actions
+                                    Hành động
                                 </h2>
                             </div>
                             <div class="space-y-3 p-6">
@@ -278,24 +278,24 @@
                                     :href="`/jobs/${application.job_posting.id}`"
                                     class="block w-full rounded-md bg-blue-600 px-4 py-2 text-center text-white hover:bg-blue-700"
                                 >
-                                    View Job Posting
+                                    Xem tin tuyển dụng
                                 </Link>
                                 <Link
                                     :href="`/companies/${application.job_posting.company.id}`"
                                     class="block w-full rounded-md border border-gray-300 px-4 py-2 text-center text-gray-700 hover:bg-gray-50"
                                 >
-                                    View Company
+                                    Xem công ty
                                 </Link>
                                 <button
                                     v-if="
-                                        ['pending', 'reviewed'].includes(
+                                        ['pending', 'reviewing'].includes(
                                             application.status,
                                         )
                                     "
                                     @click="withdrawApplication"
                                     class="block w-full rounded-md border border-red-600 px-4 py-2 text-center text-red-600 hover:bg-red-50"
                                 >
-                                    Withdraw Application
+                                    Rút đơn ứng tuyển
                                 </button>
                             </div>
                         </div>
@@ -306,7 +306,7 @@
                         >
                             <div class="border-b border-gray-200 p-6">
                                 <h2 class="text-lg font-semibold text-gray-900">
-                                    Application Timeline
+                                    Lịch sử ứng tuyển
                                 </h2>
                             </div>
                             <div class="p-6">
@@ -335,7 +335,7 @@
                                             <p
                                                 class="text-sm font-medium text-gray-900"
                                             >
-                                                Application Submitted
+                                                Đã nộp đơn
                                             </p>
                                             <p class="text-sm text-gray-500">
                                                 {{
@@ -374,7 +374,7 @@
                                             <p
                                                 class="text-sm font-medium text-gray-900 capitalize"
                                             >
-                                                {{ application.status }}
+                                                {{ getStatusLabel(application.status) }}
                                             </p>
                                             <p class="text-sm text-gray-500">
                                                 {{
@@ -395,7 +395,7 @@
                         >
                             <div class="border-b border-gray-200 p-6">
                                 <h2 class="text-lg font-semibold text-gray-900">
-                                    Company Contact
+                                    Liên hệ công ty
                                 </h2>
                             </div>
                             <div class="p-6">
@@ -417,12 +417,12 @@
                                             target="_blank"
                                             class="ml-2 text-blue-600 hover:text-blue-800"
                                         >
-                                            Visit Website
+                                            Truy cập Website
                                         </a>
                                     </div>
                                     <div>
                                         <span class="font-medium text-gray-700"
-                                            >Location:</span
+                                            >Địa chỉ:</span
                                         >
                                         <span class="ml-2 text-gray-600">{{
                                             application.job_posting.company
@@ -447,22 +447,34 @@ interface Props {
     application: any;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const formatDate = (date: string) => {
     if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString('vi-VN', {
         year: 'numeric',
-        month: 'short',
+        month: 'long',
         day: 'numeric',
     });
+};
+
+const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+        pending: 'Chờ xem xét',
+        reviewing: 'Đang xem xét',
+        interview: 'Phỏng vấn',
+        rejected: 'Từ chối',
+        accepted: 'Chấp nhận',
+        withdrawn: 'Đã rút',
+    };
+    return labels[status] || status;
 };
 
 const getStatusClass = (status: string) => {
     const classes: Record<string, string> = {
         pending: 'bg-yellow-100 text-yellow-800',
-        reviewed: 'bg-blue-100 text-blue-800',
-        shortlisted: 'bg-green-100 text-green-800',
+        reviewing: 'bg-blue-100 text-blue-800',
+        interview: 'bg-green-100 text-green-800',
         rejected: 'bg-red-100 text-red-800',
         accepted: 'bg-purple-100 text-purple-800',
         withdrawn: 'bg-gray-100 text-gray-800',
@@ -471,15 +483,15 @@ const getStatusClass = (status: string) => {
 };
 
 const formatSalary = (min: number, max: number) => {
-    if (!min && !max) return 'Negotiable';
-    if (!max) return `$${min.toLocaleString()}+`;
-    return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
+    if (!min && !max) return 'Thỏa thuận';
+    if (!max) return `${min.toLocaleString()} VND+`;
+    return `${min.toLocaleString()} - ${max.toLocaleString()} VND`;
 };
 
 const withdrawApplication = () => {
-    if (confirm('Are you sure you want to withdraw this application?')) {
+    if (confirm('Bạn có chắc chắn muốn rút đơn ứng tuyển này không?')) {
         router.post(
-            `/candidate/applications/${application.id}/withdraw`,
+            `/candidate/applications/${props.application.id}/withdraw`,
             {},
             {
                 onSuccess: () => {

@@ -48,9 +48,9 @@
                     >
                         <CardContent class="p-4">
                             <div class="text-2xl font-bold text-blue-700">
-                                {{ stats.reviewed }}
+                                {{ stats.reviewing }}
                             </div>
-                            <div class="text-sm text-blue-700">Đã xem</div>
+                            <div class="text-sm text-blue-700">Đang xem xét</div>
                         </CardContent>
                     </Card>
                     <Card
@@ -58,9 +58,9 @@
                     >
                         <CardContent class="p-4">
                             <div class="text-2xl font-bold text-green-700">
-                                {{ stats.shortlisted }}
+                                {{ stats.interview }}
                             </div>
-                            <div class="text-sm text-green-700">Đã chọn</div>
+                            <div class="text-sm text-green-700">Phỏng vấn</div>
                         </CardContent>
                     </Card>
                     <Card
@@ -107,8 +107,8 @@
                                         Tất cả trạng thái
                                     </option>
                                     <option value="pending">Đang chờ</option>
-                                    <option value="reviewed">Đã xem</option>
-                                    <option value="shortlisted">Đã chọn</option>
+                                    <option value="reviewing">Đang xem xét</option>
+                                    <option value="interview">Phỏng vấn</option>
                                     <option value="rejected">Từ chối</option>
                                     <option value="accepted">Chấp nhận</option>
                                     <option value="withdrawn">Đã rút</option>
@@ -263,7 +263,7 @@
                                             v-if="
                                                 [
                                                     'pending',
-                                                    'reviewed',
+                                                    'reviewing',
                                                 ].includes(application.status)
                                             "
                                             @click="
@@ -372,9 +372,9 @@ const formatDate = (date: string) => {
 
 const getStatusLabel = (status: string) => {
     const labels: Record<string, string> = {
-        pending: 'Đang chờ',
-        reviewed: 'Đã xem',
-        shortlisted: 'Đã chọn',
+        pending: 'Chờ xem xét',
+        reviewing: 'Đang xem xét',
+        interview: 'Phỏng vấn',
         rejected: 'Từ chối',
         accepted: 'Chấp nhận',
         withdrawn: 'Đã rút',
@@ -390,8 +390,8 @@ const getStatusVariant = (
         'default' | 'secondary' | 'destructive' | 'outline'
     > = {
         pending: 'secondary',
-        reviewed: 'outline',
-        shortlisted: 'default',
+        reviewing: 'outline',
+        interview: 'default',
         rejected: 'destructive',
         accepted: 'default',
         withdrawn: 'secondary',
