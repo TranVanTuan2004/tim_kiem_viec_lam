@@ -36,7 +36,7 @@ Route::get('/jobs/{job_posting}', [JobPostingController::class, 'show'])->name('
 
 
 // Job Application Routes (require authentication)
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     Route::get('/jobs/{job_posting}/apply', [\App\Http\Controllers\Client\ApplicationController::class, 'create'])->name('jobs.apply');
     Route::post('/jobs/{job_posting}/apply', [\App\Http\Controllers\Client\ApplicationController::class, 'store'])->name('jobs.apply.store');
 });
@@ -47,7 +47,7 @@ Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('co
 Route::get('/companies/{company}/jobs', [CompanyController::class, 'jobs'])->name('companies.jobs');
 
 // Company Reviews (require authentication)
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     Route::post('/companies/{company}/reviews', [\App\Http\Controllers\Client\CompanyReviewController::class, 'store'])->name('companies.reviews.store');
     Route::put('/companies/{company}/reviews/{review}', [\App\Http\Controllers\Client\CompanyReviewController::class, 'update'])->name('companies.reviews.update');
     Route::delete('/companies/{company}/reviews/{review}', [\App\Http\Controllers\Client\CompanyReviewController::class, 'destroy'])->name('companies.reviews.destroy');
@@ -101,19 +101,19 @@ Route::get('dashboard', function () {
         return redirect()->route('admin.dashboard');
     }
 
-    // Default fallback - redirect to candidate dashboard if no role found
-    // This handles cases where user hasn't been assigned a role yet
-    Log::warning('No role found for authenticated user, redirecting to candidate dashboard');
-    return redirect()->route('candidate.dashboard');
-})->middleware(['auth'])->name('dashboard');
+    // Default fallback
+    Log::warning('No role found for authenticated user, using default dashboard');
+    return Inertia::render('Dashboard');
+})->middleware(['auth', 'active'])->name('dashboard');
+
 
 // Employer Routes
-Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer'])->group(function () {
+Route::prefix('employer')->name('employer.')->middleware(['auth', 'active', 'role:Employer'])->group(function () {
     // Dashboard
     Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
 });
 // Admin Routes - Using Spatie Permission
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admin'])->group(function () {
     // Dashboard
     Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
@@ -126,10 +126,22 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
     Route::post('chat/send/{user}', [ChatController::class, 'sendMessage'])->name('chat.send');
     Route::post('chat/mark-as-read/{message}', [ChatController::class, 'markAsRead'])->name('chat.mark-read');
     Route::get('chat/unread-count', [ChatController::class, 'getUnreadCount'])->name('chat.unread');
+
+    Route::post('users/{user}/toggle-active', [UserController::class, 'toggleActive'])
+    ->name('users.toggle-active');
+
+    Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])
+        ->name('users.reset-password');
+
+    Route::post('users/{user}/send-reset-link', [UserController::class, 'sendResetLink'])
+        ->name('users.send-reset-link');
+
+    Route::get('users/{user}/activity-logs', [UserController::class, 'activityLogs'])
+        ->name('users.activity-logs');
 });
 
 // Admin Routes - Subscription Management (for Employers)
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin', 'permission:view subscriptions'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admin', 'permission:view subscriptions'])->group(function () {
     Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions');
     Route::post('subscriptions/subscribe', [SubscriptionController::class, 'subscribe'])->middleware('permission:manage subscriptions')->name('subscribe');
     Route::post('subscriptions/upgrade', [SubscriptionController::class, 'upgrade'])->middleware('permission:manage subscriptions')->name('upgrade');
@@ -167,14 +179,14 @@ Route::get('test-vnpay', function () {
 });
 
 // Support Chat Widget - Available for all authenticated users
-Route::middleware(['auth'])->group(function () {
+Route::middleware(['auth', 'active'])->group(function () {
     Route::get('support/messages', [SupportChatController::class, 'messages'])->name('support.messages');
     Route::post('support/send', [SupportChatController::class, 'send'])->name('support.send');
     Route::post('support/messages/{message}/read', [SupportChatController::class, 'markAsRead'])->name('support.mark-read');
 });
 
 // Candidate Routes - All candidate features
-Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'role:Candidate'])->group(function () {
+Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'active', 'role:Candidate'])->group(function () {
     // Redirect /candidate to /candidate/dashboard
     Route::get('/', function () {
         return redirect()->route('candidate.dashboard');
@@ -249,7 +261,7 @@ Route::prefix('employer')->name('employer.')->group(function () {
     Route::patch('/settings/company', [EmployerCompanyController::class, 'update'])->name('company.update');
 });
 
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'verified'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'verified'])->group(function () {
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index');
     Route::get('activity-logs/statistics', [ActivityLogController::class, 'statistics'])->name('activity-logs.statistics');
     Route::get('activity-logs/recent', [ActivityLogController::class, 'recent'])->name('activity-logs.recent');

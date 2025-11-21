@@ -98,7 +98,7 @@ const adminNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
-        title: 'Users',
+        title: 'Quản lý người dùng',
         href: '/admin/users',
         icon: Users,
         permission: 'view users',
