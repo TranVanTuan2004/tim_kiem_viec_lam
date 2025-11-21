@@ -613,7 +613,7 @@
 <script setup lang="ts">
 import ClientLayout from '@/layouts/ClientLayout.vue';
 import { index, update } from '@/routes/candidate/profile';
-import { Head, Link, router, useForm } from '@inertiajs/vue3';
+import { Head, Link, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
 interface Props {
@@ -811,12 +811,6 @@ const submit = () => {
     form.post(update.url(), {
         forceFormData: true,
         preserveScroll: false,
-        onSuccess: () => {
-            // Navigate to profile index with full reload
-            router.visit(index.url(), {
-                preserveState: false,
-            });
-        },
     });
 };
 </script>
