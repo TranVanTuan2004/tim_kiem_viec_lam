@@ -108,6 +108,25 @@
                                 <div>
                                     <label
                                         class="block text-sm font-medium text-gray-700"
+                                        >Phone Number</label
+                                    >
+                                    <input
+                                        v-model="form.phone"
+                                        type="tel"
+                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="Enter your phone number"
+                                    />
+                                    <p
+                                        v-if="form.errors.phone"
+                                        class="mt-1 text-sm text-red-600"
+                                    >
+                                        {{ form.errors.phone }}
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <label
+                                        class="block text-sm font-medium text-gray-700"
                                         >Gender</label
                                     >
                                     <select
@@ -630,6 +649,7 @@ const allSkills = props.allSkills || [];
 const form = useForm({
     avatar: null as File | null,
     birth_date: props.profile.birth_date || '',
+    phone: props.user.phone || '',
     gender: props.profile.gender || '',
     address: props.profile.address || '',
     city: props.profile.city || '',

@@ -16,7 +16,7 @@ import Icon from '@/components/Icon.vue';
 import { ChevronLeft } from 'lucide-vue-next';
 
 // Lấy props job từ Inertia
-const { job } = defineProps<{ job: any }>();
+const { job, industries } = defineProps<{ job: any; industries: any[] }>();
 
 // Form khởi tạo với dữ liệu hiện tại
 const form = useForm({
@@ -42,15 +42,12 @@ const districts = computed(() => {
 
 // Submit form
 const submit = () => {
-    const payload = {
-        ...form.data(),
-        industry_id: Number(form.industry_id),
-        min_salary: form.min_salary ? Number(form.min_salary) : null,
-        max_salary: form.max_salary ? Number(form.max_salary) : null,
-    };
-
-    form.put(`/employer/posting/${job.id}`, {
-        data: payload,
+    form.transform((data) => ({
+        ...data,
+        industry_id: Number(data.industry_id),
+        min_salary: data.min_salary ? Number(data.min_salary) : null,
+        max_salary: data.max_salary ? Number(data.max_salary) : null,
+    })).put(`/employer/posting/${job.id}`, {
         onSuccess: () => console.log('✅ Cập nhật thành công'),
     });
 };
@@ -105,7 +102,20 @@ const submit = () => {
                         <!-- Ngành nghề -->
                         <div>
                             <Label for="industry_id">Ngành nghề *</Label>
-                            <Input id="industry_id" v-model="form.industry_id" />
+                            <select
+                                id="industry_id"
+                                v-model="form.industry_id"
+                                class="w-full rounded-md border p-2"
+                            >
+                                <option value="">-- Chọn ngành nghề --</option>
+                                <option
+                                    v-for="industry in industries"
+                                    :key="industry.id"
+                                    :value="industry.id"
+                                >
+                                    {{ industry.name }}
+                                </option>
+                            </select>
                             <p v-if="form.errors.industry_id" class="text-red-500 text-sm mt-1">{{ form.errors.industry_id }}</p>
                         </div>
 

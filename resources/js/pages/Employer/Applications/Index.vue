@@ -344,8 +344,14 @@
                 >
                   <td class="px-6 py-4" data-label="Ứng viên">
                     <div class="flex items-center">
-                      <div class="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                        <span class="text-white font-semibold">
+                      <div class="flex-shrink-0 h-10 w-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+                        <img
+                          v-if="app.candidate.avatar"
+                          :src="`/storage/${app.candidate.avatar}`"
+                          :alt="app.candidate.user.full_name"
+                          class="w-full h-full object-cover"
+                        />
+                        <span v-else class="text-white font-semibold">
                           {{ getInitials(app.candidate.user.full_name) }}
                         </span>
                       </div>

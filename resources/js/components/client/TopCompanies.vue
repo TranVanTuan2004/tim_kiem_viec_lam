@@ -116,7 +116,7 @@ const { t } = useLanguage();
                             >
                                 <img
                                     v-if="company.logo"
-                                    :src="company.logo"
+                                    :src="`/storage/${company.logo}`"
                                     :alt="company.name"
                                     class="h-full w-full object-contain p-3"
                                 />

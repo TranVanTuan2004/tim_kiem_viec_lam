@@ -101,7 +101,7 @@ class DashboardController extends Controller
         return $query->latest()
             ->take(6)
             ->get()
-            ->map(function ($job) {
+            ->map(function ($job) use ($candidateProfile) {
                 return [
                     'id' => $job->id,
                     'title' => $job->title,
