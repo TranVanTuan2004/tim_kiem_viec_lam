@@ -14,12 +14,14 @@ import {
     Clock,
     DollarSign,
     Eye,
+    Flag,
     MapPin,
     Share2,
     Users,
     Heart,
 } from 'lucide-vue-next';
 import { computed, defineProps, ref } from 'vue';
+import ReportModal from '@/components/ReportModal.vue';
 
 const props = defineProps({
     job: {
@@ -35,6 +37,7 @@ const auth = computed(() => page.props.auth);
 // const isSaved = ref(false);
 const isFavorite = ref(false);
 const isSharing = ref(false);
+const showReportModal = ref(false);
 
 // Computed safe accessors with fallbacks
 const jobData = computed(() => props.job || {});
@@ -222,6 +225,16 @@ const shareJob = () => {
                                 @click="shareJob"
                             >
                                 <Share2 class="h-5 w-5" />
+                            </Button>
+                            
+                            <Button
+                                v-if="auth.user"
+                                variant="outline"
+                                size="icon"
+                                @click="showReportModal = true"
+                                title="Báo cáo vi phạm"
+                            >
+                                <Flag class="h-5 w-5" />
                             </Button>
                         </div>
                     </div>
@@ -460,6 +473,16 @@ const shareJob = () => {
                 </div>
             </div>
         </div>
+        
+        <!-- Report Modal -->
+        <ReportModal
+            v-if="auth.user"
+            :open="showReportModal"
+            @update:open="showReportModal = $event"
+            reportable-type="App\Models\JobPosting"
+            :reportable-id="jobData.id"
+            :reportable-title="jobData.title"
+        />
     </ClientLayout>
 </template>
 

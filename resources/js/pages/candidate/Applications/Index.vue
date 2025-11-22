@@ -197,9 +197,9 @@
                                         class="bg-white border-b hover:bg-gray-50"
                                     >
                                         <td class="px-6 py-4" data-label="Công ty">
-                                            <div class="flex items-center gap-3">
+                                            <div class="flex items-center gap-3" v-if="application.job_posting">
                                                 <img
-                                                    v-if="application.job_posting.company.logo"
+                                                    v-if="application.job_posting.company && application.job_posting.company.logo"
                                                     :src="application.job_posting.company.logo"
                                                     :alt="application.job_posting.company.name"
                                                     class="h-10 w-10 rounded-lg border border-gray-200 object-cover"
@@ -208,19 +208,27 @@
                                                     <Building2 class="h-5 w-5 text-gray-400" />
                                                 </div>
                                                 <div class="font-medium text-gray-900">
-                                                    {{ application.job_posting.company.name }}
+                                                    {{ application.job_posting.company?.name || 'Công ty không xác định' }}
                                                 </div>
+                                            </div>
+                                            <div v-else class="text-gray-500 italic">
+                                                Tin tuyển dụng không tồn tại
                                             </div>
                                         </td>
                                         <td class="px-6 py-4" data-label="Vị trí">
-                                            <Link
-                                                :href="`/jobs/${application.job_posting.id}`"
-                                                class="font-medium text-blue-600 hover:underline"
-                                            >
-                                                {{ application.job_posting.title }}
-                                            </Link>
-                                            <div class="text-xs text-gray-500 mt-1">
-                                                {{ application.job_posting.location }}
+                                            <div v-if="application.job_posting">
+                                                <Link
+                                                    :href="`/jobs/${application.job_posting.slug}`"
+                                                    class="font-medium text-blue-600 hover:underline"
+                                                >
+                                                    {{ application.job_posting.title }}
+                                                </Link>
+                                                <div class="text-xs text-gray-500 mt-1">
+                                                    {{ application.job_posting.location }}
+                                                </div>
+                                            </div>
+                                            <div v-else class="text-gray-500 italic">
+                                                N/A
                                             </div>
                                         </td>
                                         <td class="px-6 py-4" data-label="Trạng thái">

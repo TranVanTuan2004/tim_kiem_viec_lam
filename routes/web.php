@@ -255,6 +255,10 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'active', 'r
     Route::get('notifications/unread-count', [\App\Http\Controllers\Candidate\NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
     Route::delete('notifications/{id}', [\App\Http\Controllers\Candidate\NotificationController::class, 'destroy'])->name('notifications.destroy');
 
+    // Reports Management
+    Route::get('reports', [\App\Http\Controllers\Candidate\ReportController::class, 'index'])->name('reports.index');
+    Route::post('reports', [\App\Http\Controllers\Candidate\ReportController::class, 'store'])->name('reports.store');
+
 });
 
 
@@ -306,6 +310,18 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'verified'
     Route::delete('company-reviews/{review}', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'destroy'])->name('company-reviews.destroy');
     Route::post('company-reviews/bulk-approve', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'bulkApprove'])->name('company-reviews.bulk-approve');
     Route::post('company-reviews/bulk-reject', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'bulkReject'])->name('company-reviews.bulk-reject');
+
+    // Job Posting Management
+    Route::get('job-postings', [\App\Http\Controllers\Admin\JobPostingController::class, 'index'])->name('job-postings.index');
+    Route::post('job-postings/{jobPosting:id}/approve', [\App\Http\Controllers\Admin\JobPostingController::class, 'approve'])->name('job-postings.approve');
+    Route::post('job-postings/{jobPosting:id}/reject', [\App\Http\Controllers\Admin\JobPostingController::class, 'reject'])->name('job-postings.reject');
+    Route::delete('job-postings/{jobPosting:id}', [\App\Http\Controllers\Admin\JobPostingController::class, 'destroy'])->name('job-postings.destroy');
+
+    // Reports Management
+    Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'show'])->name('reports.show');
+    Route::patch('reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'update'])->name('reports.update');
+    Route::delete('reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'destroy'])->name('reports.destroy');
 });
 
 
