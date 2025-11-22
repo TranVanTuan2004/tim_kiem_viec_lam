@@ -28,6 +28,8 @@ class CandidateProfile extends Model
         'expected_salary',
         'experience_level',
         'is_available',
+        'job_alert_enabled',
+        'preferred_locations',
     ];
 
     protected function casts(): array
@@ -36,6 +38,8 @@ class CandidateProfile extends Model
             'birth_date' => 'date',
             'expected_salary' => 'decimal:2',
             'is_available' => 'boolean',
+            'job_alert_enabled' => 'boolean',
+            'preferred_locations' => 'array',
         ];
     }
 

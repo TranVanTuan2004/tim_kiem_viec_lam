@@ -1,5 +1,5 @@
 <template>
-    <ClientLayout>
+    <CandidateLayout>
         <Head title="Kinh nghiệm làm việc" />
 
         <div class="py-12">
@@ -127,13 +127,13 @@
                 </div>
             </div>
         </div>
-    </ClientLayout>
+    </CandidateLayout>
 </template>
 
 <script setup lang="ts">
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import ClientLayout from '@/layouts/ClientLayout.vue';
+import CandidateLayout from '@/layouts/CandidateLayout.vue';
 import {
     create,
     destroy,
@@ -166,3 +166,4 @@ const deleteExperience = (id: number) => {
     }
 };
 </script>
+

@@ -1,5 +1,5 @@
 <template>
-    <ClientLayout>
+    <CandidateLayout>
         <Head title="Bảng điều khiển" />
 
         <div
@@ -531,7 +531,7 @@
                 </Card>
             </div>
         </div>
-    </ClientLayout>
+    </CandidateLayout>
 </template>
 
 <script setup lang="ts">
@@ -544,7 +544,7 @@ import {
     CardHeader,
     CardTitle,
 } from '@/components/ui/card';
-import ClientLayout from '@/layouts/ClientLayout.vue';
+import CandidateLayout from '@/layouts/CandidateLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import {
     ArrowRight,
@@ -623,3 +623,4 @@ const formatSalary = (min: number, max: number) => {
     return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
 };
 </script>
+

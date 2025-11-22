@@ -1,5 +1,5 @@
 <template>
-    <ClientLayout>
+    <CandidateLayout>
         <Head title="Đơn ứng tuyển của tôi" />
 
         <div
@@ -292,14 +292,14 @@
                 </Card>
             </div>
         </div>
-    </ClientLayout>
+    </CandidateLayout>
 </template>
 
 <script setup lang="ts">
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import ClientLayout from '@/layouts/ClientLayout.vue';
+import CandidateLayout from '@/layouts/CandidateLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import { Building2, Calendar, FileText, Search } from 'lucide-vue-next';
 import { reactive } from 'vue';
@@ -382,3 +382,4 @@ const withdrawApplication = (id: number) => {
     }
 };
 </script>
+
