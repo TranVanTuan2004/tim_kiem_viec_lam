@@ -15,7 +15,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import ClientLayout from '@/layouts/ClientLayout.vue';
+import CandidateLayout from '@/layouts/CandidateLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import {
     Calendar,
@@ -95,7 +95,7 @@ const togglePublic = (id: number) => {
 </script>
 
 <template>
-    <ClientLayout>
+    <CandidateLayout>
         <Head title="Quản lý Portfolio" />
 
         <div
@@ -436,5 +436,6 @@ const togglePublic = (id: number) => {
                 </div>
             </div>
         </div>
-    </ClientLayout>
+    </CandidateLayout>
 </template>
+

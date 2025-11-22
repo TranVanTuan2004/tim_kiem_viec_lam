@@ -248,6 +248,13 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'active', 'r
     // Work Experience Management
     Route::resource('work-experiences', WorkExperienceController::class);
 
+    // Notifications Management
+    Route::get('notifications', [\App\Http\Controllers\Candidate\NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('notifications/{id}/read', [\App\Http\Controllers\Candidate\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('notifications/read-all', [\App\Http\Controllers\Candidate\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::get('notifications/unread-count', [\App\Http\Controllers\Candidate\NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
+    Route::delete('notifications/{id}', [\App\Http\Controllers\Candidate\NotificationController::class, 'destroy'])->name('notifications.destroy');
+
 });
 
 

@@ -1,5 +1,5 @@
 <template>
-    <ClientLayout>
+    <CandidateLayout>
         <Head :title="`Đơn ứng tuyển - ${application.job_posting.title}`" />
 
         <div class="py-12">
@@ -436,11 +436,11 @@
                 </div>
             </div>
         </div>
-    </ClientLayout>
+    </CandidateLayout>
 </template>
 
 <script setup lang="ts">
-import ClientLayout from '@/layouts/ClientLayout.vue';
+import CandidateLayout from '@/layouts/CandidateLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 
 interface Props {
@@ -502,3 +502,4 @@ const withdrawApplication = () => {
     }
 };
 </script>
+

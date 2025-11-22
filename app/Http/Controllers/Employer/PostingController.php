@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Employer;
 
 use App\Http\Controllers\Controller;
+use App\Services\JobMatchingService;
 use Illuminate\Http\Request;
 use App\Models\JobPosting;
 use Illuminate\Support\Facades\Auth;
@@ -118,6 +119,19 @@ class PostingController extends Controller
             'slug' => Str::slug($validated['title']),
             'company_id' => Auth::user()->company_id ?? 1, // giả sử employer thuộc 1 công ty
         ]);
+
+        // Only send notifications if the job is approved
+        if ($job->status === 'approved') {
+            try {
+                $matchingService = new JobMatchingService();
+                $matches = $matchingService->findMatchingCandidates($job);
+                $notificationCount = $matchingService->sendJobMatchNotifications($job, $matches);
+                
+                \Log::info("Job matching completed for job #{$job->id}: {$notificationCount} notifications sent");
+            } catch (\Exception $e) {
+                \Log::error("Job matching failed for job #{$job->id}: " . $e->getMessage());
+            }
+        }
 
         return redirect()->route('employer.postings.show', $job->id)
             ->with('success', 'Tin tuyển dụng đã được tạo thành công và chờ phê duyệt.');

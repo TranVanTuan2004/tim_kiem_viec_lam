@@ -1,5 +1,5 @@
 <template>
-    <ClientLayout>
+    <CandidateLayout>
         <Head title="Việc làm đã lưu" />
 
         <div
@@ -267,13 +267,13 @@
                 </div>
             </div>
         </div>
-    </ClientLayout>
+    </CandidateLayout>
 </template>
 
 <script setup lang="ts">
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import ClientLayout from '@/layouts/ClientLayout.vue';
+import CandidateLayout from '@/layouts/CandidateLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
 import {
     Bookmark,
@@ -358,3 +358,4 @@ const unsaveJob = (jobId: number) => {
     }
 };
 </script>
+

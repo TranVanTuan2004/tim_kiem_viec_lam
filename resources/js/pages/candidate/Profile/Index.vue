@@ -1,5 +1,5 @@
 <template>
-    <ClientLayout>
+    <CandidateLayout>
         <Head title="Hồ sơ cá nhân" />
 
         <div
@@ -998,14 +998,14 @@
                 </div>
             </div>
         </div>
-    </ClientLayout>
+    </CandidateLayout>
 </template>
 
 <script setup lang="ts">
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import ClientLayout from '@/layouts/ClientLayout.vue';
+import CandidateLayout from '@/layouts/CandidateLayout.vue';
 import {
     edit as editEducation,
     index as educationsIndex,
@@ -1101,3 +1101,4 @@ const toggleAvailability = () => {
     );
 };
 </script>
+

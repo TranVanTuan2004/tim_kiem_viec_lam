@@ -1,5 +1,5 @@
 <template>
-    <ClientLayout>
+    <CandidateLayout>
         <Head title="Thêm kinh nghiệm làm việc" />
 
         <div class="py-12">
@@ -167,11 +167,11 @@
                 </div>
             </div>
         </div>
-    </ClientLayout>
+    </CandidateLayout>
 </template>
 
 <script setup lang="ts">
-import ClientLayout from '@/layouts/ClientLayout.vue';
+import CandidateLayout from '@/layouts/CandidateLayout.vue';
 import {
     create as createRoute,
     index,
@@ -202,3 +202,4 @@ const submit = () => {
     });
 };
 </script>
+

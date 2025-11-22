@@ -2,7 +2,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import ClientLayout from '@/layouts/ClientLayout.vue';
+import CandidateLayout from '@/layouts/CandidateLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 import {
     Calendar,
@@ -51,7 +51,7 @@ const breadcrumbs = [
 <template>
     <Head :title="portfolio.title" />
 
-    <ClientLayout>
+    <CandidateLayout>
         <div class="mx-auto flex max-w-5xl flex-col gap-6 p-4">
             <!-- Header with Actions -->
             <div class="flex items-start justify-between">
@@ -331,5 +331,6 @@ const breadcrumbs = [
                 </Link>
             </div>
         </div>
-    </ClientLayout>
+    </CandidateLayout>
 </template>
+

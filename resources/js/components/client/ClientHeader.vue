@@ -11,6 +11,7 @@ import { useInitials } from '@/composables/useInitials';
 import { useLanguage } from '@/composables/useLanguage';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
+    Bell,
     Briefcase,
     Building2,
     Check,
@@ -315,6 +316,15 @@ const { currentLanguage, setLanguage, t } = useLanguage();
                                     >
                                         <Briefcase class="h-4 w-4" />
                                         <span>Đơn ứng tuyển</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem as-child>
+                                    <Link
+                                        href="/candidate/notifications"
+                                        class="flex items-center gap-3 px-3 py-2"
+                                    >
+                                        <Bell class="h-4 w-4" />
+                                        <span>Thông báo</span>
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem as-child>
