@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { throttle } from 'lodash'; // THÊM: throttle (Cần cài đặt)
-import { Eye, Plus } from 'lucide-vue-next';
+import { Eye, Plus, Users } from 'lucide-vue-next';
 import { ref, watch } from 'vue'; // THÊM: ref, watch
 // defineProps<{
 //     jobs: {
@@ -55,7 +55,7 @@ watch(
 // Xóa tin tuyển dụng
 const deleteJob = (id: number) => {
     if (!confirm('Bạn có chắc muốn xóa tin tuyển dụng này không?')) return;
-    const form = useForm();
+    const form = useForm({});
     form.delete(`/employer/posting/${id}`, {
         onSuccess: () => {
             alert('Đã xóa tin tuyển dụng.');
@@ -66,7 +66,7 @@ const deleteJob = (id: number) => {
 
 // Ẩn/Hiện tin tuyển dụng
 const toggleJob = (job: any) => {
-    const form = useForm();
+    const form = useForm({});
     form.patch(`/employer/posting/${job.id}/toggle`, {
         onSuccess: () => {
             alert(`Tin tuyển dụng đã được ${job.is_active ? 'ẩn' : 'hiện'}.`);
@@ -170,6 +170,12 @@ const toggleJob = (job: any) => {
                                             </Button>
                                         </Link>
 
+                                        <Link :href="`/employer/applications?job_posting_id=${job.id}`">
+                                            <Button variant="outline" size="sm" class="flex items-center gap-1">
+                                                <Users class="h-3 w-3" /> Ứng viên
+                                            </Button>
+                                        </Link>
+
                                         <Link :href="`/employer/posting/${job.id}/edit`">
                                             <Button variant="secondary" size="sm" class="flex items-center gap-1">
                                                 ✏️ Sửa
@@ -177,9 +183,10 @@ const toggleJob = (job: any) => {
                                         </Link>
 
                                         <Button
-                                            :variant="job.is_active ? 'warning' : 'default'"
+                                            :variant="job.is_active ? 'secondary' : 'default'"
                                             size="sm"
                                             @click="toggleJob(job)"
+                                            :class="job.is_active ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''"
                                         >
                                             {{ job.is_active ? 'Ẩn' : 'Hiện' }}
                                         </Button>

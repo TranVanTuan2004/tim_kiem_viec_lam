@@ -9,7 +9,7 @@
           <div class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-4">
               <Link
-                :href="route('employer.applications.index')"
+                :href="route('admin.applications.index')"
                 class="p-2 hover:bg-gray-100 rounded-full transition text-gray-500 hover:text-gray-700"
                 title="Quay lại danh sách"
               >

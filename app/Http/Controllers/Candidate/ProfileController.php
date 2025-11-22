@@ -80,6 +80,7 @@ class ProfileController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'phone' => ['nullable', 'string', 'max:20'],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'birth_date' => ['nullable', 'date', 'before:today'],
             'gender' => ['nullable', 'in:male,female,other'],
@@ -113,6 +114,11 @@ class ProfileController extends Controller
         ]);
 
         $user = Auth::user();
+
+        // Update user phone if provided
+        if ($request->has('phone')) {
+            $user->update(['phone' => $request->phone]);
+        }
 
         // Handle avatar upload
         if ($request->hasFile('avatar')) {
@@ -253,6 +259,7 @@ class ProfileController extends Controller
         }
         
         $validated = $request->validate([
+            'phone' => ['nullable', 'string', 'max:20'],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif', 'max:2048'],
             'birth_date' => ['nullable', 'date', 'before:today'],
             'gender' => ['nullable', 'in:male,female,other'],
@@ -288,6 +295,12 @@ class ProfileController extends Controller
         ]);
 
         $user = Auth::user();
+
+        // Update user phone if provided
+        if ($request->has('phone')) {
+            $user->update(['phone' => $request->phone]);
+        }
+
         $profile = $user->candidateProfile;
 
         if (!$profile) {

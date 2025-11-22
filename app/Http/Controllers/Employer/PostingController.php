@@ -68,7 +68,10 @@ class PostingController extends Controller
 
     public function create()
     {
-        return inertia('Employer/Posting/Create');
+        $industries = \App\Models\Industry::all();
+        return inertia('Employer/Posting/Create', [
+            'industries' => $industries
+        ]);
     }
 
     /**
@@ -147,8 +150,10 @@ class PostingController extends Controller
     public function edit($id)
     {
         $job = JobPosting::findOrFail($id);
+        $industries = \App\Models\Industry::all();
         return inertia('Employer/Posting/Edit', [
             'job' => $job,
+            'industries' => $industries
         ]);
     }
 

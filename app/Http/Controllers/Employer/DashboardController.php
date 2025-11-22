@@ -70,6 +70,7 @@ class DashboardController extends Controller
                     'candidate' => [
                         'name' => $application->candidateProfile->user->name,
                         'email' => $application->candidateProfile->user->email,
+                        'avatar' => $application->candidateProfile->avatar,
                         'current_position' => $application->candidateProfile->current_position,
                     ],
                     'job_posting' => [

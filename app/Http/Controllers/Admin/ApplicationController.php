@@ -64,8 +64,10 @@ class ApplicationController extends Controller
         // Paginate
         $applications = $query->paginate(20)->withQueryString();
 
-        // Get statistics for all applications
-        $statistics = $this->getStatistics();
+        // Transform the paginated data
+        $applications->getCollection()->transform(function ($application) {
+            return $this->transformApplication($application);
+        });
 
         // Get filter options
         $companies = Company::select('id', 'company_name')
@@ -79,7 +81,6 @@ class ApplicationController extends Controller
 
         return Inertia::render('admin/applications/Index', [
             'applications' => $applications,
-            'statistics' => $statistics,
             'companies' => $companies,
             'jobPostings' => $jobPostings,
             'filters' => $request->only([
@@ -93,6 +94,24 @@ class ApplicationController extends Controller
                 'sort_by', 
                 'sort_order'
             ]),
+        ]);
+    }
+
+    /**
+     * Display the specified application (admin view)
+     */
+    public function show($id)
+    {
+        $application = Application::with([
+            'candidate.user',
+            'candidate.skills',
+            'candidate.workExperiences',
+            'candidate.educations',
+            'jobPosting.company'
+        ])->findOrFail($id);
+
+        return Inertia::render('admin/applications/Show', [
+            'application' => $application,
         ]);
     }
 
@@ -150,6 +169,36 @@ class ApplicationController extends Controller
             'interview' => $stats['interview'] ?? 0,
             'accepted' => $stats['accepted'] ?? 0,
             'rejected' => $stats['rejected'] ?? 0,
+        ];
+    }
+
+    /**
+     * Transform application data for frontend
+     */
+    private function transformApplication($application)
+    {
+        return [
+            'id' => $application->id,
+            'status' => $application->status,
+            'created_at' => $application->created_at,
+            'notes' => $application->notes,
+            'interview_date' => $application->interview_date,
+            'candidate' => [
+                'id' => $application->candidate->id,
+                'avatar' => $application->candidate->avatar,
+                'user' => [
+                    'name' => $application->candidate->user->name,
+                    'email' => $application->candidate->user->email,
+                ],
+            ],
+            'jobPosting' => $application->jobPosting ? [
+                'id' => $application->jobPosting->id,
+                'title' => $application->jobPosting->title,
+                'company' => $application->jobPosting->company ? [
+                    'id' => $application->jobPosting->company->id,
+                    'company_name' => $application->jobPosting->company->company_name,
+                ] : null,
+            ] : null,
         ];
     }
 }
