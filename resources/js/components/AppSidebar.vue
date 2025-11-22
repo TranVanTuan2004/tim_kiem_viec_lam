@@ -112,6 +112,12 @@ const adminNavItems: NavItem[] = [
         permission: 'view applications',
     },
     {
+        title: 'Quản lý tin tuyển dụng',
+        href: '/admin/job-postings',
+        icon: Briefcase,
+        permission: 'view users',
+    },
+    {
         title: 'Quản lý Banner',
         href: '/admin/banners',
         icon: Image,
