@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('companies', function (Blueprint $table) {
-            $table->boolean('can_create_interviews')->default(true)->after('is_active');
+            $table->boolean('can_create_interviews')->default(true);
         });
     }
 
