@@ -91,11 +91,12 @@
                                 <div>
                                     <label
                                         class="block text-sm font-medium text-gray-700"
-                                        >Phone Number</label
+                                        >Phone Number <span class="text-red-500">*</span></label
                                     >
                                     <input
                                         v-model="form.phone"
                                         type="tel"
+                                        required
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                         placeholder="Enter your phone number"
                                     />
@@ -126,11 +127,12 @@
                                 <div>
                                     <label
                                         class="block text-sm font-medium text-gray-700"
-                                        >City</label
+                                        >City <span class="text-red-500">*</span></label
                                     >
                                     <input
                                         v-model="form.city"
                                         type="text"
+                                        required
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     />
                                 </div>
@@ -138,11 +140,12 @@
                                 <div>
                                     <label
                                         class="block text-sm font-medium text-gray-700"
-                                        >Province</label
+                                        >Province <span class="text-red-500">*</span></label
                                     >
                                     <input
                                         v-model="form.province"
                                         type="text"
+                                        required
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     />
                                 </div>
@@ -296,8 +299,9 @@
                             <h2
                                 class="mb-4 text-lg font-semibold text-gray-900"
                             >
-                                Kỹ năng
+                                Kỹ năng <span class="text-red-500">*</span>
                             </h2>
+                            <p class="mb-3 text-sm text-gray-600">Vui lòng thêm ít nhất một kỹ năng</p>
                             <div class="space-y-3">
                                 <div
                                     v-for="(skill, index) in form.skills"
