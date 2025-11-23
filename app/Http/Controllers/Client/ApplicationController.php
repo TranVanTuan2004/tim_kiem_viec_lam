@@ -66,6 +66,7 @@ class ApplicationController extends Controller
             $validated = $this->applicationService->validateApplicationData([
                 'cover_letter' => $request->input('cover_letter'),
                 'cv_file' => $request->file('cv_file'),
+                'cv_id' => $request->input('cv_id'),
             ]);
 
             // Create the application
@@ -73,7 +74,8 @@ class ApplicationController extends Controller
                 $user,
                 $job_posting,
                 $validated['cover_letter'] ?? null,
-                $validated['cv_file'] ?? null
+                $validated['cv_file'] ?? null,
+                $validated['cv_id'] ?? null
             );
 
             // Send notifications

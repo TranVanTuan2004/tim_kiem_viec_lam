@@ -126,6 +126,7 @@ class Report extends Model
         return match ($this->reportable_type) {
             'App\\Models\\JobPosting' => 'Tin tuyển dụng',
             'App\\Models\\Company' => 'Công ty',
+            'App\\Models\\Interview' => 'Lịch phỏng vấn',
             default => 'Không xác định',
         };
     }
