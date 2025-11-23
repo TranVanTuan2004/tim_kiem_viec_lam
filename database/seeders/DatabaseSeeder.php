@@ -23,6 +23,8 @@ class DatabaseSeeder extends Seeder
             CompanySeeder::class,
             JobPostingSeeder::class,
             ServicePackageSeeder::class,
+            HomepageSectionSeeder::class,
+            BannerSeeder::class,
         ]);
 
         // Create or get test admin user
