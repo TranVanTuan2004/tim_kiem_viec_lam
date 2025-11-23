@@ -25,6 +25,23 @@ class Skill extends Model
         ];
     }
 
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($skill) {
+            if (empty($skill->slug)) {
+                $skill->slug = \Illuminate\Support\Str::slug($skill->name);
+            }
+        });
+
+        static::updating(function ($skill) {
+            if ($skill->isDirty('name') && empty($skill->slug)) {
+                $skill->slug = \Illuminate\Support\Str::slug($skill->name);
+            }
+        });
+    }
+
     // Relationships
     public function industry(): BelongsTo
     {
