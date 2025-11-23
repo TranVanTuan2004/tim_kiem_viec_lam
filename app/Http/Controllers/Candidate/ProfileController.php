@@ -79,6 +79,7 @@ class ProfileController extends Controller
             'birth_date' => 'nullable|date',
             'phone' => 'required|string|max:20',
             'avatar' => 'nullable|image|max:2048',
+            'cv_file' => 'nullable|mimes:pdf,doc,docx|max:5120',
             'skills' => 'required|array|min:1',
             'skills.*.name' => 'required|string|max:255',
             'work_experiences' => 'nullable|array',
@@ -92,13 +93,19 @@ class ProfileController extends Controller
             }
 
             // Create Profile
-            $profileData = collect($validated)->except(['avatar', 'skills', 'work_experiences', 'educations', 'phone'])->toArray();
+            $profileData = collect($validated)->except(['avatar', 'cv_file', 'skills', 'work_experiences', 'educations', 'phone'])->toArray();
             $profileData['user_id'] = $user->id;
 
             // Handle avatar upload
             if ($request->hasFile('avatar')) {
                 $avatarPath = $request->file('avatar')->store('avatars', 'public');
                 $profileData['avatar'] = $avatarPath;
+            }
+
+            // Handle CV file upload
+            if ($request->hasFile('cv_file')) {
+                $cvPath = $request->file('cv_file')->store('cvs', 'public');
+                $profileData['cv_file'] = $cvPath;
             }
 
             $candidate = CandidateProfile::create($profileData);

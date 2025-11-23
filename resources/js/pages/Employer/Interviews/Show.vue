@@ -43,6 +43,11 @@ const props = defineProps<{
     interview: Interview;
 }>();
 
+// Modal states
+const showAcceptModal = ref(false);
+const showDeclineModal = ref(false);
+const selectedTime = ref<string>('');
+
 const statusColors: Record<string, string> = {
     pending: 'bg-yellow-100 text-yellow-800',
     confirmed: 'bg-green-100 text-green-800',
@@ -85,22 +90,33 @@ const reschedule = () => {
     });
 };
 
-const acceptReschedule = (time: string) => {
-    if (confirm(`Bạn có chắc muốn chấp nhận thời gian ${new Date(time).toLocaleString('vi-VN')}?`)) {
-        router.post(route('employer.interviews.reschedule.accept', props.interview.id), {
-            scheduled_at: time,
-        }, {
-            preserveScroll: true,
-        });
-    }
+const openAcceptModal = (time: string) => {
+    selectedTime.value = time;
+    showAcceptModal.value = true;
+};
+
+const acceptReschedule = () => {
+    router.post(route('employer.interviews.reschedule.accept', props.interview.id), {
+        scheduled_at: selectedTime.value,
+    }, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showAcceptModal.value = false;
+        },
+    });
+};
+
+const openDeclineModal = () => {
+    showDeclineModal.value = true;
 };
 
 const declineReschedule = () => {
-    if (confirm('Bạn có chắc muốn từ chối tất cả các thời gian đề xuất?')) {
-        router.post(route('employer.interviews.reschedule.decline', props.interview.id), {}, {
-            preserveScroll: true,
-        });
-    }
+    router.post(route('employer.interviews.reschedule.decline', props.interview.id), {}, {
+        preserveScroll: true,
+        onSuccess: () => {
+            showDeclineModal.value = false;
+        },
+    });
 };
 
 const formatDateTime = (dateString: string) => {
@@ -228,7 +244,7 @@ const formatDateTime = (dateString: string) => {
                     <Card v-if="interview.proposed_times && interview.proposed_times.length > 0">
                         <CardHeader class="flex flex-row items-center justify-between">
                             <CardTitle>Thời Gian Đề Xuất Từ Ứng Viên</CardTitle>
-                            <Button variant="destructive" size="sm" @click="declineReschedule">
+                            <Button variant="destructive" size="sm" @click="openDeclineModal">
                                 <XCircle class="h-4 w-4 mr-2" />
                                 Từ Chối Tất Cả
                             </Button>
@@ -241,7 +257,7 @@ const formatDateTime = (dateString: string) => {
                                     class="p-3 border rounded flex items-center justify-between"
                                 >
                                     <span>{{ new Date(time).toLocaleString('vi-VN') }}</span>
-                                    <Button size="sm" @click="acceptReschedule(time)">Chấp Nhận</Button>
+                                    <Button size="sm" @click="openAcceptModal(time)">Chấp Nhận</Button>
                                 </div>
                             </div>
                         </CardContent>
@@ -359,6 +375,79 @@ const formatDateTime = (dateString: string) => {
                         </Button>
                     </DialogFooter>
                 </form>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Accept Reschedule Modal -->
+        <Dialog v-model:open="showAcceptModal">
+            <DialogContent class="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle class="flex items-center gap-2">
+                        <CheckCircle class="h-5 w-5 text-green-600" />
+                        Xác Nhận Chấp Nhận
+                    </DialogTitle>
+                    <DialogDescription>
+                        Bạn có chắc muốn chấp nhận thời gian phỏng vấn mới?
+                    </DialogDescription>
+                </DialogHeader>
+                <div class="py-4">
+                    <div class="rounded-lg bg-green-50 border border-green-200 p-4">
+                        <div class="flex items-center gap-2 text-green-800 mb-2">
+                            <Calendar class="h-4 w-4" />
+                            <span class="font-semibold">Thời gian mới:</span>
+                        </div>
+                        <p class="text-lg font-bold text-green-900">
+                            {{ selectedTime ? new Date(selectedTime).toLocaleString('vi-VN', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            }) : '' }}
+                        </p>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button type="button" variant="outline" @click="showAcceptModal = false">
+                        Hủy
+                    </Button>
+                    <Button type="button" @click="acceptReschedule" class="bg-green-600 hover:bg-green-700">
+                        <CheckCircle class="h-4 w-4 mr-2" />
+                        Chấp Nhận
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Decline Reschedule Modal -->
+        <Dialog v-model:open="showDeclineModal">
+            <DialogContent class="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle class="flex items-center gap-2">
+                        <XCircle class="h-5 w-5 text-red-600" />
+                        Xác Nhận Từ Chối
+                    </DialogTitle>
+                    <DialogDescription>
+                        Bạn có chắc muốn từ chối tất cả các thời gian đề xuất?
+                    </DialogDescription>
+                </DialogHeader>
+                <div class="py-4">
+                    <div class="rounded-lg bg-red-50 border border-red-200 p-4">
+                        <p class="text-sm text-red-800">
+                            <strong>Lưu ý:</strong> Sau khi từ chối, ứng viên sẽ nhận được thông báo và có thể đề xuất thời gian khác hoặc hủy phỏng vấn.
+                        </p>
+                    </div>
+                </div>
+                <DialogFooter>
+                    <Button type="button" variant="outline" @click="showDeclineModal = false">
+                        Hủy
+                    </Button>
+                    <Button type="button" variant="destructive" @click="declineReschedule">
+                        <XCircle class="h-4 w-4 mr-2" />
+                        Từ Chối Tất Cả
+                    </Button>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     </AuthenticatedLayout>
