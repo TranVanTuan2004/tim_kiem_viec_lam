@@ -112,6 +112,12 @@ const adminNavItems: NavItem[] = [
         permission: 'view users',
     },
     {
+        title: 'Quản lý báo cáo',
+        href: '/admin/reports',
+        icon: FileText,
+        permission: 'view reports',
+    },
+    {
         title: 'Quản lý ứng tuyển',
         href: '/admin/applications',
         icon: FileText,

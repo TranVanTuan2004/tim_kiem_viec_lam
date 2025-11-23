@@ -21,6 +21,9 @@ class Report extends Model
         'type',
         'reason',
         'status',
+        'admin_notes',
+        'reviewed_by',
+        'reviewed_at', 
     ];
 
     protected function casts(): array
@@ -139,5 +142,27 @@ class Report extends Model
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->setDescriptionForEvent(fn(string $eventName) => "Report #{$this->id} {$eventName}");
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->reporter();
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function getReasonLabel(): string
+    {
+        return match ($this->reason) {
+            'spam' => 'Spam',
+            'fraud' => 'Lừa đảo',
+            'inappropriate' => 'Nội dung không phù hợp',
+            'fake' => 'Giả mạo',
+            'other' => 'Khác',
+            default => $this->reason,
+        };
     }
 }

@@ -15,6 +15,7 @@ use App\Http\Controllers\Candidate\SavedJobController;
 use App\Http\Controllers\Candidate\FavoriteController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
+use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ChatController;
 use App\Http\Controllers\Admin\ActivityLogController;
@@ -284,6 +285,24 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'active', 'r
 
 });
 
+// Admin Reports
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admin'])->group(function () {
+    Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])
+        ->name('reports.index')
+        ->middleware('permission:view reports');
+
+    Route::get('reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'show'])
+        ->name('reports.show')
+        ->middleware('permission:view reports');
+
+    Route::patch('reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'update'])
+        ->name('reports.update')
+        ->middleware('permission:edit reports');
+
+    Route::delete('reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'destroy'])
+        ->name('reports.destroy')
+        ->middleware('permission:delete reports');
+});
 
 // Employer Routes
 Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer'])->group(function () {
