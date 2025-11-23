@@ -71,13 +71,14 @@ class ApplicationService
         User $user,
         JobPosting $jobPosting,
         ?string $coverLetter,
-        ?UploadedFile $cvFile
+        ?UploadedFile $cvFile,
+        ?int $cvId = null
     ): Application {
         // Handle CV file upload
-        $cvPath = $this->handleCvUpload($user, $cvFile);
+        $cvPath = $this->handleCvUpload($user, $cvFile, $cvId);
 
         if (!$cvPath) {
-            throw new \Exception('Vui lòng tải lên CV của bạn.');
+            throw new \Exception('Vui lòng tải lên CV của bạn hoặc chọn CV có sẵn.');
         }
 
         // Create the application
@@ -98,22 +99,30 @@ class ApplicationService
     /**
      * Handle CV file upload
      */
-    private function handleCvUpload(User $user, ?UploadedFile $cvFile): ?string
+    private function handleCvUpload(User $user, ?UploadedFile $cvFile, ?int $cvId = null): ?string
     {
         if ($cvFile) {
             // Upload new CV
             return $cvFile->store('applications/cvs', 'public');
         }
 
+        if ($cvId) {
+            $cv = $user->candidateProfile->cvs()->find($cvId);
+            if ($cv) {
+                return $cv->file_path;
+            }
+        }
+
         // Prefer default CV from candidate_cvs if available
         if ($user->candidateProfile) {
             $candidate = $user->candidateProfile;
-            if (method_exists($candidate, 'defaultCv')) {
-                $defaultCv = $candidate->defaultCv()->first();
-                if ($defaultCv && $defaultCv->stored_path) {
-                    return $defaultCv->stored_path;
-                }
+            
+            // Check for default CV in new table
+            $defaultCv = $candidate->cvs()->where('is_default', true)->first();
+            if ($defaultCv) {
+                return $defaultCv->file_path;
             }
+
             // Fallback to legacy single cv_file on candidate_profiles
             if (!empty($candidate->cv_file)) {
                 return $candidate->cv_file;
@@ -155,6 +164,10 @@ class ApplicationService
             $validated['cv_file'] = $file;
         }
 
+        if (isset($data['cv_id'])) {
+            $validated['cv_id'] = $data['cv_id'];
+        }
+
         return $validated;
     }
 
@@ -169,6 +182,14 @@ class ApplicationService
 
         return [
             'cv_file' => $user->candidateProfile->cv_file,
+            'cvs' => $user->candidateProfile->cvs()->orderBy('created_at', 'desc')->get()->map(function ($cv) {
+                return [
+                    'id' => $cv->id,
+                    'name' => $cv->name,
+                    'file_path' => $cv->file_path,
+                    'is_default' => $cv->is_default,
+                ];
+            }),
             'full_name' => $user->candidateProfile->full_name ?? $user->name,
             'email' => $user->email,
             'phone' => $user->candidateProfile->phone,

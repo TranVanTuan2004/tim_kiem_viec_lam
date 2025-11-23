@@ -8,7 +8,9 @@ import {
     Heart, 
     Folder, 
     GraduationCap,
-    ChevronRight
+    ChevronRight,
+    MessageSquare,
+    FileText
 } from 'lucide-vue-next';
 import { computed } from 'vue';
 
@@ -35,6 +37,16 @@ const menuItems = [
         label: 'Thông báo',
         href: '/candidate/notifications',
         icon: Bell,
+    },
+    {
+        label: 'Lịch Phỏng Vấn',
+        href: '/candidate/interviews',
+        icon: MessageSquare,
+    },
+    {
+        label: 'Quản lý CV',
+        href: '/candidate/cvs',
+        icon: FileText,
     },
     {
         label: 'Việc làm đã lưu',

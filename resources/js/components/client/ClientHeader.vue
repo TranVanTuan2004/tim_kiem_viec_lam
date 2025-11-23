@@ -23,6 +23,7 @@ import {
     Languages,
     LayoutDashboard,
     LogOut,
+    MessageSquare,
     Search,
     User,
     User as UserIcon,
@@ -325,6 +326,24 @@ const { currentLanguage, setLanguage, t } = useLanguage();
                                     >
                                         <Bell class="h-4 w-4" />
                                         <span>Thông báo</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem as-child>
+                                    <Link
+                                        href="/candidate/interviews"
+                                        class="flex items-center gap-3 px-3 py-2"
+                                    >
+                                        <MessageSquare class="h-4 w-4" />
+                                        <span>Lịch phỏng vấn</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem as-child>
+                                    <Link
+                                        href="/candidate/cvs"
+                                        class="flex items-center gap-3 px-3 py-2"
+                                    >
+                                        <FileText class="h-4 w-4" />
+                                        <span>Quản lý CV</span>
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem as-child>

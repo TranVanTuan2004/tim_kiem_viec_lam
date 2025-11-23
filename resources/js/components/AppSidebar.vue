@@ -20,6 +20,7 @@ import {
     BookOpen,
     Bookmark,
     Briefcase,
+    Calendar,
     CreditCard,
     FileText,
     Folder,
@@ -77,6 +78,11 @@ const candidateNavItems: NavItem[] = [
         icon: FileText,
     },
     {
+        title: 'Lịch Phỏng Vấn',
+        href: '/candidate/interviews',
+        icon: MessageSquare,
+    },
+    {
         title: 'Saved Jobs',
         href: '/candidate/saved-jobs',
         icon: Bookmark,
@@ -115,6 +121,12 @@ const adminNavItems: NavItem[] = [
         title: 'Quản lý tin tuyển dụng',
         href: '/admin/job-postings',
         icon: Briefcase,
+        permission: 'view users',
+    },
+    {
+        title: 'Quản lý lịch phỏng vấn',
+        href: '/admin/interviews',
+        icon: Calendar,
         permission: 'view users',
     },
     {
@@ -175,6 +187,11 @@ const employerNavItems: NavItem[] = [
         title: 'Lịch sử ứng tuyển',
         href: '/employer/applications',
         icon: FileText,
+    },
+    {
+        title: 'Lịch phỏng vấn',
+        href: '/employer/interviews',
+        icon: MessageSquare,
     },
     {
         title: 'Tìm ứng viên',

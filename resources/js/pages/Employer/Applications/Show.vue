@@ -261,13 +261,13 @@
                     Chấp nhận hồ sơ
                   </button>
 
-                  <button
-                    @click="showInterviewModal = true"
+                  <Link
+                    :href="route('employer.interviews.create', { application_id: application.id })"
                     class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-sm hover:shadow-md flex items-center justify-center gap-2"
                   >
                     <Calendar class="w-5 h-5" />
                     Đặt lịch phỏng vấn
-                  </button>
+                  </Link>
 
                   <button
                     v-if="application.status !== 'rejected'"
@@ -333,69 +333,51 @@
       </div>
     </div>
 
-    <!-- Interview Modal -->
+    <!-- Status Change Confirmation Modal -->
     <div
-      v-if="showInterviewModal"
+      v-if="showStatusModal"
       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-      @click.self="showInterviewModal = false"
+      @click.self="cancelStatusChange"
     >
       <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 transform transition-all scale-100">
         <div class="flex items-center justify-between mb-6">
-          <h3 class="text-xl font-bold text-gray-900">Đặt lịch phỏng vấn</h3>
+          <h3 class="text-xl font-bold text-gray-900">{{ getStatusModalContent().title }}</h3>
           <button
-            @click="showInterviewModal = false"
+            @click="cancelStatusChange"
             class="p-2 hover:bg-gray-100 rounded-lg transition text-gray-500"
           >
             <X class="w-6 h-6" />
           </button>
         </div>
 
-        <form @submit.prevent="scheduleInterview">
-          <div class="space-y-5">
-            <div>
-              <label class="block text-sm font-bold text-gray-700 mb-2">
-                Ngày và giờ phỏng vấn
-              </label>
-              <input
-                v-model="interviewForm.interview_date"
-                type="datetime-local"
-                required
-                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-              />
-            </div>
+        <div class="mb-6">
+          <p class="text-gray-600">{{ getStatusModalContent().message }}</p>
+        </div>
 
-            <div>
-              <label class="block text-sm font-bold text-gray-700 mb-2">
-                Ghi chú / Địa điểm (tùy chọn)
-              </label>
-              <textarea
-                v-model="interviewForm.notes"
-                rows="3"
-                placeholder="Ví dụ: Phỏng vấn tại văn phòng tầng 5, mang theo laptop..."
-                class="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition resize-none"
-              ></textarea>
-            </div>
-          </div>
-
-          <div class="mt-8 flex gap-3">
-            <button
-              type="button"
-              @click="showInterviewModal = false"
-              class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition"
-            >
-              Hủy
-            </button>
-            <button
-              type="submit"
-              :disabled="interviewForm.processing"
-              class="flex-1 px-4 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition disabled:opacity-50 shadow-lg shadow-blue-200"
-            >
-              {{ interviewForm.processing ? 'Đang xử lý...' : 'Xác nhận lịch' }}
-            </button>
-          </div>
-        </form>
+        <div class="flex gap-3">
+          <button
+            @click="cancelStatusChange"
+            class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 font-bold rounded-xl hover:bg-gray-200 transition"
+          >
+            Hủy
+          </button>
+          <button
+            @click="confirmStatusChange"
+            class="flex-1 px-4 py-3 text-white font-bold rounded-xl transition shadow-lg"
+            :class="{
+              'bg-yellow-600 hover:bg-yellow-700': getStatusModalContent().color === 'yellow',
+              'bg-purple-600 hover:bg-purple-700': getStatusModalContent().color === 'purple',
+              'bg-blue-600 hover:bg-blue-700': getStatusModalContent().color === 'blue',
+              'bg-green-600 hover:bg-green-700': getStatusModalContent().color === 'green',
+              'bg-red-600 hover:bg-red-700': getStatusModalContent().color === 'red',
+            }"
+          >
+            Xác nhận
+          </button>
+        </div>
       </div>
     </div>
+
   </AppLayout>
 </template>
 
@@ -419,10 +401,10 @@ import {
   ChevronDown,
   NotebookPen,
   CalendarClock,
-  X,
   DollarSign,
   User,
-  UserCheck
+  UserCheck,
+  X
 } from 'lucide-vue-next'
 
 const formatCurrency = (value) => {
@@ -443,33 +425,79 @@ const props = defineProps({
 })
 
 const selectedStatus = ref(props.application.status)
-const showInterviewModal = ref(false)
+const showStatusModal = ref(false)
+const pendingStatus = ref('')
 
 const notesForm = useForm({
   notes: props.application.notes || '',
 })
 
-const interviewForm = useForm({
-  interview_date: '',
-  notes: '',
-})
-
 const updateStatus = (newStatus) => {
-  if (confirm('Bạn có chắc muốn cập nhật trạng thái hồ sơ này?')) {
-    router.patch(
-      route('employer.applications.update-status', props.application.id),
-      { status: newStatus },
-      {
-        preserveScroll: true,
-        onSuccess: () => {
-          selectedStatus.value = newStatus
-        },
-      }
-    )
-  } else {
-    // Reset selection if cancelled
-    selectedStatus.value = props.application.status
+  // Show confirmation modal for all statuses including interview
+  pendingStatus.value = newStatus
+  showStatusModal.value = true
+}
+
+const confirmStatusChange = () => {
+  // Special handling for interview status - redirect to interview creation
+  if (pendingStatus.value === 'interview') {
+    router.visit(route('employer.interviews.create', { application_id: props.application.id}))
+    return
   }
+  
+  // For other statuses, update via API
+  router.patch(
+    route('employer.applications.update-status', props.application.id),
+    { status: pendingStatus.value },
+    {
+      preserveScroll: true,
+      onSuccess: () => {
+        selectedStatus.value = pendingStatus.value
+        showStatusModal.value = false
+      },
+    }
+  )
+}
+
+const cancelStatusChange = () => {
+  selectedStatus.value = props.application.status
+  showStatusModal.value = false
+}
+
+const getStatusModalContent = () => {
+  const content = {
+    pending: {
+      title: 'Chuyển về Chờ Xem Xét',
+      message: 'Bạn có chắc muốn chuyển hồ sơ này về trạng thái "Chờ xem xét"?',
+      icon: 'warning',
+      color: 'yellow'
+    },
+    reviewing: {
+      title: 'Đang Xem Xét Hồ Sơ',
+      message: 'Bạn có chắc muốn chuyển hồ sơ này sang trạng thái "Đang xem xét"?',
+      icon: 'info',
+      color: 'purple'
+    },
+    interview: {
+      title: 'Đặt Lịch Phỏng Vấn',
+      message: 'Bạn sẽ được chuyển đến trang tạo lịch phỏng vấn cho ứng viên này. Tiếp tục?',
+      icon: 'info',
+      color: 'blue'
+    },
+    accepted: {
+      title: 'Chấp Nhận Ứng Viên',
+      message: 'Bạn có chắc muốn chấp nhận ứng viên này? Hành động này sẽ gửi thông báo đến ứng viên.',
+      icon: 'success',
+      color: 'green'
+    },
+    rejected: {
+      title: 'Từ Chối Hồ Sơ',
+      message: 'Bạn có chắc muốn từ chối hồ sơ này? Hành động này sẽ gửi thông báo đến ứng viên.',
+      icon: 'error',
+      color: 'red'
+    }
+  }
+  return content[pendingStatus.value] || content.pending
 }
 
 const saveNotes = () => {
@@ -484,22 +512,7 @@ const saveNotes = () => {
   )
 }
 
-const scheduleInterview = () => {
-  interviewForm
-    .transform((data) => ({
-      status: 'interview',
-      interview_date: data.interview_date,
-      notes: data.notes,
-    }))
-    .patch(route('employer.applications.update-status', props.application.id), {
-      preserveScroll: true,
-      onSuccess: () => {
-        showInterviewModal.value = false
-        interviewForm.reset()
-        selectedStatus.value = 'interview'
-      },
-    })
-}
+
 
 const getStatusBadgeClass = (status) => {
   const classes = {

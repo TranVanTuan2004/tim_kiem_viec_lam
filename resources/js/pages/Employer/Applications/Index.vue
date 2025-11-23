@@ -134,7 +134,7 @@
           <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-6 border-l-4 border-green-500">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm font-medium text-gray-600 mb-1">Chấp nhận</p>
+                <p class="text-sm font-medium text-gray-600 mb-1">Được chấp nhận</p>
                 <p class="text-3xl font-bold text-gray-900">
                   {{ statistics.accepted }}
                 </p>
@@ -161,7 +161,7 @@
           <div class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all p-6 border-l-4 border-red-500">
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm font-medium text-gray-600 mb-1">Từ chối</p>
+                <p class="text-sm font-medium text-gray-600 mb-1">Bị từ chối</p>
                 <p class="text-3xl font-bold text-gray-900">
                   {{ statistics.rejected }}
                 </p>
@@ -376,18 +376,12 @@
                     </div>
                   </td>
                   <td class="px-6 py-4" data-label="Trạng thái">
-                    <select
-                      :value="app.status"
-                      class="px-3 py-1 rounded-full text-xs font-semibold border-0 focus:ring-2 focus:ring-offset-1 transition"
+                    <span
+                      class="px-3 py-1 rounded-full text-xs font-semibold"
                       :class="getStatusClass(app.status)"
-                      @change="updateStatus(app.id, $event.target.value)"
                     >
-                      <option value="pending">Chờ xem xét</option>
-                      <option value="reviewing">Đang xem xét</option>
-                      <option value="interview">Phỏng vấn</option>
-                      <option value="accepted">Chấp nhận</option>
-                      <option value="rejected">Từ chối</option>
-                    </select>
+                      {{ getStatusText(app.status) }}
+                    </span>
                   </td>
                   <td class="px-6 py-4 text-right" data-label="Hành động">
                     <Link
@@ -455,20 +449,13 @@
         </div>
       </div>
     </div>
-    <UpdateStatusModal
-      v-model:open="showStatusModal"
-      :application="selectedApplication"
-      :new-status="targetStatus"
-      @success="onStatusUpdateSuccess"
-    />
   </AppLayout>
 </template>
 
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3'
 import AppLayout from '@/layouts/AppLayout.vue'
-import { reactive, ref } from 'vue'
-import UpdateStatusModal from './UpdateStatusModal.vue'
+import { reactive } from 'vue'
 
 const props = defineProps({
   applications: Object,
@@ -511,33 +498,26 @@ const clearFilters = () => {
   applyFilters()
 }
 
-const showStatusModal = ref(false)
-const selectedApplication = ref(null)
-const targetStatus = ref('')
-
-const updateStatus = (applicationId, newStatus) => {
-  const application = props.applications.data.find(a => a.id === applicationId)
-  if (application) {
-    selectedApplication.value = application
-    targetStatus.value = newStatus
-    showStatusModal.value = true
-  }
-}
-
-const onStatusUpdateSuccess = () => {
-  // Refresh data or show notification if needed
-  // Inertia automatically handles page refresh on successful request
-}
-
 const getStatusClass = (status) => {
   const classes = {
-    pending: 'bg-yellow-100 text-yellow-800 focus:ring-yellow-500',
-    reviewing: 'bg-purple-100 text-purple-800 focus:ring-purple-500',
-    interview: 'bg-indigo-100 text-indigo-800 focus:ring-indigo-500',
-    accepted: 'bg-green-100 text-green-800 focus:ring-green-500',
-    rejected: 'bg-red-100 text-red-800 focus:ring-red-500',
+    pending: 'bg-yellow-100 text-yellow-800',
+    reviewing: 'bg-purple-100 text-purple-800',
+    interview: 'bg-indigo-100 text-indigo-800',
+    accepted: 'bg-green-100 text-green-800',
+    rejected: 'bg-red-100 text-red-800',
   }
   return classes[status] || 'bg-gray-100 text-gray-800'
+}
+
+const getStatusText = (status) => {
+  const labels = {
+    pending: 'Chờ xem xét',
+    reviewing: 'Đang xem xét',
+    interview: 'Phỏng vấn',
+    accepted: 'Được chấp nhận',
+    rejected: 'Bị từ chối',
+  }
+  return labels[status] || status
 }
 
 const getInitials = (name) => {
