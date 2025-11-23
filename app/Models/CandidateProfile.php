@@ -92,6 +92,11 @@ class CandidateProfile extends Model
         return $this->hasMany(Portfolio::class, 'candidate_id');
     }
 
+    public function cvs(): HasMany
+    {
+        return $this->hasMany(CandidateCv::class, 'candidate_id');
+    }
+
     // Scopes
     public function scopeAvailable($query)
     {

@@ -25,6 +25,8 @@ use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Employer\CompanyController as EmployerCompanyController;
 use App\Http\Controllers\Employer\ApplicationController as EmployerApplicationController;
 use App\Http\Controllers\Employer\CandidateSearchController;
+use App\Http\Controllers\Employer\InterviewController;
+use App\Http\Controllers\Candidate\InterviewController as CandidateInterviewController;
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -155,6 +157,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admi
         ->name('homepage.toggle-active');
     Route::post('homepage/update-order', [\App\Http\Controllers\Admin\HomepageSectionController::class, 'updateOrder'])
         ->name('homepage.update-order');
+    
+    // Interview Management
+    Route::get('interviews', [\App\Http\Controllers\Admin\InterviewController::class, 'index'])
+        ->name('interviews.index');
+    Route::get('interviews/{id}', [\App\Http\Controllers\Admin\InterviewController::class, 'show'])
+        ->name('interviews.show');
+    Route::delete('interviews/{id}', [\App\Http\Controllers\Admin\InterviewController::class, 'destroy'])
+        ->name('interviews.destroy');
+    Route::post('companies/{companyId}/toggle-interview-block', [\App\Http\Controllers\Admin\InterviewController::class, 'toggleBlock'])
+        ->name('companies.toggle-interview-block');
 });
 
 // Admin Routes - Subscription Management (for Employers)
@@ -236,6 +248,10 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'active', 'r
     Route::post('portfolios/{portfolio}/toggle-featured', [PortfolioController::class, 'toggleFeatured'])->name('portfolios.toggle-featured');
     Route::post('portfolios/{portfolio}/toggle-public', [PortfolioController::class, 'togglePublic'])->name('portfolios.toggle-public');
 
+    // CV Management
+    Route::resource('cvs', \App\Http\Controllers\Candidate\CvController::class)->only(['index', 'store', 'destroy']);
+    Route::post('cvs/{id}/default', [\App\Http\Controllers\Candidate\CvController::class, 'setDefault'])->name('cvs.default');
+
 
     // Favorite
     Route::get('favorites', [FavoriteController::class, 'index'])->name('favorites.index');
@@ -247,6 +263,13 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'active', 'r
 
     // Work Experience Management
     Route::resource('work-experiences', WorkExperienceController::class);
+
+    // Interview Management
+    Route::get('interviews', [CandidateInterviewController::class, 'index'])->name('interviews.index');
+    Route::get('interviews/{id}', [CandidateInterviewController::class, 'show'])->name('interviews.show');
+    Route::post('interviews/{id}/confirm', [CandidateInterviewController::class, 'confirm'])->name('interviews.confirm');
+    Route::post('interviews/{id}/decline', [CandidateInterviewController::class, 'decline'])->name('interviews.decline');
+    Route::post('interviews/{id}/propose-reschedule', [CandidateInterviewController::class, 'proposeReschedule'])->name('interviews.propose-reschedule');
 
     // Notifications Management
     Route::get('notifications', [\App\Http\Controllers\Candidate\NotificationController::class, 'index'])->name('notifications.index');
@@ -269,6 +292,13 @@ Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer
     Route::get('/applications/{id}', [EmployerApplicationController::class, 'show'])->name('applications.show');
     Route::patch('/applications/{id}/status', [EmployerApplicationController::class, 'updateStatus'])->name('applications.update-status');
     Route::get('candidates/search', [CandidateSearchController::class, 'index'])->name('employer.candidates.search');
+    
+    // Interview Management
+    Route::resource('interviews', InterviewController::class)->except(['edit']);
+    Route::post('interviews/{id}/complete', [InterviewController::class, 'complete'])->name('interviews.complete');
+    Route::post('interviews/{id}/reschedule', [InterviewController::class, 'reschedule'])->name('interviews.reschedule');
+    Route::post('interviews/{id}/reschedule/accept', [InterviewController::class, 'acceptReschedule'])->name('interviews.reschedule.accept');
+    Route::post('interviews/{id}/reschedule/decline', [InterviewController::class, 'declineReschedule'])->name('interviews.reschedule.decline');
 });
 Route::prefix('employer')->name('employer.')->group(function () {
     // Danh sách tin tuyển dụng

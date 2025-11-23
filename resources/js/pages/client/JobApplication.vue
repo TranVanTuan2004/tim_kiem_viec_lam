@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import ClientLayout from '@/layouts/ClientLayout.vue';
 import jobs from '@/routes/jobs';
 import { useForm } from '@inertiajs/vue3';
@@ -14,7 +15,7 @@ import {
     MapPin,
     Upload,
 } from 'lucide-vue-next';
-import { computed, defineProps, ref } from 'vue';
+import { computed, defineProps, ref, onMounted } from 'vue';
 
 const props = defineProps({
     job: {
@@ -30,14 +31,37 @@ const props = defineProps({
 const form = useForm({
     cover_letter: '',
     cv_file: null as File | null,
+    cv_id: null as number | null,
 });
 
 const fileInput = ref<HTMLInputElement | null>(null);
 const fileName = ref<string>('');
 
-const hasExistingCV = computed(() => {
-    return props.candidateProfile?.cv_file ? true : false;
+const hasStoredCVs = computed(() => {
+    return props.candidateProfile?.cvs && props.candidateProfile.cvs.length > 0;
 });
+
+// Initialize default CV selection
+onMounted(() => {
+    if (hasStoredCVs.value) {
+        const defaultCv = props.candidateProfile.cvs.find((cv: any) => cv.is_default);
+        if (defaultCv) {
+            form.cv_id = defaultCv.id;
+        } else {
+            form.cv_id = props.candidateProfile.cvs[0].id;
+        }
+    }
+});
+
+const handleCvSelection = (value: string) => {
+    if (value === 'new') {
+        form.cv_id = null;
+    } else {
+        form.cv_id = parseInt(value);
+        form.cv_file = null;
+        fileName.value = '';
+    }
+};
 
 const handleFileChange = (event: Event) => {
     const target = event.target as HTMLInputElement;
@@ -45,6 +69,8 @@ const handleFileChange = (event: Event) => {
         const file = target.files[0];
         form.cv_file = file;
         fileName.value = file.name;
+        // Ensure 'new' is selected implicitly by setting cv_id to null
+        form.cv_id = null;
     }
 };
 
@@ -193,62 +219,49 @@ const submit = () => {
                                     </div>
                                 </div>
 
-                                <!-- CV Upload -->
-                                <div class="space-y-2">
-                                    <Label for="cv_file">
-                                        CV / Resume
-                                        <span
-                                            v-if="!hasExistingCV"
-                                            class="text-red-600"
-                                            >*</span
-                                        >
-                                    </Label>
+                                <!-- CV Selection -->
+                                <div class="space-y-4">
+                                    <Label>CV / Resume <span class="text-red-600">*</span></Label>
 
-                                    <!-- Existing CV Info -->
-                                    <div
-                                        v-if="hasExistingCV && !form.cv_file"
-                                        class="rounded-lg border border-green-200 bg-green-50 p-4 dark:border-green-800 dark:bg-green-950"
+                                    <!-- Stored CVs List -->
+                                    <RadioGroup
+                                        v-if="hasStoredCVs"
+                                        :model-value="form.cv_id ? form.cv_id.toString() : 'new'"
+                                        @update:model-value="handleCvSelection"
+                                        class="space-y-3"
                                     >
-                                        <div
-                                            class="flex items-center justify-between"
+                                        <div 
+                                            v-for="cv in candidateProfile.cvs" 
+                                            :key="cv.id" 
+                                            class="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors" 
+                                            :class="{'border-blue-500 bg-blue-50 ring-1 ring-blue-500': form.cv_id === cv.id}"
+                                            @click="handleCvSelection(cv.id.toString())"
                                         >
-                                            <div
-                                                class="flex items-center gap-2"
-                                            >
-                                                <CheckCircle
-                                                    class="h-5 w-5 text-green-600"
-                                                />
-                                                <div>
-                                                    <p
-                                                        class="text-sm font-medium text-green-900 dark:text-green-100"
-                                                    >
-                                                        Sử dụng CV từ hồ sơ của
-                                                        bạn
-                                                    </p>
-                                                    <p
-                                                        class="text-xs text-green-700 dark:text-green-300"
-                                                    >
-                                                        CV hiện tại sẽ được gửi
-                                                        cùng đơn ứng tuyển
-                                                    </p>
+                                            <RadioGroupItem :value="cv.id.toString()" :id="`cv-${cv.id}`" />
+                                            <div class="flex-1 flex items-center justify-between">
+                                                <div class="flex items-center gap-2">
+                                                    <FileText class="w-4 h-4 text-blue-600" />
+                                                    <span class="font-medium">{{ cv.name }}</span>
+                                                    <span v-if="cv.is_default" class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">Mặc định</span>
                                                 </div>
+                                                <!-- We use a simple link or button to preview if needed, preventing event propagation -->
                                             </div>
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                @click="fileInput?.click()"
-                                            >
-                                                Tải lên CV khác
-                                            </Button>
                                         </div>
-                                    </div>
 
-                                    <!-- File Upload Area -->
-                                    <div
-                                        v-if="!hasExistingCV || form.cv_file"
-                                        class="space-y-2"
-                                    >
+                                        <div 
+                                            class="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-gray-50 transition-colors" 
+                                            :class="{'border-blue-500 bg-blue-50 ring-1 ring-blue-500': !form.cv_id}"
+                                            @click="handleCvSelection('new')"
+                                        >
+                                            <RadioGroupItem value="new" id="cv-new" />
+                                            <Label for="cv-new" class="flex-1 cursor-pointer font-medium">
+                                                Tải lên CV mới
+                                            </Label>
+                                        </div>
+                                    </RadioGroup>
+
+                                    <!-- File Upload Area (Show if 'new' is selected or no stored CVs) -->
+                                    <div v-if="!form.cv_id" class="space-y-2 mt-2 animate-in fade-in slide-in-from-top-2">
                                         <div
                                             v-if="!form.cv_file"
                                             class="flex items-center justify-center rounded-lg border-2 border-dashed border-muted-foreground/25 p-8 transition-colors hover:border-muted-foreground/50"

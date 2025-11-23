@@ -101,6 +101,7 @@ class Application extends Model
             'interview' => 'Phỏng vấn',
             'accepted' => 'Được chấp nhận',
             'rejected' => 'Bị từ chối',
+            'withdrawn' => 'Đã rút hồ sơ',
             default => 'Không xác định',
         };
     }
