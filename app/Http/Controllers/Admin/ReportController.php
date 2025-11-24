@@ -40,6 +40,10 @@ class ReportController extends Controller
                 $q->where('description', 'like', "%{$search}%")
                     ->orWhereHas('user', function ($q2) use ($search) {
                         $q2->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('reportable', function ($q3) use ($search) {
+                        $q3->where('title', 'like', "%{$search}%")
+                            ->orWhere('company_name', 'like', "%{$search}%");
                     });
             });
         }
@@ -86,7 +90,7 @@ class ReportController extends Controller
             'dismissed' => Report::dismissed()->count(),
         ];
 
-        return Inertia::render('admin/Reports/Index', [
+        return Inertia::render('admin/reports/Index', [
             'reports' => $reports,
             'stats' => $stats,
             'filters' => [
@@ -105,7 +109,7 @@ class ReportController extends Controller
     {
         $report = Report::with(['user', 'reportable', 'reviewer'])->findOrFail($id);
 
-        return Inertia::render('admin/Reports/Show', [
+        return Inertia::render('admin/reports/Show', [
             'report' => [
                 'id' => $report->id,
                 'user' => [
