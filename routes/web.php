@@ -23,6 +23,7 @@ use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\SupportChatController;
 use App\Http\Controllers\Admin\SubscriptionController;
 use App\Http\Controllers\Employer\PostingController;
+use App\Http\Controllers\Employer\EmployerCandidateReportController;
 use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Employer\CompanyController as EmployerCompanyController;
 use App\Http\Controllers\Employer\ApplicationController as EmployerApplicationController;
@@ -319,6 +320,9 @@ Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer
     Route::post('interviews/{id}/reschedule', [InterviewController::class, 'reschedule'])->name('interviews.reschedule');
     Route::post('interviews/{id}/reschedule/accept', [InterviewController::class, 'acceptReschedule'])->name('interviews.reschedule.accept');
     Route::post('interviews/{id}/reschedule/decline', [InterviewController::class, 'declineReschedule'])->name('interviews.reschedule.decline');
+
+    // Employer Candidate Report
+    Route::post('reports', [\App\Http\Controllers\Employer\EmployerReportController::class, 'store']);
 });
 Route::prefix('employer')->name('employer.')->group(function () {
     // Danh sách tin tuyển dụng

@@ -225,6 +225,11 @@
 
           <!-- Right Column - Actions (Sticky) -->
           <div class="lg:col-span-4 space-y-6">
+
+            <div v-if="successMessage" class="rounded-md bg-green-50 p-3 mb-4">
+              <p class="text-sm text-green-800">{{ successMessage }}</p>
+            </div>
+
             <div class="sticky top-24 space-y-6">
               
               <!-- Action Panel -->
@@ -277,6 +282,15 @@
                     <XCircle class="w-5 h-5" />
                     Từ chối hồ sơ
                   </button>
+
+                  <button
+                    @click="openReportModal(application)"
+                    class="w-full px-4 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition shadow-sm hover:shadow-md flex items-center justify-center gap-2"
+                  >
+                    <AlertCircle class="w-5 h-5" />
+                    Báo cáo vi phạm
+                  </button>
+
                 </div>
               </div>
 
@@ -379,12 +393,22 @@
     </div>
 
   </AppLayout>
+<EmployerReportModal
+  :open="showReportModal"
+  :applicationId="application.candidate.id"
+  :candidateName="candidateName"
+  :submitUrl="submitUrl"
+  @update:open="showReportModal = $event"
+  @report-success="successMessage = $event"
+/>
 </template>
 
 <script setup>
-import { Head, Link, router, useForm } from '@inertiajs/vue3'
-import AppLayout from '@/layouts/AppLayout.vue'
-import { ref } from 'vue'
+import EmployerReportModal from '@/components/EmployerReportModal.vue';
+import { AlertCircle } from 'lucide-vue-next';
+import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
+import AppLayout from '@/layouts/AppLayout.vue';
+import { ref, computed } from 'vue';
 import {
   ArrowLeft,
   Mail,
@@ -405,7 +429,30 @@ import {
   User,
   UserCheck,
   X
-} from 'lucide-vue-next'
+} from 'lucide-vue-next';
+
+const showReportModal = ref(false);
+const applicationId = ref(0);
+const candidateName = ref('');
+const submitUrl = ref('');
+const reportReason = ref('');
+const successMessage = ref('');
+
+const page = usePage();
+const auth = computed(() => page.props.auth);
+
+const companyName = computed(
+    () =>
+        jobData.value.company?.name ||
+        jobData.value.company?.company_name ||
+        'Công ty',
+);
+
+const openReportModal = (application) => {
+  candidateName.value = application.candidate.user.full_name;
+  submitUrl.value = '/employer/reports';
+  showReportModal.value = true;
+};
 
 const formatCurrency = (value) => {
   if (!value) return 'Thỏa thuận'
