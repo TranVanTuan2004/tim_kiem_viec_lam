@@ -56,6 +56,31 @@ class ReportController extends Controller
         ]);
     }
 
+    public function show(Report $report)
+    {
+        abort_if($report->reporter_id !== Auth::id(), 403);
+
+        return Inertia::render('candidate/Reports/Show', [
+            'report' => [
+                'id' => $report->id,
+                'type_label' => $report->getTypeLabel(),
+                'reason' => $report->reason,
+                'status' => $report->status,
+                'status_label' => $report->getStatusLabel(),
+                'reportable_type_label' => $report->getReportableTypeLabel(),
+                'reportable' => $report->reportable ? [
+                    'id' => $report->reportable->id,
+                    'title' =>
+                        $report->reportable_type === 'App\\Models\\JobPosting'
+                        ? $report->reportable->title
+                        : $report->reportable->company_name,
+                ] : null,
+                'admin_notes' => $report->admin_notes,
+                'created_at' => $report->created_at?->format('Y-m-d H:i:s'),
+            ],
+        ]);
+    }
+
     /**
      * Store a newly created report.
      */
