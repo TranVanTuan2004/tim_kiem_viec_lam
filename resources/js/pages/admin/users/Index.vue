@@ -1,243 +1,199 @@
 <script setup lang="ts">
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Input } from '@/components/ui/input';
-import Table from '@/components/ui/table/Table.vue';
-import TableBody from '@/components/ui/table/TableBody.vue';
-import TableCell from '@/components/ui/table/TableCell.vue';
-import TableHead from '@/components/ui/table/TableHead.vue';
-import TableHeader from '@/components/ui/table/TableHeader.vue';
-import TableRow from '@/components/ui/table/TableRow.vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { debounce } from 'lodash-es';
-import { Edit, Eye, MoreVertical, Plus, Search, Trash2 } from 'lucide-vue-next';
-import { ref, watch } from 'vue';
+import { ref, computed } from 'vue';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Search, User as UserIcon } from 'lucide-vue-next';
 
 interface User {
-    id: number;
-    name: string;
-    email: string;
-    phone: string | null;
-    is_active: boolean;
-    roles: Array<{ id: number; name: string; slug: string }>;
-    created_at: string;
+  id: number;
+  name: string;
+  email: string;
+  roles: { name: string }[];
+  is_active: boolean;
+  created_at: string;
 }
 
 interface Props {
-    users: {
-        data: User[];
-        links: any[];
-        meta: any;
-    };
-    filters: {
-        search?: string;
-        role?: string;
-        is_active?: boolean;
-    };
+  users: {
+    data: User[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+  };
+  filters: {
+    search?: string;
+  };
 }
 
 const props = defineProps<Props>();
 
 const search = ref(props.filters.search || '');
 
-const handleSearch = debounce(() => {
-    router.get(
-        '/admin/users',
-        { search: search.value },
-        {
-            preserveState: true,
-            replace: true,
-        },
-    );
-}, 300);
+function applyFilters() {
+  router.get('/admin/users', { search: search.value || undefined }, { preserveState: false });
+}
 
-watch(search, handleSearch);
+function clearFilters() {
+  search.value = '';
+  applyFilters();
+}
 
-const deleteUser = (id: number) => {
-    if (confirm('Bạn có chắc muốn xóa user này?')) {
-        router.delete(`/admin/users/${id}`);
-    }
-};
+function toggleActive(id: number) {
+  router.post(`/admin/users/${id}/toggle-active`, {}, { preserveScroll: true });
+}
+
+function resetPassword(id: number) {
+  router.post(`/admin/users/${id}/reset-password`, {}, { preserveScroll: true });
+}
+
+function sendResetLink(id: number) {
+  router.post(`/admin/users/${id}/send-reset-link`, {}, { preserveScroll: true });
+}
 
 const breadcrumbs = [
-    { title: 'Admin', href: '/admin/dashboard' },
-    { title: 'Users', href: '/admin/users' },
+  { title: 'Dashboard', href: '/admin/dashboard' },
+  { title: 'Quản lý người dùng', href: '/admin/users' }
 ];
 </script>
 
 <template>
-    <Head title="Quản lý Users" />
-
-    <AppLayout :breadcrumbs="breadcrumbs">
-        <div class="flex flex-col gap-4 p-4">
-            <Card>
-                <CardHeader>
-                    <div class="flex items-center justify-between">
-                        <CardTitle>Quản lý Users</CardTitle>
-                        <Link href="/admin/users/create">
-                            <Button>
-                                <Plus class="mr-2 h-4 w-4" />
-                                Thêm User
-                            </Button>
-                        </Link>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <!-- Search and Filters -->
-                    <div class="mb-6 flex items-center gap-4">
-                        <div class="relative max-w-sm flex-1">
-                            <Search
-                                class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground"
-                            />
-                            <Input
-                                v-model="search"
-                                placeholder="Tìm kiếm theo tên, email..."
-                                class="pl-10"
-                            />
-                        </div>
-                    </div>
-
-                    <!-- Table -->
-                    <div class="rounded-md border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Tên</TableHead>
-                                    <TableHead>Email</TableHead>
-                                    <TableHead>Vai trò</TableHead>
-                                    <TableHead>Trạng thái</TableHead>
-                                    <TableHead>Ngày tạo</TableHead>
-                                    <TableHead class="text-right"
-                                        >Thao tác</TableHead
-                                    >
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow
-                                    v-for="user in users.data"
-                                    :key="user.id"
-                                >
-                                    <TableCell class="font-medium">{{
-                                        user.name
-                                    }}</TableCell>
-                                    <TableCell>{{ user.email }}</TableCell>
-                                    <TableCell>
-                                        <div class="flex flex-wrap gap-1">
-                                            <Badge
-                                                v-for="role in user.roles"
-                                                :key="role.id"
-                                                variant="secondary"
-                                            >
-                                                {{ role.name }}
-                                            </Badge>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge
-                                            :variant="
-                                                user.is_active
-                                                    ? 'default'
-                                                    : 'secondary'
-                                            "
-                                        >
-                                            {{
-                                                user.is_active
-                                                    ? 'Active'
-                                                    : 'Inactive'
-                                            }}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        {{
-                                            new Date(
-                                                user.created_at,
-                                            ).toLocaleDateString('vi-VN')
-                                        }}
-                                    </TableCell>
-                                    <TableCell class="text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger as-child>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                >
-                                                    <MoreVertical
-                                                        class="h-4 w-4"
-                                                    />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem as-child>
-                                                    <Link
-                                                        :href="`/admin/users/${user.id}`"
-                                                        class="flex items-center"
-                                                    >
-                                                        <Eye
-                                                            class="mr-2 h-4 w-4"
-                                                        />
-                                                        Xem
-                                                    </Link>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem as-child>
-                                                    <Link
-                                                        :href="`/admin/users/${user.id}/edit`"
-                                                        class="flex items-center"
-                                                    >
-                                                        <Edit
-                                                            class="mr-2 h-4 w-4"
-                                                        />
-                                                        Sửa
-                                                    </Link>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    @click="deleteUser(user.id)"
-                                                    class="text-destructive"
-                                                >
-                                                    <Trash2
-                                                        class="mr-2 h-4 w-4"
-                                                    />
-                                                    Xóa
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div
-                        v-if="users.meta"
-                        class="mt-4 flex items-center justify-between"
-                    >
-                        <div class="text-sm text-muted-foreground">
-                            Hiển thị {{ users.meta.from || 0 }} -
-                            {{ users.meta.to || 0 }} /
-                            {{ users.meta.total || 0 }} users
-                        </div>
-                        <div class="flex gap-2">
-                            <Button
-                                v-for="link in users.links"
-                                :key="link.label"
-                                :variant="link.active ? 'default' : 'outline'"
-                                :disabled="!link.url"
-                                size="sm"
-                                @click="link.url && router.visit(link.url)"
-                                v-html="link.label"
-                            />
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+  <Head title="Quản lý người dùng" />
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="space-y-6 m-[20px]">
+      
+      <!-- Page Header -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
+        <div>
+          <h1 class="text-3xl font-bold tracking-tight flex items-center gap-3">
+            <div class="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+              <UserIcon class="h-6 w-6 text-primary" />
+            </div>
+            Quản lý người dùng
+          </h1>
+          <p class="text-muted-foreground mt-2 ml-[52px]">
+            Quản lý danh sách người dùng và vai trò
+          </p>
         </div>
-    </AppLayout>
+      </div>
+
+      <!-- Filters -->
+      <Card>
+        <CardHeader>
+          <CardTitle class="flex items-center gap-2">
+            <Search class="h-5 w-5" />
+            Bộ lọc
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="grid gap-4 md:grid-cols-3 mb-4">
+            <Input
+              v-model="search"
+              placeholder="Tìm kiếm tên hoặc email..."
+              @keyup.enter="applyFilters"
+            />
+            <div class="flex gap-2">
+              <Button @click="applyFilters" class="flex-1">Tìm</Button>
+              <Button variant="outline" @click="clearFilters">Xóa</Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Users Table -->
+      <div class="bg-white rounded-md shadow overflow-hidden">
+        <div class="responsive-table-wrapper">
+          <table class="w-full text-sm text-left mobile-card-view">
+            <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+              <tr>
+                <th class="px-4 py-3">Tên</th>
+                <th class="px-4 py-3">Email</th>
+                <th class="px-4 py-3">Vai trò</th>
+                <th class="px-4 py-3">Trạng thái</th>
+                <th class="px-4 py-3 text-right">Hành động</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="user in users.data" :key="user.id" class="border-b hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium text-gray-900" data-label="Tên">
+                  {{ user.name }}
+                </td>
+                <td class="px-4 py-3" data-label="Email">
+                  {{ user.email }}
+                </td>
+                <td class="px-4 py-3" data-label="Vai trò">
+                  <Badge 
+                    variant="default" 
+                    :class="user.roles?.[0]?.name === 'Admin' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'"
+                  >
+                    {{ user.roles?.[0]?.name ?? '-' }}
+                  </Badge>
+                </td>
+                <td class="px-4 py-3" data-label="Trạng thái">
+                  <Badge 
+                    variant="default" 
+                    :class="user.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                  >
+                    {{ user.is_active ? 'Hoạt động' : 'Bị khóa' }}
+                  </Badge>
+                </td>
+                <td class="px-4 py-3 text-right" data-label="Hành động">
+                  <div class="flex items-center justify-end gap-2 flex-wrap">
+                    <Button size="sm" variant="outline" @click="toggleActive(user.id)">
+                      {{ user.is_active ? 'Khóa' : 'Mở khóa' }}
+                    </Button>
+
+                    <Button size="sm" variant="outline" @click="resetPassword(user.id)">
+                      Reset Pass
+                    </Button>
+
+                    <Button size="sm" variant="outline" @click="sendResetLink(user.id)">
+                      Email Reset
+                    </Button>
+
+                    <Button size="sm" variant="outline" @click="router.get(`/admin/users/${user.id}/activity-logs`)">
+                      Logs
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div v-if="users.data.length === 0" class="text-center py-12 text-muted-foreground">
+        <UserIcon class="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" />
+        <p>Không tìm thấy người dùng nào</p>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="users.last_page > 1" class="flex items-center justify-center gap-2 pt-6 mt-6 border-t">
+        <Button
+          :disabled="users.current_page === 1"
+          variant="outline"
+          size="sm"
+          @click="router.get(`/admin/users?page=${users.current_page - 1}`)"
+        >
+          Trước
+        </Button>
+        <span class="text-sm text-muted-foreground">
+          Trang {{ users.current_page }} / {{ users.last_page }}
+        </span>
+        <Button
+          :disabled="users.current_page === users.last_page"
+          variant="outline"
+          size="sm"
+          @click="router.get(`/admin/users?page=${users.current_page + 1}`)"
+        >
+          Sau
+        </Button>
+      </div>
+    </div>
+  </AppLayout>
 </template>

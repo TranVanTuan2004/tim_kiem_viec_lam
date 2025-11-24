@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Employer;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Inertia\Inertia;
 
 class DashboardController extends Controller
 {
@@ -69,6 +70,7 @@ class DashboardController extends Controller
                     'candidate' => [
                         'name' => $application->candidateProfile->user->name,
                         'email' => $application->candidateProfile->user->email,
+                        'avatar' => $application->candidateProfile->avatar,
                         'current_position' => $application->candidateProfile->current_position,
                     ],
                     'job_posting' => [

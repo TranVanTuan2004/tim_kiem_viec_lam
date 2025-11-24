@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
+use Tighten\Ziggy\Ziggy;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -43,15 +44,49 @@ class HandleInertiaRequests extends Middleware
             'name' => config('app.name'),
             'quote' => ['message' => trim($message), 'author' => trim($author)],
             'auth' => [
-                'user' => $request->user() ? [
-                    'id' => $request->user()->id,
-                    'name' => $request->user()->name,
-                    'email' => $request->user()->email,
-                    'avatar' => $request->user()->avatar,
-                    'roles' => $request->user()->getRoleNames(),
-                    'permissions' => $request->user()->getAllPermissions()->pluck('name'),
-                ] : null,
+                'user' => $request->user() ? (function() use ($request) {
+                    $user = $request->user();
+                    $avatar = $user->avatar;
+                    
+                    // Nếu là Employer, ưu tiên lấy logo công ty
+                    if ($user->hasRole('Employer')) {
+                        $company = $user->company;
+                        if ($company && $company->logo) {
+                            $avatar = $company->logo;
+                        }
+                    }
+
+                    // Xử lý URL avatar (nếu không phải full URL thì thêm storage path)
+                    if ($avatar && !filter_var($avatar, FILTER_VALIDATE_URL)) {
+                        $avatar = asset('storage/' . $avatar);
+                    }
+
+                    return [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'email' => $user->email,
+                        'avatar' => $avatar,
+                        'roles' => $user->getRoleNames(),
+                        'permissions' => $user->getAllPermissions()->pluck('name'),
+                    ];
+                })() : null,
             ],
+            'candidateProfile' => function () use ($request) {
+                if (!$request->user()) {
+                    return null;
+                }
+                
+                $candidateProfile = $request->user()->candidateProfile;
+                if (!$candidateProfile) {
+                    return null;
+                }
+                
+                return [
+                    'avatar_url' => $candidateProfile->avatar 
+                        ? asset('storage/' . $candidateProfile->avatar) 
+                        : null,
+                ];
+            },
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         
             'flash' => [
@@ -59,8 +94,11 @@ class HandleInertiaRequests extends Middleware
 		    'error'   => fn () => $request->session()->get('error'),
 		    'info'    => fn () => $request->session()->get('info'),
 		],
-
-
+            'ziggy' => function () use ($request) {
+                return array_merge((new \Tighten\Ziggy\Ziggy)->toArray(), [
+                    'location' => $request->url(),
+                ]);
+            },
         ];
     }
 }

@@ -63,13 +63,17 @@ class WorkExperienceController extends Controller
 
         $validated = $request->validate([
             'company_name' => ['required', 'string', 'max:255'],
-            'job_title' => ['required', 'string', 'max:255'],
-            'employment_type' => ['required', 'in:full_time,part_time,contract,internship,freelance'],
+            'position' => ['required', 'string', 'max:255'],
             'start_date' => ['required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'is_current' => ['boolean'],
             'description' => ['nullable', 'string'],
         ]);
+        
+        // If is_current is true, set end_date to null
+        if (isset($validated['is_current']) && $validated['is_current']) {
+            $validated['end_date'] = null;
+        }
 
         $candidateProfile->workExperiences()->create($validated);
 
@@ -108,13 +112,17 @@ class WorkExperienceController extends Controller
 
         $validated = $request->validate([
             'company_name' => ['required', 'string', 'max:255'],
-            'job_title' => ['required', 'string', 'max:255'],
-            'employment_type' => ['required', 'in:full_time,part_time,contract,internship,freelance'],
+            'position' => ['required', 'string', 'max:255'],
             'start_date' => ['required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'is_current' => ['boolean'],
             'description' => ['nullable', 'string'],
         ]);
+        
+        // If is_current is true, set end_date to null
+        if (isset($validated['is_current']) && $validated['is_current']) {
+            $validated['end_date'] = null;
+        }
 
         $workExperience->update($validated);
 
@@ -148,14 +156,14 @@ class WorkExperienceController extends Controller
         return [
             'id' => $experience->id,
             'company_name' => $experience->company_name,
-            'job_title' => $experience->job_title,
-            'employment_type' => $experience->employment_type,
+            'position' => $experience->position,
             'start_date' => $experience->start_date?->format('Y-m-d'),
             'end_date' => $experience->end_date?->format('Y-m-d'),
             'is_current' => $experience->is_current,
             'description' => $experience->description,
             'period' => $experience->getPeriod(),
             'duration_months' => $experience->getDurationInMonths(),
+            'duration_formatted' => $experience->getFormattedDuration(),
         ];
     }
 }

@@ -1,334 +1,290 @@
 <template>
-    <AuthenticatedLayout>
-        <Head title="Saved Jobs" />
+    <CandidateLayout>
+        <Head title="Việc làm đã lưu" />
 
-        <div class="py-12">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
+        <div
+            class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 py-8"
+        >
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <!-- Header -->
                 <div
-                    class="mb-6 overflow-hidden bg-white shadow-sm sm:rounded-lg"
+                    class="mb-8 overflow-hidden rounded-2xl bg-gradient-to-r from-purple-600 via-purple-700 to-indigo-700 shadow-xl"
                 >
-                    <div class="p-6">
-                        <h1 class="text-3xl font-bold text-gray-900">
-                            Saved Jobs
-                        </h1>
-                        <p class="mt-2 text-gray-600">
-                            Jobs you've bookmarked for later review
-                        </p>
+                    <!-- <div class="inset-0 bg-black/10"></div> -->
+                    <div class="relative px-8 py-10 sm:px-12">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h1
+                                    class="text-3xl font-bold text-white sm:text-4xl"
+                                >
+                                    Việc làm đã lưu
+                                </h1>
+                                <p class="mt-3 text-lg text-purple-100">
+                                    Các việc làm bạn đã đánh dấu để xem lại sau
+                                </p>
+                            </div>
+                            <div class="hidden sm:block">
+                                <Bookmark class="h-16 w-16 text-white/30" />
+                            </div>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Filters -->
-                <div
-                    class="mb-6 overflow-hidden bg-white shadow-sm sm:rounded-lg"
-                >
-                    <div class="p-6">
+                <Card class="mb-6">
+                    <CardHeader>
+                        <CardTitle class="text-lg">Bộ lọc</CardTitle>
+                    </CardHeader>
+                    <CardContent>
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <div>
                                 <label
                                     class="mb-2 block text-sm font-medium text-gray-700"
-                                    >Search</label
                                 >
-                                <input
-                                    v-model="localFilters.search"
-                                    @input="debounceSearch"
-                                    type="text"
-                                    placeholder="Search jobs or companies..."
-                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                />
+                                    Tìm kiếm
+                                </label>
+                                <div class="relative">
+                                    <Search
+                                        class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400"
+                                    />
+                                    <input
+                                        v-model="localFilters.search"
+                                        @input="debounceSearch"
+                                        type="text"
+                                        placeholder="Tìm việc làm hoặc công ty..."
+                                        class="block w-full rounded-md border-gray-300 pl-10 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label
                                     class="mb-2 block text-sm font-medium text-gray-700"
-                                    >Job Type</label
                                 >
+                                    Loại công việc
+                                </label>
                                 <select
                                     v-model="localFilters.job_type"
                                     @change="applyFilters"
                                     class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                 >
-                                    <option value="all">All Types</option>
-                                    <option value="full-time">Full-time</option>
-                                    <option value="part-time">Part-time</option>
-                                    <option value="contract">Contract</option>
-                                    <option value="freelance">Freelance</option>
-                                    <option value="internship">
-                                        Internship
+                                    <option value="all">Tất cả loại</option>
+                                    <option value="full-time">
+                                        Toàn thời gian
                                     </option>
+                                    <option value="part-time">
+                                        Bán thời gian
+                                    </option>
+                                    <option value="contract">Hợp đồng</option>
+                                    <option value="freelance">Freelance</option>
+                                    <option value="internship">Thực tập</option>
                                 </select>
                             </div>
                             <div>
                                 <label
                                     class="mb-2 block text-sm font-medium text-gray-700"
-                                    >Location</label
                                 >
-                                <input
-                                    v-model="localFilters.location"
-                                    @input="debounceSearch"
-                                    type="text"
-                                    placeholder="City or region"
-                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Saved Jobs Grid -->
-                <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
-                    <div class="grid grid-cols-1 divide-y divide-gray-200">
-                        <div
-                            v-for="job in savedJobs.data"
-                            :key="job.id"
-                            class="p-6 transition hover:bg-gray-50"
-                        >
-                            <div class="flex items-start justify-between">
-                                <div class="flex-1">
-                                    <div class="flex items-start">
-                                        <img
-                                            v-if="job.company.logo"
-                                            :src="job.company.logo"
-                                            :alt="job.company.name"
-                                            class="h-16 w-16 rounded object-cover"
-                                        />
-                                        <div class="ml-4 flex-1">
-                                            <div
-                                                class="flex items-start justify-between"
-                                            >
-                                                <div class="flex-1">
-                                                    <Link
-                                                        :href="`/jobs/${job.id}`"
-                                                        class="text-xl font-semibold text-gray-900 hover:text-blue-600"
-                                                    >
-                                                        {{ job.title }}
-                                                    </Link>
-                                                    <Link
-                                                        :href="`/companies/${job.company.id}`"
-                                                        class="mt-1 block text-gray-600 hover:text-blue-600"
-                                                    >
-                                                        {{ job.company.name }}
-                                                    </Link>
-                                                </div>
-                                                <button
-                                                    @click="unsaveJob(job.id)"
-                                                    class="ml-4 text-red-600 hover:text-red-800"
-                                                    title="Remove from saved"
-                                                >
-                                                    <svg
-                                                        class="h-6 w-6"
-                                                        fill="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-                                                        />
-                                                    </svg>
-                                                </button>
-                                            </div>
-
-                                            <div
-                                                class="mt-3 flex flex-wrap items-center gap-4 text-sm text-gray-500"
-                                            >
-                                                <div class="flex items-center">
-                                                    <svg
-                                                        class="mr-1 h-4 w-4"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                                                        />
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                                                        />
-                                                    </svg>
-                                                    {{ job.location }}
-                                                </div>
-                                                <div class="flex items-center">
-                                                    <svg
-                                                        class="mr-1 h-4 w-4"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                                                        />
-                                                    </svg>
-                                                    <span class="capitalize">{{
-                                                        job.job_type
-                                                    }}</span>
-                                                </div>
-                                                <div class="flex items-center">
-                                                    <svg
-                                                        class="mr-1 h-4 w-4"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                        />
-                                                    </svg>
-                                                    {{
-                                                        formatSalary(
-                                                            job.salary_min,
-                                                            job.salary_max,
-                                                        )
-                                                    }}
-                                                </div>
-                                                <div
-                                                    v-if="job.industry"
-                                                    class="flex items-center"
-                                                >
-                                                    <svg
-                                                        class="mr-1 h-4 w-4"
-                                                        fill="none"
-                                                        stroke="currentColor"
-                                                        viewBox="0 0 24 24"
-                                                    >
-                                                        <path
-                                                            stroke-linecap="round"
-                                                            stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"
-                                                        />
-                                                    </svg>
-                                                    {{ job.industry.name }}
-                                                </div>
-                                            </div>
-
-                                            <p
-                                                v-if="job.description"
-                                                class="mt-3 line-clamp-2 text-gray-600"
-                                            >
-                                                {{ stripHtml(job.description) }}
-                                            </p>
-
-                                            <div
-                                                class="mt-4 flex items-center space-x-3"
-                                            >
-                                                <Link
-                                                    :href="`/jobs/${job.id}`"
-                                                    class="rounded-md bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
-                                                >
-                                                    View Details
-                                                </Link>
-                                                <Link
-                                                    v-if="!job.has_applied"
-                                                    :href="`/jobs/${job.id}/apply`"
-                                                    class="rounded-md border border-blue-600 px-4 py-2 text-sm text-blue-600 hover:bg-blue-50"
-                                                >
-                                                    Apply Now
-                                                </Link>
-                                                <span
-                                                    v-else
-                                                    class="rounded-md bg-gray-100 px-4 py-2 text-sm text-gray-600"
-                                                >
-                                                    Already Applied
-                                                </span>
-                                                <span
-                                                    class="text-xs text-gray-500"
-                                                >
-                                                    Saved
-                                                    {{
-                                                        formatDate(job.saved_at)
-                                                    }}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </div>
+                                    Địa điểm
+                                </label>
+                                <div class="relative">
+                                    <MapPin
+                                        class="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400"
+                                    />
+                                    <input
+                                        v-model="localFilters.location"
+                                        @input="debounceSearch"
+                                        type="text"
+                                        placeholder="Thành phố hoặc khu vực"
+                                        class="block w-full rounded-md border-gray-300 pl-10 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                    />
                                 </div>
                             </div>
                         </div>
+                    </CardContent>
+                </Card>
 
+                <!-- Saved Jobs List -->
+                <div v-if="savedJobs.data.length > 0" class="bg-white rounded-md shadow overflow-hidden">
+                    <div class="responsive-table-wrapper">
+                        <table class="w-full text-sm text-left mobile-card-view">
+                            <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+                                <tr>
+                                    <th class="px-6 py-3">Công việc</th>
+                                    <th class="px-6 py-3">Địa điểm</th>
+                                    <th class="px-6 py-3">Lương</th>
+                                    <th class="px-6 py-3">Ngày lưu</th>
+                                    <th class="px-6 py-3 text-right">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr
+                                    v-for="job in savedJobs.data"
+                                    :key="job.id"
+                                    class="bg-white border-b hover:bg-gray-50"
+                                >
+                                    <td class="px-6 py-4" data-label="Công việc">
+                                        <div class="flex items-center gap-3">
+                                            <img
+                                                v-if="job.company.logo"
+                                                :src="job.company.logo"
+                                                :alt="job.company.name"
+                                                class="h-10 w-10 rounded-lg border border-gray-200 object-cover"
+                                            />
+                                            <div v-else class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-100">
+                                                <Building2 class="h-5 w-5 text-gray-400" />
+                                            </div>
+                                            <div>
+                                                <Link
+                                                    :href="`/jobs/${job.id}`"
+                                                    class="font-medium text-blue-600 hover:underline block"
+                                                >
+                                                    {{ job.title }}
+                                                </Link>
+                                                <Link
+                                                    :href="`/companies/${job.company.id}`"
+                                                    class="text-xs text-gray-500 hover:text-blue-600"
+                                                >
+                                                    {{ job.company.name }}
+                                                </Link>
+                                                <div class="mt-1 flex gap-1">
+                                                    <Badge variant="outline" class="text-[10px] px-1 py-0 h-5">
+                                                        {{ getJobTypeLabel(job.job_type) }}
+                                                    </Badge>
+                                                    <Badge v-if="job.industry" variant="outline" class="text-[10px] px-1 py-0 h-5">
+                                                        {{ job.industry.name }}
+                                                    </Badge>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4" data-label="Địa điểm">
+                                        <div class="flex items-center text-gray-600">
+                                            <MapPin class="mr-1 h-3 w-3" />
+                                            {{ job.location }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4" data-label="Lương">
+                                        <div class="flex items-center text-gray-600">
+                                            <DollarSign class="mr-1 h-3 w-3" />
+                                            {{ formatSalary(job.salary_min, job.salary_max) }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4" data-label="Ngày lưu">
+                                        <div class="flex items-center text-gray-500">
+                                            <Calendar class="mr-1 h-3 w-3" />
+                                            {{ formatDate(job.saved_at) }}
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-right" data-label="Hành động">
+                                        <div class="flex items-center justify-end gap-2 flex-wrap">
+                                            <Link
+                                                :href="`/jobs/${job.id}`"
+                                                class="inline-flex items-center justify-center rounded-md border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
+                                            >
+                                                Xem
+                                            </Link>
+                                            <Link
+                                                v-if="!job.has_applied"
+                                                :href="`/jobs/${job.id}/apply`"
+                                                class="inline-flex items-center justify-center rounded-md bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
+                                            >
+                                                Ứng tuyển
+                                            </Link>
+                                            <Badge v-else variant="secondary">
+                                                Đã ứng tuyển
+                                            </Badge>
+                                            <button
+                                                @click="unsaveJob(job.id)"
+                                                class="ml-2 text-red-600 hover:text-red-800"
+                                                title="Bỏ lưu"
+                                            >
+                                                <X class="h-5 w-5" />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <Card v-else>
+                    <CardContent class="py-16 text-center">
                         <div
-                            v-if="savedJobs.data.length === 0"
-                            class="p-12 text-center"
+                            class="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-purple-100"
                         >
-                            <svg
-                                class="mx-auto h-12 w-12 text-gray-400"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
+                            <Bookmark class="h-10 w-10 text-purple-600" />
+                        </div>
+                        <h3 class="mt-4 text-xl font-semibold text-gray-900">
+                            Chưa có việc làm đã lưu
+                        </h3>
+                        <p class="mt-2 text-sm text-gray-500">
+                            Lưu các việc làm bạn quan tâm để xem lại sau!
+                        </p>
+                        <div class="mt-6">
+                            <Link
+                                href="/jobs"
+                                class="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:outline-none"
                             >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"
-                                />
-                            </svg>
-                            <h3 class="mt-2 text-sm font-medium text-gray-900">
-                                No saved jobs
-                            </h3>
-                            <p class="mt-1 text-sm text-gray-500">
-                                Save jobs you're interested in to review them
-                                later!
-                            </p>
-                            <div class="mt-6">
-                                <Link
-                                    href="/jobs"
-                                    class="inline-flex items-center rounded-md border border-transparent bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-700"
-                                >
-                                    Browse Jobs
-                                </Link>
-                            </div>
+                                <Search class="mr-2 h-4 w-4" />
+                                Tìm việc làm
+                            </Link>
                         </div>
-                    </div>
+                    </CardContent>
+                </Card>
 
-                    <!-- Pagination -->
-                    <div
-                        v-if="savedJobs.data.length > 0"
-                        class="border-t border-gray-200 p-6"
-                    >
-                        <div class="flex items-center justify-between">
-                            <div class="text-sm text-gray-700">
-                                Showing {{ savedJobs.from }} to
-                                {{ savedJobs.to }} of {{ savedJobs.total }} jobs
+                <!-- Pagination -->
+                <div v-if="savedJobs.data.length > 0" class="mt-6">
+                    <Card>
+                        <CardContent class="p-6">
+                            <div class="flex items-center justify-between">
+                                <div class="text-sm text-gray-700">
+                                    Hiển thị {{ savedJobs.from }} đến
+                                    {{ savedJobs.to }} trong tổng số
+                                    {{ savedJobs.total }} việc làm
+                                </div>
+                                <div class="flex space-x-2">
+                                    <Link
+                                        v-for="link in savedJobs.links"
+                                        :key="link.label"
+                                        :href="link.url || '#'"
+                                        :class="[
+                                            link.active
+                                                ? 'bg-blue-600 text-white'
+                                                : 'bg-white text-gray-700 hover:bg-gray-50',
+                                            !link.url
+                                                ? 'cursor-not-allowed opacity-50'
+                                                : '',
+                                            'rounded-md border border-gray-300 px-3 py-2 text-sm',
+                                        ]"
+                                        v-html="link.label"
+                                    >
+                                    </Link>
+                                </div>
                             </div>
-                            <div class="flex space-x-2">
-                                <Link
-                                    v-for="link in savedJobs.links"
-                                    :key="link.label"
-                                    :href="link.url || '#'"
-                                    :class="[
-                                        link.active
-                                            ? 'bg-blue-600 text-white'
-                                            : 'bg-white text-gray-700 hover:bg-gray-50',
-                                        !link.url
-                                            ? 'cursor-not-allowed opacity-50'
-                                            : '',
-                                        'rounded-md border border-gray-300 px-3 py-2 text-sm',
-                                    ]"
-                                    v-html="link.label"
-                                >
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
+                        </CardContent>
+                    </Card>
                 </div>
             </div>
         </div>
-    </AuthenticatedLayout>
+    </CandidateLayout>
 </template>
 
 <script setup lang="ts">
-import AuthenticatedLayout from '@/layouts/AuthenticatedLayout.vue';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import CandidateLayout from '@/layouts/CandidateLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import {
+    Bookmark,
+    Briefcase,
+    Building2,
+    Calendar,
+    DollarSign,
+    MapPin,
+    Search,
+    X,
+} from 'lucide-vue-next';
 import { reactive } from 'vue';
 
 interface Props {
@@ -343,20 +299,35 @@ let searchTimeout: number | null = null;
 
 const formatDate = (date: string) => {
     if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString('en-US', {
+    return new Date(date).toLocaleDateString('vi-VN', {
         year: 'numeric',
-        month: 'short',
+        month: 'long',
         day: 'numeric',
     });
 };
 
 const formatSalary = (min: number, max: number) => {
-    if (!min && !max) return 'Negotiable';
+    if (!min && !max) return 'Thỏa thuận';
     if (!max) return `$${min.toLocaleString()}+`;
     return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
 };
 
+const getJobTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+        'full-time': 'Toàn thời gian',
+        'part-time': 'Bán thời gian',
+        contract: 'Hợp đồng',
+        freelance: 'Freelance',
+        internship: 'Thực tập',
+    };
+    return labels[type] || type;
+};
+
 const stripHtml = (html: string) => {
+    if (typeof document === 'undefined') {
+        // SSR fallback
+        return html.replace(/<[^>]*>/g, '').substring(0, 150);
+    }
     const tmp = document.createElement('DIV');
     tmp.innerHTML = html;
     return tmp.textContent || tmp.innerText || '';
@@ -377,11 +348,14 @@ const debounceSearch = () => {
 };
 
 const unsaveJob = (jobId: number) => {
-    router.delete(`/candidate/saved-jobs/${jobId}`, {
-        preserveScroll: true,
-        onSuccess: () => {
-            // Handle success
-        },
-    });
+    if (confirm('Bạn có chắc muốn bỏ lưu việc làm này?')) {
+        router.delete(`/candidate/saved-jobs/${jobId}`, {
+            preserveScroll: true,
+            onSuccess: () => {
+                // Handle success
+            },
+        });
+    }
 };
 </script>
+

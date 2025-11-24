@@ -64,12 +64,17 @@ class EducationController extends Controller
         $validated = $request->validate([
             'institution' => ['required', 'string', 'max:255'],
             'degree' => ['required', 'string', 'max:255'],
-            'field_of_study' => ['required', 'string', 'max:255'],
+            'field_of_study' => ['nullable', 'string', 'max:255'],
             'start_date' => ['required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'gpa' => ['nullable', 'numeric', 'min:0', 'max:4'],
             'description' => ['nullable', 'string'],
         ]);
+        
+        // If end_date is empty/null, it means current (still studying)
+        if (empty($validated['end_date'])) {
+            $validated['end_date'] = null;
+        }
 
         $candidateProfile->educations()->create($validated);
 
@@ -109,12 +114,17 @@ class EducationController extends Controller
         $validated = $request->validate([
             'institution' => ['required', 'string', 'max:255'],
             'degree' => ['required', 'string', 'max:255'],
-            'field_of_study' => ['required', 'string', 'max:255'],
+            'field_of_study' => ['nullable', 'string', 'max:255'],
             'start_date' => ['required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'gpa' => ['nullable', 'numeric', 'min:0', 'max:4'],
             'description' => ['nullable', 'string'],
         ]);
+        
+        // If end_date is empty/null, it means current (still studying)
+        if (empty($validated['end_date'])) {
+            $validated['end_date'] = null;
+        }
 
         $education->update($validated);
 

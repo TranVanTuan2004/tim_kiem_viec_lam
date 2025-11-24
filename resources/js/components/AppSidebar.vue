@@ -20,13 +20,15 @@ import {
     BookOpen,
     Bookmark,
     Briefcase,
+    Calendar,
     CreditCard,
     FileText,
     Folder,
     Home,
+    Image,
+    Layout,
     LayoutGrid,
     MessageSquare,
-    Star,
     User,
     Users,
 } from 'lucide-vue-next';
@@ -46,9 +48,11 @@ const getDashboardLink = () => {
     if (isCandidateContext.value) {
         return '/candidate/dashboard';
     } else if (hasRole('Employer')) {
-        return '/dashboard'; // Update when employer dashboard is ready
+        return '/employer/dashboard';
+    } else if (hasRole('Admin')) {
+        return '/admin/dashboard';
     }
-    return dashboard(); // Admin or default
+    return '/candidate/dashboard'; // Default to candidate
 };
 
 // Define different navigation items for different roles
@@ -65,13 +69,18 @@ const candidateNavItems: NavItem[] = [
     },
     {
         title: 'Hồ sơ cá nhân',
-        href: '/candidate/profile',
+        href: '/profile',
         icon: User,
     },
     {
         title: 'My Applications',
         href: '/candidate/applications',
         icon: FileText,
+    },
+    {
+        title: 'Lịch Phỏng Vấn',
+        href: '/candidate/interviews',
+        icon: MessageSquare,
     },
     {
         title: 'Saved Jobs',
@@ -97,9 +106,45 @@ const adminNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
-        title: 'Users',
+        title: 'Quản lý người dùng',
         href: '/admin/users',
         icon: Users,
+        permission: 'view users',
+    },
+    {
+        title: 'Quản lý báo cáo',
+        href: '/admin/reports',
+        icon: FileText,
+        permission: 'view reports',
+    },
+    {
+        title: 'Quản lý ứng tuyển',
+        href: '/admin/applications',
+        icon: FileText,
+        permission: 'view applications',
+    },
+    {
+        title: 'Quản lý tin tuyển dụng',
+        href: '/admin/job-postings',
+        icon: Briefcase,
+        permission: 'view users',
+    },
+    {
+        title: 'Quản lý lịch phỏng vấn',
+        href: '/admin/interviews',
+        icon: Calendar,
+        permission: 'view users',
+    },
+    {
+        title: 'Quản lý Banner',
+        href: '/admin/banners',
+        icon: Image,
+        permission: 'view users',
+    },
+    {
+        title: 'Nội dung Trang chủ',
+        href: '/admin/homepage',
+        icon: Layout,
         permission: 'view users',
     },
     {
@@ -107,12 +152,6 @@ const adminNavItems: NavItem[] = [
         href: '/admin/chat',
         icon: MessageSquare,
         permission: 'view messages',
-    },
-    {
-        title: 'Quản lý đánh giá',
-        href: '/admin/company-reviews',
-        icon: Star,
-        // permission: 'view users',
     },
     {
         title: 'Activity Logs',
@@ -134,12 +173,50 @@ const adminNavItems: NavItem[] = [
     },
 ];
 
+const employerNavItems: NavItem[] = [
+    {
+        title: 'Home',
+        href: '/',
+        icon: Home,
+    },
+    {
+        title: 'Dashboard',
+        href: '/employer/dashboard',
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Tin tuyển dụng',
+        href: '/employer/posting',
+        icon: Briefcase,
+    },
+    {
+        title: 'Lịch sử ứng tuyển',
+        href: '/employer/applications',
+        icon: FileText,
+    },
+    {
+        title: 'Lịch phỏng vấn',
+        href: '/employer/interviews',
+        icon: MessageSquare,
+    },
+    {
+        title: 'Tìm ứng viên',
+        href: '/employer/candidates/search',
+        icon: Users,
+    },
+    {
+        title: 'Cài đặt công ty',
+        href: '/employer/settings/company',
+        icon: User,
+    },
+];
+
 // Get navigation items based on user role
 const mainNavItems = computed(() => {
     if (isCandidateContext.value) {
         return candidateNavItems;
     } else if (hasRole('Employer')) {
-        return adminNavItems; // Update when employer nav is ready
+        return employerNavItems;
     }
     return adminNavItems; // Default to admin nav
 });

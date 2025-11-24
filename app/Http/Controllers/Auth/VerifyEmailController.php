@@ -19,13 +19,31 @@ class VerifyEmailController extends Controller
      */
     public function __invoke(EmailVerificationRequest $request): RedirectResponse
     {
-        if ($request->user()->hasVerifiedEmail()) {
-            return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
+        $user = $request->user();
+        
+        if ($user->hasVerifiedEmail()) {
+            // Redirect based on user role
+            if ($user->hasRole('Candidate')) {
+                return redirect()->route('candidate.dashboard', ['verified' => 1]);
+            } elseif ($user->hasRole('Employer')) {
+                return redirect()->route('employer.dashboard', ['verified' => 1]);
+            } elseif ($user->hasRole('Admin')) {
+                return redirect()->route('admin.dashboard', ['verified' => 1]);
+            }
+            return redirect()->route('candidate.dashboard', ['verified' => 1]);
         }
 
         $request->fulfill();
 
-        return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
+        // Redirect based on user role after verification
+        if ($user->hasRole('Candidate')) {
+            return redirect()->route('candidate.dashboard', ['verified' => 1]);
+        } elseif ($user->hasRole('Employer')) {
+            return redirect()->route('employer.dashboard', ['verified' => 1]);
+        } elseif ($user->hasRole('Admin')) {
+            return redirect()->route('admin.dashboard', ['verified' => 1]);
+        }
+        return redirect()->route('candidate.dashboard', ['verified' => 1]);
     }
 
     /**

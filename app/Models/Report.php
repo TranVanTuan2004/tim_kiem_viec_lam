@@ -6,10 +6,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
 
 class Report extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes, LogsActivity;
 
     protected $fillable = [
         'reporter_id',
@@ -18,7 +21,17 @@ class Report extends Model
         'type',
         'reason',
         'status',
+        'admin_notes',
+        'reviewed_by',
+        'reviewed_at', 
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'reviewed_at' => 'datetime',
+        ];
+    }
 
     // Relationships
     public function reporter(): BelongsTo
@@ -42,35 +55,40 @@ class Report extends Model
         return $query->where('status', 'pending');
     }
 
+    public function scopeReviewing($query)
+    {
+        return $query->where('status', 'reviewing');
+    }
+
     public function scopeResolved($query)
     {
         return $query->where('status', 'resolved');
     }
 
-    public function scopeByType($query, $type)
+    public function scopeDismissed($query)
     {
-        return $query->where('type', $type);
+        return $query->where('status', 'dismissed');
     }
 
-    public function scopeSpam($query)
+    public function scopeByReason($query, $reason)
     {
-        return $query->where('type', 'spam');
+        return $query->where('reason', $reason);
     }
 
-    public function scopeFraud($query)
+    public function scopeByReportableType($query, $type)
     {
-        return $query->where('type', 'fraud');
-    }
-
-    public function scopeInappropriate($query)
-    {
-        return $query->where('type', 'inappropriate');
+        return $query->where('reportable_type', $type);
     }
 
     // Helper methods
     public function isPending(): bool
     {
         return $this->status === 'pending';
+    }
+
+    public function isReviewing(): bool
+    {
+        return $this->status === 'reviewing';
     }
 
     public function isResolved(): bool
@@ -99,10 +117,52 @@ class Report extends Model
         return match ($this->type) {
             'spam' => 'Spam',
             'fraud' => 'Lừa đảo',
-            'inappropriate' => 'Không phù hợp',
+            'inappropriate' => 'Nội dung không phù hợp',
             'fake' => 'Giả mạo',
             'other' => 'Khác',
             default => 'Không xác định',
+        };
+    }
+
+    public function getReportableTypeLabel(): string
+    {
+        return match ($this->reportable_type) {
+            'App\\Models\\JobPosting' => 'Tin tuyển dụng',
+            'App\\Models\\Company' => 'Công ty',
+            'App\\Models\\Interview' => 'Lịch phỏng vấn',
+            default => 'Không xác định',
+        };
+    }
+
+    // Activity Log Configuration
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logAll()
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs()
+            ->setDescriptionForEvent(fn(string $eventName) => "Report #{$this->id} {$eventName}");
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->reporter();
+    }
+
+    public function reviewer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'reviewed_by');
+    }
+
+    public function getReasonLabel(): string
+    {
+        return match ($this->reason) {
+            'spam' => 'Spam',
+            'fraud' => 'Lừa đảo',
+            'inappropriate' => 'Nội dung không phù hợp',
+            'fake' => 'Giả mạo',
+            'other' => 'Khác',
+            default => $this->reason,
         };
     }
 }

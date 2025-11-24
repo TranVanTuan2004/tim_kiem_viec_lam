@@ -51,7 +51,18 @@ class AuthenticatedSessionController extends Controller
             ->withProperties(['ip' => $request->ip(), 'user_agent' => $request->userAgent()])
             ->log('User logged in');
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        // Redirect based on user role - use direct route instead of intended
+        // to avoid redirecting to generic /dashboard
+        if ($user->hasRole('Candidate')) {
+            return redirect()->route('candidate.dashboard');
+        } elseif ($user->hasRole('Employer')) {
+            return redirect()->route('employer.dashboard');
+        } elseif ($user->hasRole('Admin')) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        // Default fallback - redirect to candidate dashboard
+        return redirect()->route('candidate.dashboard');
     }
 
     /**
@@ -60,7 +71,7 @@ class AuthenticatedSessionController extends Controller
     public function destroy(Request $request): RedirectResponse
     {
         $user = Auth::user();
-        
+
         // Log user logout before logging out
         if ($user) {
             activity()

@@ -11,6 +11,10 @@ import { ArrowLeft } from 'lucide-vue-next';
 import { computed } from 'vue';
 
 // Form khởi tạo
+const props = defineProps({
+    industries: Array,
+});
+
 const form = useForm({
     title: '',
     description: '',
@@ -35,23 +39,18 @@ const districts = computed(() => {
 const submit = () => {
     console.log('Submitting form...', form.data());
 
-    // Convert số nếu cần
-    const payload = {
-        ...form.data(),
-        industry_id: Number(form.industry_id),
-        min_salary: form.min_salary ? Number(form.min_salary) : null,
-        max_salary: form.max_salary ? Number(form.max_salary) : null,
-    };
-
-    // Gửi thẳng URL POST
-    form.post('/employer/posting', {
-        data: payload,
+    form.transform((data) => ({
+        ...data,
+        industry_id: Number(data.industry_id),
+        min_salary: data.min_salary ? Number(data.min_salary) : null,
+        max_salary: data.max_salary ? Number(data.max_salary) : null,
+    })).post('/employer/posting', {
         onSuccess: () => {
-            successMessage.value = '✅ Tin tuyển dụng đã được tạo thành công!';
-            form.reset(); // Reset form nếu muốn
+            // successMessage.value = '✅ Tin tuyển dụng đã được tạo thành công!'; // successMessage not defined in script
+            form.reset();
         },
         onError: () => {
-            successMessage.value = '';
+            // successMessage.value = '';
         },
     });
 };
@@ -143,11 +142,20 @@ const submit = () => {
 
                         <div>
                             <Label for="industry_id">Ngành nghề *</Label>
-                            <Input
+                            <select
                                 id="industry_id"
                                 v-model="form.industry_id"
-                                placeholder="ID ngành nghề (tạm thời)"
-                            />
+                                class="w-full rounded-md border p-2"
+                            >
+                                <option value="">-- Chọn ngành nghề --</option>
+                                <option
+                                    v-for="industry in industries"
+                                    :key="industry.id"
+                                    :value="industry.id"
+                                >
+                                    {{ industry.name }}
+                                </option>
+                            </select>
                             <p
                                 v-if="form.errors.industry_id"
                                 class="text-sm text-red-600"
@@ -156,7 +164,7 @@ const submit = () => {
                             </p>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <Label for="employment_type"
                                     >Hình thức làm việc</Label
@@ -202,7 +210,7 @@ const submit = () => {
                             </div>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <!-- Tỉnh -->
                             <div>
                                 <label class="mb-1 block font-medium"
@@ -276,7 +284,7 @@ const submit = () => {
                             </p>
                         </div>
 
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
                                 <Label for="min_salary">Lương tối thiểu</Label>
                                 <Input

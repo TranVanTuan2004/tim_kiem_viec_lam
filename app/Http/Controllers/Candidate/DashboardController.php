@@ -67,6 +67,7 @@ class DashboardController extends Controller
             'recommendedJobs' => $recommendedJobs,
             'candidateProfile' => [
                 'id' => $candidateProfile->id,
+                'avatar_url' => $candidateProfile->avatar ? asset('storage/' . $candidateProfile->avatar) : null,
                 'current_position' => $candidateProfile->current_position,
                 'current_company' => $candidateProfile->current_company,
                 'is_available' => $candidateProfile->is_available,
@@ -101,7 +102,7 @@ class DashboardController extends Controller
         return $query->latest()
             ->take(6)
             ->get()
-            ->map(function ($job) {
+            ->map(function ($job) use ($candidateProfile) {
                 return [
                     'id' => $job->id,
                     'title' => $job->title,
@@ -120,6 +121,8 @@ class DashboardController extends Controller
                         'id' => $job->industry->id,
                         'name' => $job->industry->name,
                     ] : null,
+                    // **Thêm trạng thái favorite**
+                    'is_favorited' => $candidateProfile->savedJobPostings()->where('job_posting_id', $job->id)->exists(),
                 ];
             });
     }

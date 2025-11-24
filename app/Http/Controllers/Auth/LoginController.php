@@ -35,8 +35,18 @@ class LoginController extends Controller
         // Regenerate session
         $request->session()->regenerate();
 
-        // Redirect tới dashboard
-        return redirect()->intended(route('dashboard'));
+        // Redirect based on user role - use direct route instead of intended
+        // to avoid redirecting to generic /dashboard
+        if ($user->hasRole('Candidate')) {
+            return redirect()->route('candidate.dashboard');
+        } elseif ($user->hasRole('Employer')) {
+            return redirect()->route('employer.dashboard');
+        } elseif ($user->hasRole('Admin')) {
+            return redirect()->route('admin.dashboard');
+        }
+
+        // Default fallback - redirect to candidate dashboard
+        return redirect()->route('candidate.dashboard');
     }
 
     /**

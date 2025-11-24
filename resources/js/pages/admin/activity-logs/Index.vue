@@ -76,7 +76,7 @@ const dateFrom = ref(props.filters.date_from || '');
 const dateTo = ref(props.filters.date_to || '');
 
 const breadcrumbs = [
-    { title: 'Dashboard', href: '/dashboard' },
+    { title: 'Dashboard', href: '/admin/dashboard' },
     { title: 'Activity Logs', href: '/admin/activity-logs' },
 ];
 

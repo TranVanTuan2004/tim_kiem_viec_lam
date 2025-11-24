@@ -31,10 +31,19 @@ export function usePermissions() {
      */
     const hasRole = (role: string): boolean => {
         const user = currentUser.value;
-        if (!user) return false;
+        if (!user || !user.roles) return false;
 
-        // user.roles là array object với structure: [{name: 'Candidate', ...}]
-        return user.roles?.some((r: any) => r.name === role) || false;
+        // Support both formats:
+        // 1. Array of strings: ['Employer', 'Admin']
+        // 2. Array of objects: [{name: 'Employer'}, {name: 'Admin'}]
+        return user.roles.some((r: any) => {
+            // If r is a string, compare directly
+            if (typeof r === 'string') {
+                return r === role;
+            }
+            // If r is an object, compare r.name
+            return r.name === role;
+        });
     };
 
     /**
@@ -43,14 +52,7 @@ export function usePermissions() {
      * @returns true nếu có ít nhất 1 role
      */
     const hasAnyRole = (roles: string[]): boolean => {
-        const user = currentUser.value;
-        if (!user) return false;
-
-        return (
-            roles.some((role) =>
-                user.roles?.some((r: any) => r.name === role),
-            ) || false
-        );
+        return roles.some((role) => hasRole(role));
     };
 
     /**
@@ -59,14 +61,7 @@ export function usePermissions() {
      * @returns true nếu có tất cả roles
      */
     const hasAllRoles = (roles: string[]): boolean => {
-        const user = currentUser.value;
-        if (!user) return false;
-
-        return (
-            roles.every((role) =>
-                user.roles?.some((r: any) => r.name === role),
-            ) || false
-        );
+        return roles.every((role) => hasRole(role));
     };
 
     /**

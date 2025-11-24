@@ -10,6 +10,8 @@ use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Inertia\Response;
 use Illuminate\Http\RedirectResponse;
+use Spatie\Activitylog\Models\Activity;
+use Illuminate\Support\Facades\Password;
 
 class UserController extends Controller
 {
@@ -165,5 +167,54 @@ class UserController extends Controller
 
         return redirect()->route('admin.users.index')
             ->with('success', 'User deleted successfully.');
+    }
+
+    public function toggleActive(User $user)
+    {
+        $user->is_active = !$user->is_active;
+        $user->save();
+
+        activity()->causedBy(auth()->user())
+            ->performedOn($user)
+            ->withProperties(['is_active' => $user->is_active])
+            ->log('Thay đổi trạng thái tài khoản');
+
+        return back()->with('success', 'Cập nhật trạng thái thành công.');
+    }
+
+    public function resetPassword(User $user)
+    {
+        $user->password = Hash::make('12345678');
+        $user->save();
+
+        activity()->causedBy(auth()->user())
+            ->performedOn($user)
+            ->log('Admin reset mật khẩu user.');
+
+        return back()->with('success', 'Mật khẩu đã được reset thành 12345678');
+    }
+
+    public function sendResetLink(User $user)
+    {
+        Password::sendResetLink(['email' => $user->email]);
+
+        activity()->causedBy(auth()->user())
+            ->performedOn($user)
+            ->log('Admin gửi email đặt lại mật khẩu.');
+
+        return back()->with('success', 'Đã gửi email đặt lại mật khẩu.');
+    }
+
+    public function activityLogs(User $user)
+    {
+        $logs = Activity::where('causer_id', $user->id)
+            ->orderBy('created_at', 'desc')
+            ->limit(50)
+            ->get();
+
+        return Inertia::render('admin/users/ActivityLogs', [
+            'user' => $user,
+            'logs' => $logs
+        ]);
     }
 }

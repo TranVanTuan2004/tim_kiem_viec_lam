@@ -1,0 +1,53 @@
+/* Responsive Table Utilities */
+.responsive-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile Card View for Tables */
+@media (max-width: 768px) {
+  .mobile-card-view thead {
+    display: none;
+  }
+
+  .mobile-card-view tbody tr {
+    display: block;
+    margin-bottom: 1rem;
+    border: 1px solid hsl(var(--border));
+    border-radius: 0.5rem;
+    padding: 1rem;
+    background-color: hsl(var(--card));
+  }
+
+  .mobile-card-view tbody td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid hsl(var(--border));
+  }
+
+  .mobile-card-view tbody td:last-child {
+    border-bottom: none;
+  }
+
+  .mobile-card-view tbody td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    margin-right: 1rem;
+    color: hsl(var(--muted-foreground));
+  }
+}
+
+/* Stack elements on mobile */
+@media (max-width: 640px) {
+  .mobile-stack {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .mobile-stack > * {
+    width: 100%;
+  }
+}

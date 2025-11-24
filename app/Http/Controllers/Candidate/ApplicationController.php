@@ -24,7 +24,9 @@ class ApplicationController extends Controller
         }
 
         $query = $candidateProfile->applications()
-            ->with(['jobPosting.company', 'jobPosting.industry']);
+            ->with(['jobPosting' => function ($query) {
+                $query->withTrashed()->with(['company', 'industry']);
+            }]);
 
         // Filter by status if provided
         if ($request->has('status') && $request->status !== 'all') {
@@ -35,7 +37,8 @@ class ApplicationController extends Controller
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->whereHas('jobPosting', function ($q) use ($search) {
-                $q->where('title', 'like', "%{$search}%")
+                $q->withTrashed()
+                    ->where('title', 'like', "%{$search}%")
                     ->orWhereHas('company', function ($q2) use ($search) {
                         $q2->where('name', 'like', "%{$search}%");
                     });
@@ -54,8 +57,8 @@ class ApplicationController extends Controller
         $stats = [
             'total' => $candidateProfile->applications()->count(),
             'pending' => $candidateProfile->applications()->where('status', 'pending')->count(),
-            'reviewed' => $candidateProfile->applications()->where('status', 'reviewed')->count(),
-            'shortlisted' => $candidateProfile->applications()->where('status', 'shortlisted')->count(),
+            'reviewing' => $candidateProfile->applications()->where('status', 'reviewing')->count(),
+            'interview' => $candidateProfile->applications()->where('status', 'interview')->count(),
             'rejected' => $candidateProfile->applications()->where('status', 'rejected')->count(),
             'accepted' => $candidateProfile->applications()->where('status', 'accepted')->count(),
         ];
@@ -81,9 +84,9 @@ class ApplicationController extends Controller
         $candidateProfile = $user->candidateProfile;
 
         $application = Application::with([
-            'jobPosting.company',
-            'jobPosting.industry',
-            'jobPosting.skills',
+            'jobPosting' => function ($query) {
+                $query->withTrashed()->with(['company', 'industry', 'skills']);
+            }
         ])->findOrFail($id);
 
         // Check ownership
@@ -112,7 +115,7 @@ class ApplicationController extends Controller
         }
 
         // Only allow withdrawal of pending or reviewed applications
-        if (!in_array($application->status, ['pending', 'reviewed'])) {
+        if (!in_array($application->status, ['pending', 'reviewing'])) {
             return back()->with('error', 'Cannot withdraw this application.');
         }
 
@@ -127,41 +130,45 @@ class ApplicationController extends Controller
      */
     private function transformApplication($application)
     {
+        $jobPosting = $application->jobPosting;
+
         return [
             'id' => $application->id,
             'status' => $application->status,
             'cover_letter' => $application->cover_letter,
             'applied_at' => $application->created_at ? $application->created_at->format('Y-m-d H:i:s') : null,
             'updated_at' => $application->updated_at ? $application->updated_at->format('Y-m-d H:i:s') : null,
-            'job_posting' => [
-                'id' => $application->jobPosting->id,
-                'title' => $application->jobPosting->title,
-                'description' => $application->jobPosting->description,
-                'location' => $application->jobPosting->location,
-                'job_type' => $application->jobPosting->job_type,
-                'experience_level' => $application->jobPosting->experience_level,
-                'salary_min' => $application->jobPosting->salary_min,
-                'salary_max' => $application->jobPosting->salary_max,
-                'deadline' => $application->jobPosting->application_deadline ? $application->jobPosting->application_deadline->format('Y-m-d') : null,
-                'status' => $application->jobPosting->status,
-                'company' => [
-                    'id' => $application->jobPosting->company->id,
-                    'name' => $application->jobPosting->company->name,
-                    'logo' => $application->jobPosting->company->logo,
-                    'website' => $application->jobPosting->company->website,
-                    'location' => $application->jobPosting->company->location,
-                ],
-                'industry' => $application->jobPosting->industry ? [
-                    'id' => $application->jobPosting->industry->id,
-                    'name' => $application->jobPosting->industry->name,
+            'job_posting' => $jobPosting ? [
+                'id' => $jobPosting->id,
+                'slug' => $jobPosting->slug,
+                'title' => $jobPosting->title,
+                'description' => $jobPosting->description,
+                'location' => $jobPosting->location,
+                'job_type' => $jobPosting->job_type ?? 'Full-time', // Fallback
+                'experience_level' => $jobPosting->experience_level,
+                'salary_min' => $jobPosting->min_salary, // Fixed field name based on JobPosting model
+                'salary_max' => $jobPosting->max_salary, // Fixed field name based on JobPosting model
+                'deadline' => $jobPosting->application_deadline ? $jobPosting->application_deadline->format('Y-m-d') : null,
+                'status' => $jobPosting->status,
+                'company' => $jobPosting->company ? [
+                    'id' => $jobPosting->company->id,
+                    'slug' => $jobPosting->company->company_slug,
+                    'name' => $jobPosting->company->name ?? $jobPosting->company->company_name, // Handle potential field name diff
+                    'logo' => $jobPosting->company->logo ? asset('storage/' . $jobPosting->company->logo) : null,
+                    'website' => $jobPosting->company->website,
+                    'location' => $jobPosting->company->address ?? $jobPosting->company->location, // Handle potential field name diff
                 ] : null,
-                'skills' => $application->jobPosting->skills?->map(function ($skill) {
+                'industry' => $jobPosting->industry ? [
+                    'id' => $jobPosting->industry->id,
+                    'name' => $jobPosting->industry->name,
+                ] : null,
+                'skills' => $jobPosting->skills ? $jobPosting->skills->map(function ($skill) {
                     return [
                         'id' => $skill->id,
                         'name' => $skill->name,
                     ];
-                }),
-            ],
+                }) : [],
+            ] : null,
         ];
     }
 }

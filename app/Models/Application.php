@@ -40,6 +40,11 @@ class Application extends Model
         return $this->belongsTo(CandidateProfile::class, 'candidate_id');
     }
 
+    public function candidateProfile(): BelongsTo
+    {
+        return $this->belongsTo(CandidateProfile::class, 'candidate_id');
+    }
+
     // Scopes
     public function scopeByStatus($query, $status)
     {
@@ -96,6 +101,7 @@ class Application extends Model
             'interview' => 'Phỏng vấn',
             'accepted' => 'Được chấp nhận',
             'rejected' => 'Bị từ chối',
+            'withdrawn' => 'Đã rút hồ sơ',
             default => 'Không xác định',
         };
     }

@@ -12,7 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import AppLayout from '@/layouts/AppLayout.vue';
+import CandidateLayout from '@/layouts/CandidateLayout.vue';
 import { Head, router, useForm } from '@inertiajs/vue3';
 import { Plus, Upload, X } from 'lucide-vue-next';
 import { ref } from 'vue';
@@ -82,7 +82,7 @@ const submit = () => {
 };
 
 const breadcrumbs = [
-    { title: 'Dashboard', href: '/dashboard' },
+    { title: 'Dashboard', href: '/candidate/dashboard' },
     { title: 'Portfolio', href: '/candidate/portfolios' },
     { title: 'Tạo mới', href: '/candidate/portfolios/create' },
 ];
@@ -91,7 +91,7 @@ const breadcrumbs = [
 <template>
     <Head title="Tạo Portfolio mới" />
 
-    <AppLayout :breadcrumbs="breadcrumbs">
+    <CandidateLayout>
         <div class="mx-auto flex max-w-4xl flex-col gap-6 p-4">
             <!-- Header -->
             <div>
@@ -444,5 +444,6 @@ const breadcrumbs = [
                 </div>
             </form>
         </div>
-    </AppLayout>
+    </CandidateLayout>
 </template>
+

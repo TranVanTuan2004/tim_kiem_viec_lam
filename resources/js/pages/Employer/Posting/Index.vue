@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { throttle } from 'lodash'; // THÊM: throttle (Cần cài đặt)
-import { Eye, Plus } from 'lucide-vue-next';
+import { Eye, Plus, Users } from 'lucide-vue-next';
 import { ref, watch } from 'vue'; // THÊM: ref, watch
 // defineProps<{
 //     jobs: {
@@ -55,7 +55,7 @@ watch(
 // Xóa tin tuyển dụng
 const deleteJob = (id: number) => {
     if (!confirm('Bạn có chắc muốn xóa tin tuyển dụng này không?')) return;
-    const form = useForm();
+    const form = useForm({});
     form.delete(`/employer/posting/${id}`, {
         onSuccess: () => {
             alert('Đã xóa tin tuyển dụng.');
@@ -66,7 +66,7 @@ const deleteJob = (id: number) => {
 
 // Ẩn/Hiện tin tuyển dụng
 const toggleJob = (job: any) => {
-    const form = useForm();
+    const form = useForm({});
     form.patch(`/employer/posting/${job.id}/toggle`, {
         onSuccess: () => {
             alert(`Tin tuyển dụng đã được ${job.is_active ? 'ẩn' : 'hiện'}.`);
@@ -120,70 +120,90 @@ const toggleJob = (job: any) => {
                     </Link>
                 </div>
             </div>
-            <div v-if="jobs.data.length > 0" class="grid grid-cols-1 gap-4">
-                <Card
-                    v-for="job in jobs.data"
-                    :key="job.id"
-                    class="transition hover:shadow-md"
-                >
-                    <CardHeader>
-                        <div class="flex items-start justify-between">
-                            <CardTitle class="text-lg font-medium">{{ job.title }}</CardTitle>
-                            <span
-                                :class="{
-                                    'bg-green-100 text-green-600':
-                                        job.status === 'approved',
-                                    'bg-yellow-100 text-yellow-600':
-                                        job.status === 'pending',
-                                    'bg-red-100 text-red-600':
-                                        job.status === 'rejected',
-                                }"
-                                class="rounded-full px-3 py-1 text-xs font-semibold"
-                            >
-                                {{
-                                    job.status === 'approved'
-                                        ? 'Đã duyệt'
-                                        : job.status === 'pending'
-                                          ? 'Chờ duyệt'
-                                          : 'Bị từ chối'
-                                }}
-                            </span>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="mt-4 flex justify-end gap-2">
-                            <Link :href="`/employer/posting/${job.id}`">
-                                <Button
-                                    variant="outline"
-                                    class="flex items-center gap-2"
-                                    ><Eye class="h-4 w-4" /> Xem chi
-                                    tiết</Button
-                                >
-                            </Link>
+            <div v-if="jobs.data.length > 0" class="bg-white rounded-md shadow overflow-hidden">
+                <div class="responsive-table-wrapper">
+                    <table class="w-full text-sm text-left mobile-card-view">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-4 py-3">Tiêu đề</th>
+                                <th class="px-4 py-3">Trạng thái duyệt</th>
+                                <th class="px-4 py-3">Trạng thái hiển thị</th>
+                                <th class="px-4 py-3 text-right">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr v-for="job in jobs.data" :key="job.id" class="border-b hover:bg-gray-50">
+                                <td class="px-4 py-3 font-medium text-gray-900" data-label="Tiêu đề">
+                                    {{ job.title }}
+                                </td>
+                                <td class="px-4 py-3" data-label="Trạng thái duyệt">
+                                    <span
+                                        :class="{
+                                            'bg-green-100 text-green-600': job.status === 'approved',
+                                            'bg-yellow-100 text-yellow-600': job.status === 'pending',
+                                            'bg-red-100 text-red-600': job.status === 'rejected',
+                                        }"
+                                        class="rounded-full px-3 py-1 text-xs font-semibold"
+                                    >
+                                        {{
+                                            job.status === 'approved'
+                                                ? 'Đã duyệt'
+                                                : job.status === 'pending'
+                                                  ? 'Chờ duyệt'
+                                                  : 'Bị từ chối'
+                                        }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3" data-label="Trạng thái hiển thị">
+                                    <span
+                                        :class="job.is_active ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-600'"
+                                        class="rounded-full px-3 py-1 text-xs font-semibold"
+                                    >
+                                        {{ job.is_active ? 'Đang hiện' : 'Đang ẩn' }}
+                                    </span>
+                                </td>
+                                <td class="px-4 py-3 text-right" data-label="Hành động">
+                                    <div class="flex items-center justify-end gap-2 flex-wrap">
+                                        <Link :href="`/employer/posting/${job.id}`">
+                                            <Button variant="outline" size="sm" class="flex items-center gap-1">
+                                                <Eye class="h-3 w-3" /> Xem
+                                            </Button>
+                                        </Link>
 
-                            <Link :href="`/employer/posting/${job.id}/edit`">
-                                <Button
-                                    variant="secondary"
-                                    class="flex items-center gap-2"
-                                    >✏️ Sửa</Button
-                                >
-                            </Link>
+                                        <Link :href="`/employer/applications?job_posting_id=${job.id}`">
+                                            <Button variant="outline" size="sm" class="flex items-center gap-1">
+                                                <Users class="h-3 w-3" /> Ứng viên
+                                            </Button>
+                                        </Link>
 
-                            <Button
-                                :variant="job.is_active ? 'warning' : 'default'"
-                                @click="toggleJob(job)"
-                            >
-                                {{ job.is_active ? 'Ẩn' : 'Hiện' }}
-                            </Button>
+                                        <Link :href="`/employer/posting/${job.id}/edit`">
+                                            <Button variant="secondary" size="sm" class="flex items-center gap-1">
+                                                ✏️ Sửa
+                                            </Button>
+                                        </Link>
 
-                            <Button
-                                variant="destructive"
-                                @click="deleteJob(job.id)"
-                                >Xóa</Button
-                            >
-                        </div>
-                    </CardContent>
-                </Card>
+                                        <Button
+                                            :variant="job.is_active ? 'secondary' : 'default'"
+                                            size="sm"
+                                            @click="toggleJob(job)"
+                                            :class="job.is_active ? 'bg-yellow-500 hover:bg-yellow-600 text-white' : ''"
+                                        >
+                                            {{ job.is_active ? 'Ẩn' : 'Hiện' }}
+                                        </Button>
+
+                                        <Button
+                                            variant="destructive"
+                                            size="sm"
+                                            @click="deleteJob(job.id)"
+                                        >
+                                            Xóa
+                                        </Button>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
 
             <div v-else class="py-10 text-center text-gray-500">
