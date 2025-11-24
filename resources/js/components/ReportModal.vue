@@ -139,9 +139,11 @@ const submitReport = () => {
                         id="reason"
                         v-model="form.reason"
                         placeholder="Vui lòng mô tả chi tiết vấn đề bạn gặp phải..."
-                        rows="5"
-                        :class="{ 'border-red-500': errors.reason }"
+                        :rows="5"
+                        class="border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                        :class="errors.reason ? 'border-red-500' : ''"
                     />
+
                     <p class="text-sm text-gray-500">
                         {{ form.reason.length }}/1000 ký tự
                     </p>

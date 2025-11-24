@@ -13,6 +13,7 @@ use App\Http\Controllers\Candidate\ProfileController;
 use App\Http\Controllers\Candidate\ApplicationController;
 use App\Http\Controllers\Candidate\SavedJobController;
 use App\Http\Controllers\Candidate\FavoriteController;
+use App\Http\Controllers\Candidate\ReportController as CandidateReportController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use App\Http\Controllers\Admin\ReportController;
@@ -280,9 +281,9 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'active', 'r
     Route::delete('notifications/{id}', [\App\Http\Controllers\Candidate\NotificationController::class, 'destroy'])->name('notifications.destroy');
 
     // Reports Management
-    Route::get('reports', [\App\Http\Controllers\Candidate\ReportController::class, 'index'])->name('reports.index');
-    Route::post('reports', [\App\Http\Controllers\Candidate\ReportController::class, 'store'])->name('reports.store');
-
+    Route::get('reports', [CandidateReportController::class, 'index'])->name('reports.index');
+    Route::post('reports', [CandidateReportController::class, 'store'])->name('reports.store');
+    Route::get('reports/{report}', [CandidateReportController::class, 'show'])->name('reports.show');
 });
 
 // Admin Reports

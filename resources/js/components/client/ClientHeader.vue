@@ -18,6 +18,7 @@ import {
     FileText,
     Folder,
     GraduationCap,
+    AlertTriangle,
     Heart,
     Heart as HeartIcon,
     Languages,
@@ -353,6 +354,15 @@ const { currentLanguage, setLanguage, t } = useLanguage();
                                     >
                                         <HeartIcon class="h-4 w-4" />
                                         <span>Việc làm đã lưu</span>
+                                    </Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem as-child>
+                                    <Link
+                                        href="/candidate/reports"
+                                        class="flex items-center gap-3 px-3 py-2"
+                                    >
+                                        <AlertTriangle class="h-4 w-4" />
+                                        <span>Theo dõi báo cáo</span>
                                     </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem as-child>

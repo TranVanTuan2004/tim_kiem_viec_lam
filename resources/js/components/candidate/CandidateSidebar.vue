@@ -10,7 +10,8 @@ import {
     GraduationCap,
     ChevronRight,
     MessageSquare,
-    FileText
+    FileText,
+    AlertTriangle
 } from 'lucide-vue-next';
 import { computed } from 'vue';
 
@@ -52,6 +53,11 @@ const menuItems = [
         label: 'Việc làm đã lưu',
         href: '/candidate/saved-jobs',
         icon: Heart,
+    },
+    {
+        label: 'Theo dõi báo cáo',
+        href: '/candidate/reports',
+        icon: AlertTriangle,
     },
     {
         label: 'Portfolio',
