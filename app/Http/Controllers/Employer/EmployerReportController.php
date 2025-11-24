@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\EmployerReport;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CandidateProfile;
+use App\Events\NewReportCreated;
 
 class EmployerReportController extends Controller
 {
@@ -31,13 +32,21 @@ class EmployerReportController extends Controller
         if ($existingReport) {
             return back()->with('error', 'Bạn đã báo cáo ứng viên này trước đó.');
         }
-        EmployerReport::create([
+        $report = EmployerReport::create([
             'employer_id' => Auth::id(),
             'candidate_id' => $request->candidate_id,
             'type' => $request->type,
             'reason' => $request->reason,
             'status' => 'pending',
+            'reportable_type' => CandidateProfile::class, // hoặc JobPosting::class
+            'reportable_id' => $request->candidate_id,
         ]);
+
+        \Log::info('Report created', ['report_id' => $report->id]);
+
+        event(new NewReportCreated($report));
+
+        \Log::info('Event fired', ['report_id' => $report->id]);
 
         return back()->with('success', 'Báo cáo của bạn đã được gửi thành công. Chúng tôi sẽ xem xét trong thời gian sớm nhất.');
     }

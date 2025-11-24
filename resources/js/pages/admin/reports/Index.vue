@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
 
 const props = defineProps<{
   reports: {
@@ -48,17 +50,60 @@ const props = defineProps<{
   };
 }>();
 
+// --- Pusher & Echo ---
+window.Pusher = Pusher;
+
+window.Echo = new Echo({
+    broadcaster: 'pusher',
+    key: import.meta.env.VITE_PUSHER_APP_KEY,
+    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
+    forceTLS: true,
+    encrypted: true,
+});
+
+// --- Reactive lists & stats ---
+const reportsList = ref([...props.reports.data]);
+const reportsStats = ref({ ...props.stats });
+
+// --- Lắng nghe báo cáo mới realtime ---
+onMounted(() => {
+  if (window.Echo) {
+    window.Echo.channel('admin-reports')
+      .listen('NewReportCreated', (e: { report: any }) => {
+        if (!e?.report) return;
+
+        console.log('Báo cáo mới:', e.report);
+
+        if (!e.report.reportable) {
+          e.report.reportable = {
+            id: null,
+            title: 'Đã xóa',
+            slug: '#',
+          };
+        }
+
+        reportsList.value.unshift(e.report);
+        reportsStats.value.total += 1;
+        if (e.report.status === 'pending') reportsStats.value.pending += 1;
+      });
+  }
+});
+console.log('Echo:', window.Echo);
+
+// --- Bộ lọc ---
 const filters = ref({ ...props.filters });
 
 function applyFilters() {
   router.get('/admin/reports', filters.value, { preserveState: false });
 }
 
+// --- Xóa báo cáo ---
 function deleteReport(id: number) {
   if (!confirm('Bạn có chắc chắn muốn xóa báo cáo này?')) return;
   router.delete(`/admin/reports/${id}`);
 }
 
+// --- Màu trạng thái ---
 function statusColor(status: string) {
   switch (status) {
     case 'pending': return 'bg-yellow-100 text-yellow-800';
@@ -80,6 +125,7 @@ const breadcrumbs = [
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="space-y-6 m-[20px]">
 
+      <!-- Header -->
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-2">
         <div>
           <h1 class="text-3xl font-bold tracking-tight flex items-center gap-3">
@@ -94,6 +140,7 @@ const breadcrumbs = [
         </div>
       </div>
 
+      <!-- Bộ lọc -->
       <Card>
         <CardHeader>
           <CardTitle>Bộ lọc</CardTitle>
@@ -121,16 +168,16 @@ const breadcrumbs = [
           </div>
 
           <div class="flex gap-2 flex-wrap">
-            <Badge variant="outline">Tổng: {{ props.stats?.total ?? 0 }}</Badge>
-            <Badge variant="outline" class="text-yellow-500">Chờ xử lý: {{ props.stats?.pending ?? 0 }}</Badge>
-            <Badge variant="outline" class="text-blue-500">Đang xem xét: {{ props.stats?.reviewing ?? 0 }}</Badge>
-            <Badge variant="outline" class="text-green-500">Đã xử lý: {{ props.stats?.resolved ?? 0 }}</Badge>
-            <Badge variant="outline" class="text-gray-500">Đã bỏ qua: {{ props.stats?.dismissed ?? 0 }}</Badge>
-
+            <Badge variant="outline">Tổng: {{ reportsStats.total }}</Badge>
+            <Badge variant="outline" class="text-yellow-500">Chờ xử lý: {{ reportsStats.pending }}</Badge>
+            <Badge variant="outline" class="text-blue-500">Đang xem xét: {{ reportsStats.reviewing }}</Badge>
+            <Badge variant="outline" class="text-green-500">Đã xử lý: {{ reportsStats.resolved }}</Badge>
+            <Badge variant="outline" class="text-gray-500">Đã bỏ qua: {{ reportsStats.dismissed }}</Badge>
           </div>
         </CardContent>
       </Card>
 
+      <!-- Bảng báo cáo -->
       <div class="bg-white rounded-md shadow overflow-hidden">
         <div class="responsive-table-wrapper">
           <table class="w-full text-sm text-left mobile-card-view">
@@ -144,7 +191,7 @@ const breadcrumbs = [
               </tr>
             </thead>
             <tbody>
-              <tr v-for="report in props.reports?.data" :key="report.id" class="border-b hover:bg-gray-50">
+              <tr v-for="report in reportsList" :key="report.id" class="border-b hover:bg-gray-50">
                 <td class="px-4 py-3" data-label="Tên công việc / Công ty">
                   <Link v-if="report.reportable" :href="report.reportable_type === 'App\\Models\\JobPosting' ? `/jobs/${report.reportable.slug}` : `/companies/${report.reportable.slug}`">
                     {{ report.reportable.title }}
@@ -170,11 +217,12 @@ const breadcrumbs = [
         </div>
       </div>
 
-      <div v-if="props.reports?.data.length === 0" class="text-center py-12 text-muted-foreground">
+      <div v-if="reportsList.length === 0" class="text-center py-12 text-muted-foreground">
         <svg class="h-16 w-16 mx-auto mb-4 text-muted-foreground/30" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L3 6v6c0 5 3 9 9 10s9-5 9-10V6l-9-4z"/></svg>
         <p>Không tìm thấy báo cáo nào</p>
       </div>
 
+      <!-- Pagination -->
       <div v-if="props.reports?.last_page > 1" class="flex items-center justify-center gap-2 pt-6 mt-6 border-t">
         <Button
           :disabled="props.reports?.current_page === 1"

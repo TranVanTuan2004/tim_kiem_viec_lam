@@ -1,4 +1,14 @@
 import { AppPageProps } from '@/types/index';
+// src/global.d.ts
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+
+declare global {
+  interface Window {
+    Echo: Echo;
+    Pusher: typeof Pusher;
+  }
+}
 
 // Extend ImportMeta interface for Vite...
 declare module 'vite/client' {
