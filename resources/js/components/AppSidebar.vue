@@ -92,6 +92,7 @@ const candidateNavItems: NavItem[] = [
         href: '/candidate/portfolios',
         icon: Briefcase,
     },
+
 ];
 
 const adminNavItems: NavItem[] = [
@@ -171,6 +172,7 @@ const adminNavItems: NavItem[] = [
         icon: CreditCard,
         permission: 'view subscriptions',
     },
+    
 ];
 
 const employerNavItems: NavItem[] = [

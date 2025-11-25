@@ -1,244 +1,218 @@
-<script setup>
+<script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, router, usePage } from '@inertiajs/vue3';
+import { Head, Link, router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Info } from 'lucide-vue-next';
+import { Trash2, Edit, Eye, EyeOff, Plus } from 'lucide-vue-next';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
-const props = defineProps({
-  packages: Array,
-  currentSubscription: Object,
-  paymentHistory: Array
-});
+interface ServicePackage {
+  id: number;
+  name: string;
+  slug: string;
+  price: number;
+  duration_days: number;
+  is_active: boolean;
+  features: string | null;
+  created_at: string;
+}
 
-const flash = usePage().props.flash ?? {};
+interface Props {
+  packages: {
+    data: ServicePackage[];
+    current_page: number;
+    last_page: number;
+    total: number;
+  };
+  filters: {
+    search?: string;
+    status?: string;
+  };
+}
 
+const props = defineProps<Props>();
 
-// Dialog gói
-const showPackageDialog = ref(false);
-const selectedPackage = ref(null);
-const openPackageDialog = (pkg) => {
-  selectedPackage.value = pkg;
-  showPackageDialog.value = true;
-};
+const search = ref(props.filters.search || '');
+const status = ref(props.filters.status || '');
+const isToggleDialogOpen = ref(false);
+const isDeleteDialogOpen = ref(false);
+const packageToToggle = ref<ServicePackage | null>(null);
+const packageToDelete = ref<ServicePackage | null>(null);
 
-// Dialog thanh toán
-const showPaymentDialog = ref(false);
-const selectedPayment = ref(null);
-const openPaymentDialog = (payment) => {
-  selectedPayment.value = payment;
-  showPaymentDialog.value = true;
-};
+function applyFilters() {
+  router.get('/admin/service-packages', { 
+    search: search.value || undefined,
+    status: status.value || undefined,
+  }, { preserveState: false });
+}
 
-// CRUD
-const deletePackage = (id) => {
-  if (confirm('Bạn có chắc muốn xóa gói này không?')) {
-    router.delete(route('admin.service-packages.destroy', id));
-  }
-};
+function clearFilters() {
+  search.value = '';
+  status.value = '';
+  applyFilters();
+}
 
-const toggleActive = (id) => {
-  router.post(route('admin.service-packages.toggle', id));
-};
+function openToggleDialog(pkg: ServicePackage) {
+  packageToToggle.value = pkg;
+  isToggleDialogOpen.value = true;
+}
 
-// Search / sort
-const search = ref('');
-const sort = ref('');
+function confirmToggle() {
+  if (!packageToToggle.value) return;
+  
+  router.post(`/admin/service-packages/${packageToToggle.value.slug}/toggle`, {}, { 
+    preserveScroll: true,
+    onSuccess: () => {
+      isToggleDialogOpen.value = false;
+      packageToToggle.value = null;
+    }
+  });
+}
 
-const applyFilter = () => {
-  router.get(route('admin.service-packages.index'), {
-    search: search.value,
-    sort: sort.value
-  }, { preserveState: true, replace: true });
-};
+function openDeleteDialog(pkg: ServicePackage) {
+  packageToDelete.value = pkg;
+  isDeleteDialogOpen.value = true;
+}
+
+function confirmDelete() {
+  if (!packageToDelete.value) return;
+  
+  router.delete(`/admin/service-packages/${packageToDelete.value.slug}`, { 
+    preserveScroll: true,
+    onSuccess: () => {
+      isDeleteDialogOpen.value = false;
+      packageToDelete.value = null;
+    }
+  });
+}
+
+const breadcrumbs = [
+  { title: 'Dashboard', href: '/admin/dashboard' },
+  { title: 'Quản lý gói dịch vụ', href: '/admin/service-packages' }
+];
 </script>
 
 <template>
   <Head title="Quản lý gói dịch vụ" />
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="space-y-6 m-5">
 
-  <AppLayout>
-    <div class="space-y-6">
-
-      <!-- Flash -->
-      <div v-if="flash.success" class="bg-green-100 text-green-800 p-2 rounded">{{ flash.success }}</div>
-      <div v-if="flash.error" class="bg-red-100 text-red-800 p-2 rounded">{{ flash.error }}</div>
-
-
-      <!-- Search -->
-      <div class="flex space-x-2 items-center">
-        <input v-model="search" placeholder="Tìm gói..." class="border p-2 rounded" />
-
-        <select v-model="sort" class="border p-2 rounded">
-          <option value="">-- Sắp xếp --</option>
-          <option value="price_asc">Giá tăng dần</option>
-          <option value="price_desc">Giá giảm dần</option>
-          <option value="duration_asc">Thời gian tăng</option>
-          <option value="duration_desc">Thời gian giảm</option>
-        </select>
-
-        <Button @click="applyFilter">Lọc</Button>
-        <Button @click="router.get(route('admin.service-packages.create'))">Thêm gói mới</Button>
+      <!-- Page Header -->
+      <div class="flex justify-between items-center">
+        <h1 class="text-3xl font-bold">Quản lý gói dịch vụ</h1>
+        <Link href="/admin/service-packages/create">
+          <Button class="flex items-center gap-2">
+            <Plus class="h-4 w-4" />
+            Tạo gói mới
+          </Button>
+        </Link>
       </div>
 
-      <!-- Gói hiện tại -->
+      <!-- Filters -->
       <Card>
         <CardHeader>
-          <CardTitle>Gói dịch vụ hiện tại</CardTitle>
+          <CardTitle>Bộ lọc</CardTitle>
         </CardHeader>
-
-        <CardContent>
-          <div v-if="currentSubscription">
-            <p><strong>Gói:</strong> {{ currentSubscription.name }}</p>
-            <p><strong>Giá:</strong> {{ currentSubscription.price }} VNĐ</p>
-            <p><strong>Thời gian:</strong> {{ currentSubscription.duration_days }} ngày</p>
+        <CardContent class="grid md:grid-cols-3 gap-4">
+          <input 
+            v-model="search"
+            type="text"
+            placeholder="Tìm theo tên gói"
+            class="border rounded px-2 py-1"
+            @keyup.enter="applyFilters"
+          />
+          <select v-model="status" class="border rounded px-2 py-1">
+            <option value="">Tất cả</option>
+            <option value="active">Đang hoạt động</option>
+            <option value="inactive">Đã tắt</option>
+          </select>
+          <div class="flex gap-2">
+            <Button @click="applyFilters">Tìm</Button>
+            <Button variant="outline" @click="clearFilters">Xóa</Button>
           </div>
-          <div v-else>Chưa có gói dịch vụ nào.</div>
         </CardContent>
       </Card>
 
-      <!-- Danh sách gói -->
-      <Card>
-        <CardHeader>
-          <CardTitle>Danh sách gói dịch vụ</CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          <div class="grid md:grid-cols-2 gap-4">
-            <div v-for="pkg in packages" :key="pkg.id" class="border rounded p-4 hover:shadow">
-              <div class="flex justify-between">
-                <h3 class="font-semibold text-lg">{{ pkg.name }}</h3>
-                <Badge v-if="pkg.is_active" variant="default">Active</Badge>
-              </div>
-
-              <p class="mt-2 text-sm">{{ pkg.description }}</p>
-              <p class="mt-2"><strong>Giá:</strong> {{ pkg.price }} VNĐ</p>
-              <p><strong>Thời gian:</strong> {{ pkg.duration_days }} ngày</p>
-
-              <div class="flex space-x-2 mt-3">
-                <Button size="sm" variant="outline" @click="router.get(route('admin.service-packages.edit', pkg.id))">Sửa</Button>
-                <Button size="sm" variant="destructive" @click="deletePackage(pkg.id)">Xóa</Button>
-                <Button size="sm" variant="secondary" @click="toggleActive(pkg.id)">
-                  {{ pkg.is_active ? 'Vô hiệu hóa' : 'Kích hoạt' }}
+      <!-- Table -->
+      <div class="bg-white rounded shadow overflow-hidden">
+        <table class="w-full text-left text-sm">
+          <thead class="bg-gray-50 border-b">
+            <tr>
+              <th class="px-4 py-2">Tên gói</th>
+              <th class="px-4 py-2">Giá</th>
+              <th class="px-4 py-2">Số ngày</th>
+              <th class="px-4 py-2">Trạng thái</th>
+              <th class="px-4 py-2 text-right">Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="pkg in packages.data" :key="pkg.id" class="border-b hover:bg-gray-50">
+              <td class="px-4 py-2">{{ pkg.name }}</td>
+              <td class="px-4 py-2">{{ pkg.price.toLocaleString() }} VNĐ</td>
+              <td class="px-4 py-2">{{ pkg.duration_days }}</td>
+              <td class="px-4 py-2">
+                <Badge :class="pkg.is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
+                  {{ pkg.is_active ? 'Hoạt động' : 'Đã tắt' }}
+                </Badge>
+              </td>
+              <td class="px-4 py-2 text-right flex justify-end gap-2">
+                <Link :href="`/admin/service-packages/${pkg.slug}/edit`">
+                  <Button size="sm" variant="outline">
+                    <Edit class="h-4 w-4" /> Sửa
+                  </Button>
+                </Link>
+                <Button size="sm" variant="outline" @click="openToggleDialog(pkg)">
+                  <component :is="pkg.is_active ? EyeOff : Eye" class="h-4 w-4" />
+                  {{ pkg.is_active ? 'Tắt' : 'Bật' }}
                 </Button>
-                <Button size="sm" variant="outline" @click="openPackageDialog(pkg)">
-                  <Info class="inline mr-1" /> Xem
+                <Button size="sm" variant="destructive" @click="openDeleteDialog(pkg)">
+                  <Trash2 class="h-4 w-4" /> Xóa
                 </Button>
-              </div>
-            </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div v-if="packages.last_page > 1" class="flex justify-center gap-2 pt-4">
+        <Button @click="router.get(`/admin/service-packages?page=${packages.current_page - 1}`)" :disabled="packages.current_page === 1">Trước</Button>
+        <span>Trang {{ packages.current_page }} / {{ packages.last_page }}</span>
+        <Button @click="router.get(`/admin/service-packages?page=${packages.current_page + 1}`)" :disabled="packages.current_page === packages.last_page">Sau</Button>
+      </div>
+
+      <!-- Toggle Modal -->
+      <Dialog v-model:open="isToggleDialogOpen">
+        <DialogContent class="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Xác nhận {{ packageToToggle?.is_active ? 'tắt' : 'bật' }} gói</DialogTitle>
+            <DialogDescription>Bạn có chắc muốn {{ packageToToggle?.is_active ? 'tắt' : 'bật' }} gói dịch vụ này không?</DialogDescription>
+          </DialogHeader>
+          <div class="flex justify-end gap-2 mt-4">
+            <Button variant="outline" @click="isToggleDialogOpen = false">Hủy</Button>
+            <Button @click="confirmToggle" :class="packageToToggle?.is_active ? 'bg-orange-600 hover:bg-orange-700' : 'bg-green-600 hover:bg-green-700'">
+              Xác nhận
+            </Button>
           </div>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
 
-      <!-- Lịch sử thanh toán -->
-      <Card>
-        <CardHeader>
-          <CardTitle>Lịch sử thanh toán</CardTitle>
-        </CardHeader>
-
-        <CardContent>
-          <div v-if="paymentHistory.length">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr>
-                  <th class="border-b p-2">Gói</th>
-                  <th class="border-b p-2">Số tiền</th>
-                  <th class="border-b p-2">Phương thức</th>
-                  <th class="border-b p-2">Trạng thái</th>
-                  <th class="border-b p-2">Ngày</th>
-                  <th class="border-b p-2"></th>
-                </tr>
-              </thead>
-
-              <tbody>
-                <tr v-for="payment in paymentHistory" :key="payment.id">
-                  <td class="p-2">{{ payment.package?.name ?? 'Đã xóa' }}</td>
-                  <td class="p-2">{{ payment.amount }} VNĐ</td>
-                  <td class="p-2">{{ payment.payment_method }}</td>
-
-                  <td class="p-2">
-                    <Badge :variant="payment.status === 'completed' ? 'default' : 'destructive'">
-                      {{ payment.status }}
-                    </Badge>
-                  </td>
-
-                  <td class="p-2">{{ new Date(payment.created_at).toLocaleDateString() }}</td>
-
-                  <td class="p-2">
-                    <Button size="sm" variant="outline" @click="openPaymentDialog(payment)">
-                      <Info class="inline mr-1" /> Xem
-                    </Button>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
+      <!-- Delete Modal -->
+      <Dialog v-model:open="isDeleteDialogOpen">
+        <DialogContent class="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Xóa gói dịch vụ</DialogTitle>
+            <DialogDescription>Hành động này không thể hoàn tác</DialogDescription>
+          </DialogHeader>
+          <div class="flex justify-end gap-2 mt-4">
+            <Button variant="outline" @click="isDeleteDialogOpen = false">Hủy</Button>
+            <Button variant="destructive" @click="confirmDelete">Xác nhận xóa</Button>
           </div>
-          <div v-else>Chưa có giao dịch nào.</div>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
 
     </div>
-
-    <!-- Dialog gói -->
-    <Dialog v-model:open="showPackageDialog">
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Chi tiết gói dịch vụ</DialogTitle>
-        </DialogHeader>
-
-        <div v-if="selectedPackage" class="space-y-2 mt-2">
-          <p><strong>Tên:</strong> {{ selectedPackage.name }}</p>
-          <p><strong>Mô tả:</strong> {{ selectedPackage.description }}</p>
-          <p><strong>Giá:</strong> {{ selectedPackage.price }} VNĐ</p>
-          <p><strong>Thời gian:</strong> {{ selectedPackage.duration_days }} ngày</p>
-          <p><strong>Giới hạn bài đăng:</strong> {{ selectedPackage.max_jobs }}</p>
-
-          <p v-if="selectedPackage.features">
-            <strong>Tính năng:</strong>
-            {{ Array.isArray(selectedPackage.features) ? selectedPackage.features.join(', ') : selectedPackage.features }}
-          </p>
-
-          <div class="text-right mt-4">
-            <Button @click="showPackageDialog = false">Đóng</Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-
-    <!-- Dialog thanh toán -->
-    <Dialog v-model:open="showPaymentDialog">
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Chi tiết thanh toán</DialogTitle>
-        </DialogHeader>
-
-        <div v-if="selectedPayment" class="space-y-2 mt-2">
-          <p><strong>Gói:</strong> {{ selectedPayment.package?.name ?? 'Đã xóa' }}</p>
-          <p><strong>Số tiền:</strong> {{ selectedPayment.amount }} VNĐ</p>
-          <p><strong>Phương thức:</strong> {{ selectedPayment.payment_method }}</p>
-
-          <p>
-            <strong>Trạng thái:</strong>
-            <Badge :variant="selectedPayment.status === 'completed' ? 'default' : 'destructive'">
-              {{ selectedPayment.status }}
-            </Badge>
-          </p>
-
-          <p><strong>Ngày tạo:</strong> {{ new Date(selectedPayment.created_at).toLocaleDateString() }}</p>
-
-          <div v-if="selectedPayment.details">
-            <strong>Chi tiết giao dịch:</strong>
-            <pre>{{ selectedPayment.details }}</pre>
-          </div>
-
-          <div class="text-right mt-4">
-            <Button @click="showPaymentDialog = false">Đóng</Button>
-          </div>
-        </div>
-      </DialogContent>
-    </Dialog>
-
   </AppLayout>
 </template>

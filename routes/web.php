@@ -30,6 +30,7 @@ use App\Http\Controllers\Employer\CandidateSearchController;
 use App\Http\Controllers\Employer\InterviewController;
 use App\Http\Controllers\Candidate\InterviewController as CandidateInterviewController;
 use App\Http\Controllers\Admin\ServicePackageController;
+use App\Http\Controllers\Admin\SubscriptionControllerV2;
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -191,35 +192,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admi
 
 // SERVICE PACKAGE ROUTE
 // ----------------------
-Route::prefix('admin')
-    ->name('admin.')
-    ->middleware(['auth'])
-    ->group(function () {
 
-        Route::get('service-packages', [ServicePackageController::class, 'index'])
-            ->name('service-packages.index');
-
-        Route::get('service-packages/create', [ServicePackageController::class, 'create'])
-            ->name('service-packages.create');
-
-        Route::post('service-packages', [ServicePackageController::class, 'store'])
-            ->name('service-packages.store');
-
-        Route::get('service-packages/{package}/edit', [ServicePackageController::class, 'edit'])
-            ->name('service-packages.edit');
-
-        Route::put('service-packages/{package}', [ServicePackageController::class, 'update'])
-            ->name('service-packages.update');
-
-        Route::delete('service-packages/{package}', [ServicePackageController::class, 'destroy'])
-            ->name('service-packages.destroy');
-
-        Route::post('service-packages/{package}/toggle', [ServicePackageController::class, 'toggleActive'])
-            ->name('service-packages.toggle');
-    });
-
-
-    
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->group(function () {
+    Route::get('service-packages', [ServicePackageController::class, 'index'])->name('service-packages.index');
+    Route::get('service-packages/create', [ServicePackageController::class, 'create'])->name('service-packages.create');
+    Route::post('service-packages', [ServicePackageController::class, 'store'])->name('service-packages.store');
+    Route::get('service-packages/{package:slug}/edit', [ServicePackageController::class, 'edit'])->name('service-packages.edit');
+    Route::put('service-packages/{package:slug}', [ServicePackageController::class, 'update'])->name('service-packages.update');
+    Route::delete('service-packages/{package:slug}', [ServicePackageController::class, 'destroy'])->name('service-packages.destroy');
+    Route::post('service-packages/{package:slug}/toggle', [ServicePackageController::class, 'toggle'])->name('service-packages.toggle');
+});    
 
 
 // Payment Callbacks (không cần auth)

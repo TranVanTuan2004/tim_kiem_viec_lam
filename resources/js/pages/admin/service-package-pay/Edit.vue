@@ -1,105 +1,144 @@
-<script setup>
+<script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, useForm, usePage } from '@inertiajs/vue3';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Head, router, useForm } from '@inertiajs/vue3';
+import { ref } from 'vue';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Save, ArrowLeft } from 'lucide-vue-next';
 
-const props = defineProps({
-  package: Object
-});
+interface ServicePackage {
+  id: number;
+  name: string;
+  slug: string;
+  description: string | null;
+  price: number;
+  duration_days: number;
+  is_active: boolean;
+  features: string | null;
+}
 
-// Form chuẩn Inertia
+interface Props {
+  package: ServicePackage;
+}
+
+const props = defineProps<Props>();
+
 const form = useForm({
   name: props.package.name,
-  description: props.package.description,
+  slug: props.package.slug,
+  description: props.package.description || '',
   price: props.package.price,
   duration_days: props.package.duration_days,
-  max_jobs: props.package.max_jobs,
-  features: props.package.features.join(', '), // nhập dạng string
+  is_active: props.package.is_active,
+  features: props.package.features || '',
+  _method: 'PUT',
 });
 
-// Flash message
-const flash = usePage().props.flash ?? {};
+function submit() {
+  router.post(`/admin/service-packages/${props.package.slug}`, form, {
+    preserveScroll: true,
+    forceFormData: true,
+  });
+}
 
-const submit = () => {
-  form.transform((data) => ({
-    ...data,
-    features: data.features.split(',').map(f => f.trim()), // convert sang array
-  }))
-  .put(route('admin.service-packages.update', props.package.id));
-};
+const breadcrumbs = [
+  { title: 'Dashboard', href: '/admin/dashboard' },
+  { title: 'Quản lý Gói dịch vụ', href: '/admin/service-packages' },
+  { title: 'Chỉnh sửa gói', href: `/admin/service-packages/${props.package.slug}/edit` }
+];
 </script>
 
 <template>
   <Head title="Chỉnh sửa gói dịch vụ" />
-  <AppLayout>
-    <Card>
-      <CardHeader>
-        <CardTitle>Chỉnh sửa gói dịch vụ</CardTitle>
-      </CardHeader>
+  <AppLayout :breadcrumbs="breadcrumbs">
+    <div class="space-y-6 m-5">
 
-      <CardContent>
+      <!-- Header -->
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold">Chỉnh sửa gói dịch vụ</h1>
+        </div>
+        <Button variant="outline" @click="router.visit('/admin/service-packages')">
+          <ArrowLeft class="h-4 w-4 mr-2" /> Quay lại
+        </Button>
+      </div>
 
-        <!-- Thông báo -->
-        <div v-if="flash?.success" class="bg-green-100 text-green-800 p-2 rounded mb-2">
-          {{ flash.success }}
+      <!-- Form -->
+      <form @submit.prevent="submit" class="grid gap-6 lg:grid-cols-2">
+
+        <!-- Main -->
+        <div class="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Thông tin cơ bản</CardTitle>
+              <CardDescription>Điền thông tin chi tiết gói dịch vụ</CardDescription>
+            </CardHeader>
+            <CardContent class="space-y-4">
+
+              <div class="space-y-2">
+                <Label for="name">Tên gói <span class="text-red-500">*</span></Label>
+                <Input id="name" v-model="form.name" placeholder="Nhập tên gói" :class="{ 'border-red-500': form.errors.name }" />
+                <p v-if="form.errors.name" class="text-sm text-red-500">{{ form.errors.name }}</p>
+              </div>
+
+              <div class="space-y-2">
+                <Label for="slug">Slug</Label>
+                <Input id="slug" v-model="form.slug" placeholder="Nhập slug (tự tạo nếu để trống)" />
+              </div>
+
+              <div class="space-y-2">
+                <Label for="description">Mô tả</Label>
+                <Textarea id="description" v-model="form.description" rows="4" placeholder="Mô tả gói dịch vụ..." />
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div class="space-y-2">
+                  <Label for="price">Giá (VNĐ) <span class="text-red-500">*</span></Label>
+                  <Input id="price" type="number" v-model="form.price" :class="{ 'border-red-500': form.errors.price }" />
+                  <p v-if="form.errors.price" class="text-sm text-red-500">{{ form.errors.price }}</p>
+                </div>
+
+                <div class="space-y-2">
+                  <Label for="duration_days">Số ngày <span class="text-red-500">*</span></Label>
+                  <Input id="duration_days" type="number" v-model="form.duration_days" :class="{ 'border-red-500': form.errors.duration_days }" />
+                  <p v-if="form.errors.duration_days" class="text-sm text-red-500">{{ form.errors.duration_days }}</p>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <Label for="features">Features (JSON hoặc text)</Label>
+                <Textarea id="features" v-model="form.features" rows="3" placeholder='["feature1","feature2"] hoặc "text"...' />
+              </div>
+
+            </CardContent>
+          </Card>
         </div>
 
-        <!-- Form -->
-        <div class="space-y-4">
+        <!-- Sidebar -->
+        <div class="space-y-6">
+          <Card>
+            <CardHeader><CardTitle>Cài đặt</CardTitle></CardHeader>
+            <CardContent>
+              <div class="flex items-center gap-2">
+                <input id="is_active" type="checkbox" v-model="form.is_active" class="h-4 w-4 rounded border-gray-300" />
+                <Label for="is_active">Hoạt động</Label>
+              </div>
+            </CardContent>
+          </Card>
 
-          <div>
-            <label class="font-semibold">Tên gói</label>
-            <Input v-model="form.name" />
-            <div v-if="form.errors.name" class="text-red-500 text-sm">{{ form.errors.name }}</div>
-          </div>
-
-          <div>
-            <label class="font-semibold">Mô tả</label>
-            <Textarea v-model="form.description" />
-            <div v-if="form.errors.description" class="text-red-500 text-sm">{{ form.errors.description }}</div>
-          </div>
-
-          <div>
-            <label class="font-semibold">Giá (VNĐ)</label>
-            <Input v-model="form.price" type="number" />
-            <div v-if="form.errors.price" class="text-red-500 text-sm">{{ form.errors.price }}</div>
-          </div>
-
-          <div>
-            <label class="font-semibold">Thời gian (ngày)</label>
-            <Input v-model="form.duration_days" type="number" />
-            <div v-if="form.errors.duration_days" class="text-red-500 text-sm">
-              {{ form.errors.duration_days }}
-            </div>
-          </div>
-
-          <div>
-            <label class="font-semibold">Tối đa bài đăng</label>
-            <Input v-model="form.max_jobs" type="number" />
-            <div v-if="form.errors.max_jobs" class="text-red-500 text-sm">{{ form.errors.max_jobs }}</div>
-          </div>
-
-          <div>
-            <label class="font-semibold">Tính năng (ngăn cách bởi dấu , )</label>
-            <Input v-model="form.features" placeholder="Feature1, Feature2" />
-            <div v-if="form.errors.features" class="text-red-500 text-sm">{{ form.errors.features }}</div>
-          </div>
-
-          <div class="flex space-x-2">
-            <Button :disabled="form.processing" @click="submit">Lưu</Button>
-
-            <Button variant="outline"
-              @click="$inertia.get(route('admin.service-packages.index'))"
-            >
-              Hủy
-            </Button>
-          </div>
-
+          <Card>
+            <CardContent class="pt-6">
+              <Button type="submit" class="w-full" :disabled="form.processing">
+                <Save class="h-4 w-4 mr-2" /> {{ form.processing ? 'Đang lưu...' : 'Cập nhật gói' }}
+              </Button>
+            </CardContent>
+          </Card>
         </div>
-      </CardContent>
-    </Card>
+
+      </form>
+    </div>
   </AppLayout>
 </template>
