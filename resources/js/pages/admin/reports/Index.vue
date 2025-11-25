@@ -6,7 +6,6 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import Echo from 'laravel-echo';
-import Pusher from 'pusher-js';
 
 const props = defineProps<{
   reports: {
@@ -50,38 +49,30 @@ const props = defineProps<{
   };
 }>();
 
-// --- Pusher & Echo ---
-window.Pusher = Pusher;
-
 window.Echo = new Echo({
-    broadcaster: 'pusher',
+    broadcaster: 'reverb',
     key: import.meta.env.VITE_PUSHER_APP_KEY,
-    cluster: import.meta.env.VITE_PUSHER_APP_CLUSTER,
-    forceTLS: true,
-    encrypted: true,
+    wsHost: import.meta.env.VITE_REVERB_HOST ?? '127.0.0.1',
+    wsPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
+    wssPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
+    forceTLS: false,
+    encrypted: false,
+    enabledTransports: ['ws'],
 });
 
-// --- Reactive lists & stats ---
 const reportsList = ref([...props.reports.data]);
 const reportsStats = ref({ ...props.stats });
 
-// --- Lắng nghe báo cáo mới realtime ---
 onMounted(() => {
   if (window.Echo) {
     window.Echo.channel('admin-reports')
       .listen('NewReportCreated', (e: { report: any }) => {
         if (!e?.report) return;
-
-        console.log('Báo cáo mới:', e.report);
+        console.log('Báo cáo mới realtime:', e.report);
 
         if (!e.report.reportable) {
-          e.report.reportable = {
-            id: null,
-            title: 'Đã xóa',
-            slug: '#',
-          };
+          e.report.reportable = { id: null, title: 'Đã xóa', slug: '#' };
         }
-
         reportsList.value.unshift(e.report);
         reportsStats.value.total += 1;
         if (e.report.status === 'pending') reportsStats.value.pending += 1;
@@ -90,20 +81,17 @@ onMounted(() => {
 });
 console.log('Echo:', window.Echo);
 
-// --- Bộ lọc ---
 const filters = ref({ ...props.filters });
 
 function applyFilters() {
   router.get('/admin/reports', filters.value, { preserveState: false });
 }
 
-// --- Xóa báo cáo ---
 function deleteReport(id: number) {
   if (!confirm('Bạn có chắc chắn muốn xóa báo cáo này?')) return;
   router.delete(`/admin/reports/${id}`);
 }
 
-// --- Màu trạng thái ---
 function statusColor(status: string) {
   switch (status) {
     case 'pending': return 'bg-yellow-100 text-yellow-800';

@@ -1,12 +1,14 @@
 <?php
+
 namespace App\Events;
 
 use App\Models\Report;
 use Illuminate\Broadcasting\Channel;
-use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Broadcasting\InteractsWithSockets;
-use Illuminate\Queue\SerializesModels;
+use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
+use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 
 class NewReportCreated implements ShouldBroadcast
 {
@@ -14,14 +16,24 @@ class NewReportCreated implements ShouldBroadcast
 
     public $report;
 
-    public function __construct($report)
+    public function __construct(Report $report)
     {
         $this->report = $report;
+
+        Log::info('NewReportCreated event được gọi', [
+            'report_id' => $report->id,
+            'reason'    => $report->reason,
+        ]);
     }
 
     public function broadcastOn()
     {
         return new Channel('admin-reports');
+    }
+    
+    public function broadcastAs()
+    {
+        return 'NewReportCreated';
     }
 
     public function broadcastWith()

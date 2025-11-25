@@ -3,11 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\User;
 use App\Models\CandidateProfile;
 
 class EmployerReport extends Model
 {
+    use HasFactory;
+    
     protected $fillable = [
         'employer_id',
         'candidate_id',
