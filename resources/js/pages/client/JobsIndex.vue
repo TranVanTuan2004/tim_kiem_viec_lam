@@ -41,23 +41,28 @@ const props = defineProps({
     },
 });
 const toggleFavorite = async (job: any) => {
-    const previousState = job?.favorited_by[0]?.pivot.is_favorited;
+    // Store previous state for rollback
+    const previousState = job.is_favorited ?? 0;
 
-    job.favorited_by[0].pivot.is_favorited = !previousState;
+    // Optimistically update UI
+    job.is_favorited = previousState ? 0 : 1;
 
-  try {
-    const response = await axios.post(`/candidate/favorites/toggle/${job.id}`);
-    job.favorited_by[0].pivot.is_favorited = response.data.is_favorited;
-    alert(response.data.message);
-  } catch (error: unknown) {
-    job.favorited_by[0].pivot.is_favorited = previousState;
+    try {
+        const response = await axios.post(`/candidate/favorites/toggle/${job.id}`);
+        
+        // Update with server response
+        job.is_favorited = response.data.is_favorited ?? 0;
+        alert(response.data.message);
+    } catch (error: unknown) {
+        // Rollback on error
+        job.is_favorited = previousState;
 
-    let msg = 'Thao tác thất bại, vui lòng thử lại.';
-    if (axios.isAxiosError(error) && error.response) {
-      msg = error.response.data?.message || msg;
+        let msg = 'Thao tác thất bại, vui lòng thử lại.';
+        if (axios.isAxiosError(error) && error.response) {
+            msg = error.response.data?.message || msg;
+        }
+        alert(msg);
     }
-    alert(msg);
-  }
 };
 const formatDate = (dateStr: string) => {
   return new Intl.DateTimeFormat('vi-VN').format(new Date(dateStr));
@@ -405,11 +410,11 @@ const hasActiveFilters = computed(
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        :class="job?.favorited_by[0]?.pivot?.is_favorited ? 'text-red-600' : 'text-gray-400 hover:text-red-600'"
+                                        :class="job?.is_favorited ? 'text-red-600' : 'text-gray-400 hover:text-red-600'"
                                         @click.prevent="toggleFavorite(job)"
                                     >
                                         <Heart
-                                            :class="job?.favorited_by[0]?.pivot?.is_favorited ? 'fill-red-600 text-red-600' : 'text-gray-400'"
+                                            :class="job?.is_favorited ? 'fill-red-600 text-red-600' : 'text-gray-400'"
                                             class="h-5 w-5"
                                         />
                                     </Button>

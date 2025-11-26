@@ -29,7 +29,7 @@ class FavoriteController extends Controller
     //     }
     // }
 
-     public function toggle(Request $request, int $id)
+    public function toggle(Request $request, int $id)
     {
         $user = Auth::user();
 
@@ -38,7 +38,7 @@ class FavoriteController extends Controller
                 'success' => false,
                 'is_favorited' => null,
                 'message' => 'Bạn cần đăng nhập để thực hiện thao tác này.',
-            ], 401);
+            ], 200);
         }
 
         try {
@@ -111,13 +111,13 @@ class FavoriteController extends Controller
         //     ->get();
 
         $favorites = $user->favorites()
-        ->wherePivot('is_favorited', 1)
-        ->with([
-            'company:id,company_name,logo',
-            'skills:id,name',
-        ])
-        ->latest()
-        ->get();
+            ->wherePivot('is_favorited', 1)
+            ->with([
+                'company:id,company_name,logo',
+                'skills:id,name',
+            ])
+            ->latest()
+            ->get();
 
         return \Inertia\Inertia::render('client/FavoriteJobs', [
             'favorites' => $favorites->map(function ($job) {
@@ -132,8 +132,8 @@ class FavoriteController extends Controller
                     // Company
                     'company' => $job->company->company_name ?? null,
                     'company_logo' => $job->company->logo
-                        ? (str_starts_with($job->company->logo, 'http') 
-                            ? $job->company->logo 
+                        ? (str_starts_with($job->company->logo, 'http')
+                            ? $job->company->logo
                             : asset('storage/' . $job->company->logo))
                         : null,
 
@@ -142,7 +142,7 @@ class FavoriteController extends Controller
 
                     // Skills
                     'skills' => $job->skills->pluck('name')->toArray(),
-                    
+
                     'is_featured' => $job->is_featured,
                     'is_favorited' => true,
                 ];
