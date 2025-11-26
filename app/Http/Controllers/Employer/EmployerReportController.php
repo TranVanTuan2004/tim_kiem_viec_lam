@@ -5,12 +5,70 @@ namespace App\Http\Controllers\Employer;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Report;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use App\Models\CandidateProfile;
 use App\Events\NewReportCreated;
+use Inertia\Inertia;
 
 class EmployerReportController extends Controller
 {
+    public function index(Request $request)
+    {
+        $user = Auth::user();
+
+        $query = Report::where('reporter_id', $user->id)
+            ->where('reportable_type', CandidateProfile::class) // EMPLOYER báo cáo ứng viên
+            ->with('reportable')
+            ->latest();
+
+        if ($request->status && $request->status !== 'all') {
+            $query->where('status', $request->status);
+        }
+
+        $reports = $query->paginate(15)->through(function ($report) {
+            return [
+                'id' => $report->id,
+                'reason' => $report->reason,
+                'status' => $report->status,
+                'status_label' => $report->getStatusLabel(),
+                'created_at' => $report->created_at->format('Y-m-d H:i:s'),
+                'candidate' => [
+                    'id' => $report->reportable->id,
+                    'name' => $report->reportable->user->name,
+                ]
+            ];
+        });
+
+        return Inertia::render('Employer/Reports/Index', [
+            'reports' => $reports,
+            'filters' => [
+                'status' => $request->status ?? 'all',
+            ]
+        ]);
+    }
+
+    public function show(Report $report)
+    {
+        abort_if($report->reporter_id !== Auth::id(), 403);
+
+        return Inertia::render('Employer/Reports/Show', [
+            'report' => [
+                'id' => $report->id,
+                'reason' => $report->reason,
+                'status' => $report->status,
+                'status_label' => $report->getStatusLabel(),
+                'admin_notes' => $report->admin_notes,
+                'created_at' => $report->created_at?->format('Y-m-d H:i:s'),
+                'candidate' => [
+                    'id' => $report->reportable->id,
+                    'name' => $report->reportable->user->name,
+                    'email' => $report->reportable->user->email,
+                ],
+            ]
+        ]);
+    }
+
     public function store(Request $request)
     {
         $validated = $request->validate([
@@ -29,11 +87,11 @@ class EmployerReportController extends Controller
             ->where('reportable_id', $validated['candidate_id'])
             ->where('status', '!=', 'dismissed')
             ->first();
-        
+
         if ($existingReport) {
             return back()->with('error', 'Bạn đã báo cáo ứng viên này trước đó.');
         }
-        
+
         $report = Report::create([
             'reporter_id' => Auth::id(),
             'type' => $request->type,
@@ -50,6 +108,11 @@ class EmployerReportController extends Controller
         event(new NewReportCreated($report));
 
         return back()->with('success', 'Báo cáo của bạn đã được gửi thành công. Chúng tôi sẽ xem xét trong thời gian sớm nhất.');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 }
 

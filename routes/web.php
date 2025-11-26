@@ -97,12 +97,12 @@ Route::get('dashboard', function () {
         Log::info('Redirecting to candidate dashboard');
         return redirect()->route('candidate.dashboard');
     }
-    
+
     if ($user->hasRole('Employer')) {
         Log::info('Redirecting to employer dashboard');
         return redirect()->route('employer.dashboard');
     }
-    
+
     if ($user->hasRole('Admin')) {
         Log::info('Redirecting to admin dashboard');
         return redirect()->route('admin.dashboard');
@@ -135,7 +135,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admi
     Route::get('chat/unread-count', [ChatController::class, 'getUnreadCount'])->name('chat.unread');
 
     Route::post('users/{user}/toggle-active', [UserController::class, 'toggleActive'])
-    ->name('users.toggle-active');
+        ->name('users.toggle-active');
 
     Route::post('users/{user}/reset-password', [UserController::class, 'resetPassword'])
         ->name('users.reset-password');
@@ -162,7 +162,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admi
         ->name('homepage.toggle-active');
     Route::post('homepage/update-order', [\App\Http\Controllers\Admin\HomepageSectionController::class, 'updateOrder'])
         ->name('homepage.update-order');
-    
+
     // Interview Management
     Route::get('interviews', [\App\Http\Controllers\Admin\InterviewController::class, 'index'])
         ->name('interviews.index');
@@ -202,7 +202,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
     Route::put('service-packages/{package:slug}', [ServicePackageController::class, 'update'])->name('service-packages.update');
     Route::delete('service-packages/{package:slug}', [ServicePackageController::class, 'destroy'])->name('service-packages.destroy');
     Route::post('service-packages/{package:slug}/toggle', [ServicePackageController::class, 'toggle'])->name('service-packages.toggle');
-});    
+});
 
 
 // Payment Callbacks (không cần auth)
@@ -329,7 +329,7 @@ Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer
     Route::get('/applications/{id}', [EmployerApplicationController::class, 'show'])->name('applications.show');
     Route::patch('/applications/{id}/status', [EmployerApplicationController::class, 'updateStatus'])->name('applications.update-status');
     Route::get('candidates/search', [CandidateSearchController::class, 'index'])->name('employer.candidates.search');
-    
+
     // Interview Management
     Route::resource('interviews', InterviewController::class)->except(['edit']);
     Route::post('interviews/{id}/complete', [InterviewController::class, 'complete'])->name('interviews.complete');
@@ -339,6 +339,11 @@ Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer
 
     // Employer Candidate Report
     Route::post('reports', [\App\Http\Controllers\Employer\EmployerReportController::class, 'store']);
+    Route::get('reports', [\App\Http\Controllers\Employer\EmployerReportController::class, 'index'])
+        ->name('reports.index');
+
+    Route::get('reports/{report}', [\App\Http\Controllers\Employer\EmployerReportController::class, 'show'])
+        ->name('reports.show');
 });
 Route::prefix('employer')->name('employer.')->group(function () {
     // Danh sách tin tuyển dụng

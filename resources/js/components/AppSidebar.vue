@@ -23,6 +23,7 @@ import {
     Calendar,
     CreditCard,
     FileText,
+    AlertTriangle,
     Folder,
     Home,
     Image,
@@ -201,6 +202,11 @@ const employerNavItems: NavItem[] = [
         title: 'Lịch sử ứng tuyển',
         href: '/employer/applications',
         icon: FileText,
+    },
+    {
+        title: 'Theo dõi báo cáo',
+        href: '/employer/reports',
+        icon: AlertTriangle,
     },
     {
         title: 'Lịch phỏng vấn',
