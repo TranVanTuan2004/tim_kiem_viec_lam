@@ -130,6 +130,7 @@ class Report extends Model
             'App\\Models\\JobPosting' => 'Tin tuyển dụng',
             'App\\Models\\Company' => 'Công ty',
             'App\\Models\\Interview' => 'Lịch phỏng vấn',
+            'App\\Models\\CandidateProfile' => 'Ứng viên',
             default => 'Không xác định',
         };
     }
