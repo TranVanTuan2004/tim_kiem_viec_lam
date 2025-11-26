@@ -23,6 +23,7 @@ import { LoaderCircle } from 'lucide-vue-next';
             :reset-on-success="['password', 'password_confirmation']"
             v-slot="{ errors, processing }"
             class="flex flex-col gap-6"
+            novalidate
         >
             <!-- Hiển thị lỗi tổng quát 'general' -->
             <div v-if="errors.general" class="mb-4 text-red-500 text-center text-sm">
