@@ -42,8 +42,8 @@ class NewReportCreated implements ShouldBroadcast
             'report' => [
                 'id' => $this->report->id,
                 'user' => [
-                    'id' => $this->report->employer?->id,
-                    'name' => $this->report->employer?->name,
+                    'id' => $this->report->reporter?->id,
+                    'name' => $this->report->reporter?->name,
                 ],
                 'reason' => $this->report->reason,
                 'status' => $this->report->status,

@@ -92,6 +92,7 @@ const candidateNavItems: NavItem[] = [
         href: '/candidate/portfolios',
         icon: Briefcase,
     },
+
 ];
 
 const adminNavItems: NavItem[] = [
@@ -160,6 +161,12 @@ const adminNavItems: NavItem[] = [
         permission: 'view users',
     },
     {
+        title: 'Quản lý gói dịch vụ',
+        href: '/admin/service-packages',
+        icon: CreditCard,
+        permission: 'view users',
+    },
+    {
         title: 'Gói Dịch Vụ',
         href: '/admin/subscriptions',
         icon: CreditCard,
@@ -171,6 +178,7 @@ const adminNavItems: NavItem[] = [
         icon: CreditCard,
         permission: 'view subscriptions',
     },
+    
 ];
 
 const employerNavItems: NavItem[] = [
