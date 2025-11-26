@@ -303,6 +303,8 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'active', 'r
     Route::get('reports/{report}', [CandidateReportController::class, 'show'])->name('reports.show');
 });
 
+Route::post('candidate/favorites/toggle/{job}', [FavoriteController::class, 'toggle'])->name('candidate.favorites.toggle');
+
 // Admin Reports
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admin'])->group(function () {
     Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])

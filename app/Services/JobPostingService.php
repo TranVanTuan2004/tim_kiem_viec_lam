@@ -13,14 +13,21 @@ class JobPostingService
      */
     public function getFilteredJobs(array $filters = [], int $perPage = 12): LengthAwarePaginator
     {
-        $userId = auth()->user()->id;
+        $userId = auth()->check() ? auth()->id() : null;
+
         $query = JobPosting::published()
-            ->with(['company', 'skills', 'favoritedBy' => function($q) use ($userId) {
-                if ($userId) {
+            ->with(['company', 'skills']);
+
+        // Only load favoritedBy if user is authenticated
+        if ($userId) {
+            $query->with([
+                'favoritedBy' => function ($q) use ($userId) {
                     $q->where('user_id', $userId);
                 }
-            }])
-            ->orderBy('published_at', 'desc');
+            ]);
+        }
+
+        $query->orderBy('published_at', 'desc');
 
         // Apply filters
         if (!empty($filters['featured'])) {
@@ -50,7 +57,6 @@ class JobPostingService
         if (!empty($filters['min_salary']) && !empty($filters['max_salary'])) {
             $query->bySalaryRange($filters['min_salary'], $filters['max_salary']);
         }
-        
         $paginated = $query->paginate($perPage)->withQueryString();
 
         return $paginated;
@@ -62,14 +68,21 @@ class JobPostingService
     public function getFeaturedJobs(int $limit = 6): Collection
     {
         $userId = auth()->id();
-        return JobPosting::published()
+
+        $query = JobPosting::published()
             ->featured()
-            ->with(['company', 'skills', 'favoritedBy' => function($q) use ($userId) {
-                if ($userId) {
+            ->with(['company', 'skills']);
+
+        // Only load favoritedBy if user is authenticated
+        if ($userId) {
+            $query->with([
+                'favoritedBy' => function ($q) use ($userId) {
                     $q->where('user_id', $userId);
                 }
-            }])
-            ->orderBy('published_at', 'desc')
+            ]);
+        }
+
+        return $query->orderBy('published_at', 'desc')
             ->limit($limit)
             ->get();
     }
@@ -92,7 +105,7 @@ class JobPostingService
     {
         $jobPosting->load(['company', 'industry', 'skills']);
         $jobPosting->incrementViews();
-        
+
         return $jobPosting;
     }
 
@@ -101,13 +114,10 @@ class JobPostingService
      */
     public function transformForListing(JobPosting $job): array
     {
-        $user = auth()->user();
-        $isFavorited = false;
-
-        if ($user && $user->candidateProfile) {
-            $isFavorited = $user->candidateProfile->savedJobPostings()
-                ->where('job_posting_id', $job->id)
-                ->exists();
+        // Check if user is authenticated and has favorited this job
+        $isFavorited = 0;
+        if (auth()->check() && $job->relationLoaded('favoritedBy')) {
+            $isFavorited = $job->favoritedBy->first()?->pivot->is_favorited ?? 0;
         }
 
         return [
@@ -124,7 +134,7 @@ class JobPostingService
             'skills' => $job->skills->take(3)->pluck('name')->toArray(),
             'posted' => $job->published_at ? $job->published_at->diffForHumans() : 'Vừa đăng',
             'is_featured' => $job->is_featured,
-            'is_favorited' => $job->favoritedBy->first()?->pivot->is_favorited ?? 0,
+            'is_favorited' => $isFavorited,
         ];
     }
 
@@ -133,6 +143,12 @@ class JobPostingService
      */
     public function transformForHome(JobPosting $job): array
     {
+        // Check if user is authenticated and has favorited this job
+        $isFavorited = 0;
+        if (auth()->check() && $job->relationLoaded('favoritedBy')) {
+            $isFavorited = $job->favoritedBy->first()?->pivot->is_favorited ?? 0;
+        }
+
         return [
             'id' => $job->id,
             'slug' => $job->slug,
@@ -145,7 +161,7 @@ class JobPostingService
             'type' => $job->employment_type ? str_replace('_', ' ', ucfirst($job->employment_type)) : 'Full-time',
             'skills' => $job->skills->take(3)->pluck('name')->toArray(),
             'posted' => $job->published_at ? $job->published_at->diffForHumans() : 'Vừa đăng',
-            'is_favorited' => $job->favoritedBy->first()?->pivot->is_favorited ?? 0,
+            'is_favorited' => $isFavorited,
         ];
     }
 
@@ -252,7 +268,7 @@ class JobPostingService
         if (!$company) {
             return '🏢';
         }
-        
+
         $emojis = ['🏢', '💼', '🚀', '⚡', '🎯', '💻', '🔥', '⭐'];
         $index = abs(crc32($company->company_name ?? 'default')) % count($emojis);
         return $emojis[$index];
@@ -300,4 +316,3 @@ class JobPostingService
         return $validated;
     }
 }
-
