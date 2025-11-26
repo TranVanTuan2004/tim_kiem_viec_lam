@@ -161,6 +161,12 @@ const adminNavItems: NavItem[] = [
         permission: 'view users',
     },
     {
+        title: 'Quản lý gói dịch vụ',
+        href: '/admin/service-packages',
+        icon: CreditCard,
+        permission: 'view users',
+    },
+    {
         title: 'Gói Dịch Vụ',
         href: '/admin/subscriptions',
         icon: CreditCard,
