@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Report;
 use App\Models\JobPosting;
 use App\Models\Company;
+use App\Events\NewReportCreated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -40,8 +41,8 @@ class ReportController extends Controller
                 'reportable_type_label' => $report->getReportableTypeLabel(),
                 'reportable' => $report->reportable ? [
                     'id' => $report->reportable->id,
-                    'title' => $report->reportable_type === 'App\Models\JobPosting' 
-                        ? $report->reportable->title 
+                    'title' => $report->reportable_type === 'App\Models\JobPosting'
+                        ? $report->reportable->title
                         : $report->reportable->company_name,
                 ] : null,
                 'created_at' => $report->created_at->format('Y-m-d H:i:s'),
@@ -112,7 +113,7 @@ class ReportController extends Controller
             return back()->with('error', 'Bạn đã báo cáo đối tượng này trước đó.');
         }
 
-        Report::create([
+        $report = Report::create([
             'reporter_id' => Auth::id(),
             'reportable_type' => $validated['reportable_type'],
             'reportable_id' => $validated['reportable_id'],
@@ -120,6 +121,9 @@ class ReportController extends Controller
             'reason' => $validated['reason'],
             'status' => 'pending',
         ]);
+
+        // Broadcast event để admin nhận real-time
+        event(new NewReportCreated($report));
 
         return back()->with('success', 'Báo cáo của bạn đã được gửi thành công. Chúng tôi sẽ xem xét trong thời gian sớm nhất.');
     }
