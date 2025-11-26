@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 class ServicePackage extends Model
 {
@@ -81,5 +82,14 @@ class ServicePackage extends Model
     public function hasFeature(string $feature): bool
     {
         return in_array($feature, $this->features ?? []);
+    }
+
+    protected static function booted()
+    {
+        static::creating(function ($package) {
+            if (empty($package->slug)) {
+                $package->slug = Str::slug($package->name);
+            }
+        });
     }
 }
