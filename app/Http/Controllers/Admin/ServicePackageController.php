@@ -4,122 +4,134 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\ServicePackage;
-use App\Models\Subscription;
-use App\Models\Payment;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
+use Illuminate\Support\Str;
 
 class ServicePackageController extends Controller
 {
+    // Hiển thị danh sách gói
     public function index(Request $request)
     {
-        // Lấy danh sách gói dịch vụ với filter / sort
         $query = ServicePackage::query();
 
-        // Search theo tên gói
         if ($request->search) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $query->where('name', 'like', "%{$request->search}%");
         }
 
-        // Sort
-        if ($request->sort) {
-            switch ($request->sort) {
-                case 'price_asc':
-                    $query->orderBy('price', 'asc');
-                    break;
-                case 'price_desc':
-                    $query->orderBy('price', 'desc');
-                    break;
-                case 'duration_asc':
-                    $query->orderBy('duration_days', 'asc');
-                    break;
-                case 'duration_desc':
-                    $query->orderBy('duration_days', 'desc');
-                    break;
-            }
-        } else {
-            $query->orderBy('id', 'desc'); // mặc định
+        if ($request->status === 'active') {
+            $query->where('is_active', true);
+        } elseif ($request->status === 'inactive') {
+            $query->where('is_active', false);
         }
 
-        $packages = $query->get();
+        $packages = $query->orderBy('id', 'desc')->paginate(10)->withQueryString();
 
-        // Gói hiện tại (ví dụ lấy gói mới nhất)
-        $currentSubscription = Subscription::with('package')
-            ->latest()
-            ->first();
-
-        // Lịch sử thanh toán
-        $paymentHistory = Payment::with('package')
-            ->latest()
-            ->get();
-
-        return Inertia::render('admin/service-package-pay/Index', [
-            'packages' => $packages,
-            'currentSubscription' => $currentSubscription ? $currentSubscription->package : null,
-            'paymentHistory' => $paymentHistory,
+        return inertia('admin/service-package-pay/Index', [
+            'packages' => [
+                'data' => $packages->items(),
+                'current_page' => $packages->currentPage(),
+                'last_page' => $packages->lastPage(),
+                'total' => $packages->total(),
+            ],
+            'filters' => $request->only(['search', 'status']),
         ]);
     }
 
+    // Form tạo mới
     public function create()
-{
-    // Nếu cần danh sách gói để chọn nâng cấp, truyền packages
-    $packages = ServicePackage::all();
-    return Inertia::render('admin/service-package-pay/Create', [
-        'packages' => $packages,
-    ]);
-}
+    {
+        return inertia('admin/service-package-pay/Create');
+    }
 
+    // Lưu gói mới
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => 'nullable|string|max:255|unique:service_packages,slug',
+            'description' => 'nullable|string',
+            'price' => 'required|numeric|min:0',
+            'duration_days' => 'required|integer|min:1',
+            'is_active' => 'required|boolean',
+            'features' => 'nullable|string',
+        ]);
 
-public function store(Request $request)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'price' => 'required|numeric',
-        'duration_days' => 'required|integer',
-        'max_jobs' => 'nullable|integer',
-    ]);
+        if (empty($data['slug'])) {
+            $data['slug'] = Str::slug($data['name']);
+        }
 
-    ServicePackage::create($request->all());
+        if (!isset($data['description'])) {
+            $data['description'] = '';
+        }
 
-    return redirect()->route('admin.service-packages.index')->with('success', 'Thêm gói dịch vụ thành công');
-}
+        if (!isset($data['features'])) {
+            $data['features'] = '';
+        }
 
-public function edit(ServicePackage $package)
-{
-    return Inertia::render('admin/service-package-pay/Edit', [
-        'package' => $package
-    ]);
-}
+        ServicePackage::create($data);
 
-public function update(Request $request, ServicePackage $package)
-{
-    $request->validate([
-        'name' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'price' => 'required|numeric',
-        'duration_days' => 'required|integer',
-        'max_jobs' => 'nullable|integer',
-    ]);
+        return redirect()->route('admin.service-packages.index')
+            ->with('success', 'Tạo gói dịch vụ thành công');
+    }
 
-    $package->update($request->all());
+    // Form chỉnh sửa
+    public function edit(ServicePackage $package)
+    {
+        return inertia('admin/service-package-pay/Edit', [
+            'package' => $package,
+        ]);
+    }
 
-    return redirect()->route('admin.service-packages.index')->with('success', 'Cập nhật gói dịch vụ thành công');
-}
+    // Cập nhật gói
+    public function update(Request $request, ServicePackage $package)
+    {
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'slug' => "nullable|string|max:255|unique:service_packages,slug,{$package->id}",
+            'description' => 'nullable|string',
+            'price' => 'required|numeric|min:0',
+            'duration_days' => 'required|integer|min:1',
+            'is_active' => 'required|boolean',
+            'features' => 'nullable|string',
+        ]);
 
-public function destroy(ServicePackage $package)
-{
-    $package->delete();
-    return redirect()->route('admin.service-packages.index')->with('success', 'Xóa gói dịch vụ thành công');
-}
+        if (empty($data['slug'])) {
+            $data['slug'] = Str::slug($data['name']);
+        }
 
-public function toggleActive(ServicePackage $package)
-{
-    $package->is_active = !$package->is_active;
-    $package->save();
+        if (!isset($data['description'])) {
+            $data['description'] = $package->description ?? '';
+        }
 
-    return redirect()->route('admin.service-packages.index')->with('success', 'Cập nhật trạng thái thành công');
-}
+        if (!isset($data['features'])) {
+            $data['features'] = $package->features ?? '';
+        }
 
-    // ... các method create, store, edit, update, destroy, toggleActive như mình viết trước
+        $package->update($data);
+
+        return redirect()->route('admin.service-packages.index')
+            ->with('success', 'Cập nhật gói dịch vụ thành công');
+    }
+
+    // Xóa gói
+    public function destroy(ServicePackage $package)
+    {
+        try {
+            $package->delete();
+            return redirect()->route('admin.service-packages.index')
+                ->with('success', 'Xóa gói dịch vụ thành công');
+        } catch (\Exception $e) {
+            return redirect()->route('admin.service-packages.index')
+                ->with('error', 'Không thể xóa gói: ' . $e->getMessage());
+        }
+    }
+
+    // Bật / Tắt gói
+    public function toggle(ServicePackage $package)
+    {
+        $package->update(['is_active' => !$package->is_active]);
+
+        return redirect()->route('admin.service-packages.index')
+            ->with('success', 'Cập nhật trạng thái thành công');
+    }
 }

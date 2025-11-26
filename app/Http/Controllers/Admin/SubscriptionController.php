@@ -872,4 +872,6 @@ class SubscriptionController extends Controller
             return redirect()->back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
         }
     }
+
+    
 }
