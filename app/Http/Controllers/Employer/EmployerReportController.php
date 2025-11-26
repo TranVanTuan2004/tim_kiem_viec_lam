@@ -47,7 +47,7 @@ class EmployerReportController extends Controller
 
         // Tạm tắt broadcast event để tránh lỗi Reverb
         // Bật lại khi đã cấu hình Reverb server
-        // event(new NewReportCreated($report));
+        event(new NewReportCreated($report));
 
         return back()->with('success', 'Báo cáo của bạn đã được gửi thành công. Chúng tôi sẽ xem xét trong thời gian sớm nhất.');
     }

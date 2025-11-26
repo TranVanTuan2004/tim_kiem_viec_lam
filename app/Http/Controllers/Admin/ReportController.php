@@ -65,8 +65,8 @@ class ReportController extends Controller
                 'reportable_type_label' => $report->getReportableTypeLabel(),
                 'reportable' => $report->reportable ? [
                     'id' => $report->reportable->id,
-                    'title' => $report->reportable_type === 'App\Models\JobPosting' 
-                        ? $report->reportable->title 
+                    'title' => $report->reportable_type === 'App\Models\JobPosting'
+                        ? $report->reportable->title
                         : $report->reportable->company_name,
                     'slug' => $report->reportable_type === 'App\Models\JobPosting'
                         ? $report->reportable->slug
@@ -126,8 +126,8 @@ class ReportController extends Controller
                 'reportable_type_label' => $report->getReportableTypeLabel(),
                 'reportable' => $report->reportable ? [
                     'id' => $report->reportable->id,
-                    'title' => $report->reportable_type === 'App\Models\JobPosting' 
-                        ? $report->reportable->title 
+                    'title' => $report->reportable_type === 'App\Models\JobPosting'
+                        ? $report->reportable->title
                         : $report->reportable->company_name,
                     'slug' => $report->reportable_type === 'App\Models\JobPosting'
                         ? $report->reportable->slug
@@ -177,7 +177,7 @@ class ReportController extends Controller
         $report = Report::findOrFail($id);
         $report->delete();
 
-        return redirect()->route('admin.reports.index')
-            ->with('success', 'Xóa báo cáo thành công!');
+        // Trả về empty response để frontend tự xử lý redirect
+        return response('', 200);
     }
 }

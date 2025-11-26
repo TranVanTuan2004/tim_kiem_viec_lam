@@ -5,7 +5,12 @@ import { ref, onMounted } from 'vue';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+
 import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
+
+// Khai báo Pusher global
+window.Pusher = Pusher;
 
 const props = defineProps<{
   reports: {
@@ -49,42 +54,41 @@ const props = defineProps<{
   };
 }>();
 
-// Tạm tắt Echo để tránh lỗi thiếu Pusher key
-// Bật lại khi đã cấu hình Reverb server
-/*
+// Khởi tạo Echo
 window.Echo = new Echo({
     broadcaster: 'reverb',
-    key: import.meta.env.VITE_PUSHER_APP_KEY,
-    wsHost: import.meta.env.VITE_REVERB_HOST ?? '127.0.0.1',
-    wsPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
-    wssPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
-    forceTLS: false,
-    encrypted: false,
-    enabledTransports: ['ws'],
+    key: import.meta.env.VITE_REVERB_APP_KEY,
+    wsHost: import.meta.env.VITE_REVERB_HOST || '127.0.0.1',
+    wsPort: import.meta.env.VITE_REVERB_PORT || 8080,
+    wssPort: import.meta.env.VITE_REVERB_PORT || 8080,
+    forceTLS: (import.meta.env.VITE_REVERB_SCHEME || 'http') === 'https',
+    enabledTransports: ['ws', 'wss'],
 });
-*/
 
 const reportsList = ref([...props.reports.data]);
 const reportsStats = ref({ ...props.stats });
 
 onMounted(() => {
-  // Tắt realtime listening
-  /*
+  // Bật realtime listening
   if (window.Echo) {
     window.Echo.channel('admin-reports')
       .listen('NewReportCreated', (e: { report: any }) => {
         if (!e?.report) return;
         console.log('Báo cáo mới realtime:', e.report);
 
+        // Đảm bảo có reportable data
         if (!e.report.reportable) {
           e.report.reportable = { id: null, title: 'Đã xóa', slug: '#' };
         }
+        
+        // Thêm báo cáo mới vào đầu danh sách
         reportsList.value.unshift(e.report);
+        
+        // Cập nhật stats
         reportsStats.value.total += 1;
         if (e.report.status === 'pending') reportsStats.value.pending += 1;
       });
   }
-  */
 });
 
 const filters = ref({ ...props.filters });
@@ -95,7 +99,14 @@ function applyFilters() {
 
 function deleteReport(id: number) {
   if (!confirm('Bạn có chắc chắn muốn xóa báo cáo này?')) return;
-  router.delete(`/admin/reports/${id}`);
+  
+  router.delete(`/admin/reports/${id}`, {
+    preserveState: false,  // Quan trọng: load state mới từ server
+    onSuccess: () => {
+      // Reload để cập nhật reportsList
+      router.reload({ only: ['reports', 'stats'] });
+    }
+  });
 }
 
 function statusColor(status: string) {

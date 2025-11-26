@@ -22,7 +22,7 @@ class NewReportCreated implements ShouldBroadcast
 
         Log::info('NewReportCreated event được gọi', [
             'report_id' => $report->id,
-            'reason'    => $report->reason,
+            'reason' => $report->reason,
         ]);
     }
 
@@ -30,7 +30,7 @@ class NewReportCreated implements ShouldBroadcast
     {
         return new Channel('admin-reports');
     }
-    
+
     public function broadcastAs()
     {
         return 'NewReportCreated';
@@ -44,8 +44,10 @@ class NewReportCreated implements ShouldBroadcast
                 'user' => [
                     'id' => $this->report->reporter?->id,
                     'name' => $this->report->reporter?->name,
+                    'email' => $this->report->reporter?->email,
                 ],
                 'reason' => $this->report->reason,
+                'reason_label' => $this->report->getReasonLabel(),
                 'status' => $this->report->status,
                 'status_label' => $this->report->getStatusLabel(),
                 'reportable_type' => $this->report->reportable_type,
