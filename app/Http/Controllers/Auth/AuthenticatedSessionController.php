@@ -51,6 +51,11 @@ class AuthenticatedSessionController extends Controller
             ->withProperties(['ip' => $request->ip(), 'user_agent' => $request->userAgent()])
             ->log('User logged in');
 
+        // ✅ Kiểm tra xác thực email - nếu chưa xác thực, chuyển đến trang xác thực
+        if (!$user->hasVerifiedEmail()) {
+            return redirect()->route('verification.notice');
+        }
+
         // Redirect based on user role - use direct route instead of intended
         // to avoid redirecting to generic /dashboard
         if ($user->hasRole('Candidate')) {
