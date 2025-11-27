@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import axios from 'axios';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,6 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import ClientLayout from '@/layouts/ClientLayout.vue';
 import { Link } from '@inertiajs/vue3';
+import axios from 'axios';
 import {
     Briefcase,
     Building2,
@@ -24,7 +24,7 @@ import {
     TrendingUp,
     X,
 } from 'lucide-vue-next';
-import { computed, defineProps, reactive, ref } from 'vue';
+import { computed, defineProps, ref } from 'vue';
 
 const props = defineProps({
     jobs: {
@@ -41,21 +41,18 @@ const props = defineProps({
     },
 });
 const toggleFavorite = async (job: any) => {
-    // Store previous state for rollback
-    const previousState = job.is_favorited ?? 0;
+    const previousState = job?.favorited_by[0]?.pivot.is_favorited;
 
-    // Optimistically update UI
-    job.is_favorited = previousState ? 0 : 1;
+    job.favorited_by[0].pivot.is_favorited = !previousState;
 
     try {
-        const response = await axios.post(`/candidate/favorites/toggle/${job.id}`);
-        
-        // Update with server response
-        job.is_favorited = response.data.is_favorited ?? 0;
+        const response = await axios.post(
+            `/candidate/favorites/toggle/${job.id}`,
+        );
+        job.favorited_by[0].pivot.is_favorited = response.data.is_favorited;
         alert(response.data.message);
     } catch (error: unknown) {
-        // Rollback on error
-        job.is_favorited = previousState;
+        job.favorited_by[0].pivot.is_favorited = previousState;
 
         let msg = 'Thao tác thất bại, vui lòng thử lại.';
         if (axios.isAxiosError(error) && error.response) {
@@ -65,14 +62,12 @@ const toggleFavorite = async (job: any) => {
     }
 };
 const formatDate = (dateStr: string) => {
-  return new Intl.DateTimeFormat('vi-VN').format(new Date(dateStr));
-};  
+    return new Intl.DateTimeFormat('vi-VN').format(new Date(dateStr));
+};
 const showFilters = ref(false);
-const jobs = ref<any[]>([]);
-const pageTitle = computed(() =>{
-    props.filters.featured ? 'Việc làm nổi bật' : 'Tất cả việc làm IT';
-    jobs.value = props?.jobs?.data?.data ?? [];
-     console.log(jobs.value);
+const jobs = ref<any[]>(props?.jobs?.data?.data ?? []);
+const pageTitle = computed(() => {
+    return props.filters.featured ? 'Việc làm nổi bật' : 'Tất cả việc làm IT';
 });
 
 const pageDescription = computed(() => {
@@ -85,6 +80,31 @@ const pageDescription = computed(() => {
 const hasActiveFilters = computed(
     () => props.filters.featured || props.filters.q || props.filters.location,
 );
+
+const searchQuery = ref(props.filters.q || '');
+
+// Live search computed
+const filteredJobs = computed(() => {
+    if (!searchQuery.value) return jobs.value;
+
+    const keyword = searchQuery.value.toLowerCase();
+
+    return jobs.value.filter((job) => {
+        const titleMatch = job.title.toLowerCase().includes(keyword);
+        const companyMatch = job.company.company_name
+            .toLowerCase()
+            .includes(keyword);
+
+        const skillsMatch = Array.isArray(job.skills)
+            ? job.skills.some((skill: any) =>
+                  (skill.name || skill).toLowerCase().includes(keyword),
+              )
+            : job.skills.toLowerCase().includes(keyword);
+
+        return titleMatch || companyMatch || skillsMatch;
+    });
+});
+
 </script>
 
 <template>
@@ -155,16 +175,11 @@ const hasActiveFilters = computed(
                                 class="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-muted-foreground"
                             />
                             <Input
+                                v-model="searchQuery"
                                 placeholder="Tìm kiếm theo vị trí, công ty, kỹ năng..."
-                                class="h-12 bg-white pl-10 text-base shadow-lg"
+                                class="h-12 bg-white pl-10 text-base text-black shadow-lg"
                             />
                         </div>
-                        <Button
-                            size="lg"
-                            class="h-12 bg-white px-8 text-red-600 hover:bg-red-50"
-                        >
-                            Tìm kiếm
-                        </Button>
                     </div>
                 </div>
             </div>
@@ -181,13 +196,10 @@ const hasActiveFilters = computed(
                         <div class="flex items-center gap-2">
                             <TrendingUp class="h-5 w-5 text-red-600" />
                             <p class="text-sm font-medium">
-                                <span class="text-lg font-bold text-red-600"
-                                    >{{ props.jobs.from || 0 }} -
-                                    {{ props.jobs.to || 0 }}</span
-                                >
-                                <span class="text-muted-foreground">
-                                    trong {{ props.jobs.total || 0 }} việc làm
+                                <span class="text-lg font-bold text-red-600">
+                                    1 - {{ filteredJobs.length }}
                                 </span>
+                                trong {{ filteredJobs.length }} việc làm
                             </p>
                         </div>
                         <Badge
@@ -345,126 +357,126 @@ const hasActiveFilters = computed(
 
                 <!-- Jobs Grid -->
                 <div
-                    v-if="jobs && jobs.length > 0"
+                    v-if="filteredJobs.length > 0"
                     class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
                 >
                     <Link
-                        v-for="job in jobs"
+                        v-for="job in filteredJobs"
                         :key="job.id"
                         :href="`/jobs/${job.slug}`"
                         class="group"
                     >
                         <Card
-                            class="h-full cursor-pointer border-2 bg-card transition-all duration-300 hover:-translate-y-1 hover:border-red-200 hover:shadow-2xl"
+                            class="h-full cursor-pointer border-2 border-gray-200 rounded-lg bg-white transition-all duration-300
+         hover:-translate-y-1 hover:shadow-xl hover:border-red-500"
                         >
-                            <CardHeader class="pb-3">
-                                <div class="flex items-start justify-between">
-                                    <div class="flex flex-1 items-start gap-3">
+                            <CardHeader>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
                                         <div
-                                            class="flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-red-50 to-orange-50 ring-2 ring-red-100 transition-transform duration-300 group-hover:scale-110 group-hover:ring-red-200"
+                                            class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl 
+           bg-gray-100 border-2 border-gray-200 transition-all duration-300
+           group-hover:border-red-500"
                                         >
                                             <img
                                                 v-if="job.company.logo"
                                                 :src="job.company.logo"
-                                                :alt="job.company.company_name"
-                                                class="h-full w-full object-contain p-2"
+                                                class="h-full w-full object-contain"
                                             />
                                             <div v-else class="text-2xl">
                                                 {{ job.logo }}
                                             </div>
                                         </div>
-                                        <div class="min-w-0 flex-1">
-                                            <div class="mb-2">
-                                                <CardTitle
-                                                    class="line-clamp-2 text-lg leading-tight font-bold transition-colors group-hover:text-red-600"
-                                                >
-                                                    {{ job.title }} 
-                                                </CardTitle>
-                                                <Badge
-                                                    v-if="job.is_featured"
-                                                    class="mt-1.5 animate-pulse bg-gradient-to-r from-red-600 to-orange-500 text-[10px] font-semibold"
-                                                >
-                                                    ⭐ HOT
-                                                </Badge>
-                                            </div>
+                                        <div>
+                                            <CardTitle class="font-bold">{{
+                                                job.title
+                                            }}</CardTitle>
                                             <CardDescription
-                                                class="flex items-center gap-1.5 text-xs"
+                                                class="flex items-center gap-1 text-xs"
                                             >
                                                 <Building2
-                                                    class="h-3.5 w-3.5 flex-shrink-0"
+                                                    class="h-3.5 w-3.5"
                                                 />
-                                                <span class="truncate">{{
-                                                    job.company.company_name
-                                                }}</span>
+                                                {{ job.company.company_name }}
                                             </CardDescription>
+                                            <Badge
+                                                v-if="job.is_featured"
+                                                class="mt-1 bg-red-500 text-[10px] text-white"
+                                                >HOT</Badge
+                                            >
                                         </div>
                                     </div>
-                                    <!-- <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        class="h-8 w-8 flex-shrink-0 text-muted-foreground transition-colors hover:text-red-600"
-                                        @click.prevent
-                                    >
-                                        <Heart class="h-4 w-4" />
-                                    </Button> -->
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        :class="job?.is_favorited ? 'text-red-600' : 'text-gray-400 hover:text-red-600'"
+                                        :class="
+                                            job?.favorited_by?.[0]?.pivot
+                                                ?.is_favorited
+                                                ? 'text-red-600'
+                                                : 'text-gray-400 hover:text-red-600'
+                                        "
                                         @click.prevent="toggleFavorite(job)"
                                     >
                                         <Heart
-                                            :class="job?.is_favorited ? 'fill-red-600 text-red-600' : 'text-gray-400'"
+                                            :class="
+                                                job?.favorited_by?.[0]?.pivot
+                                                    ?.is_favorited
+                                                    ? 'fill-red-600 text-red-600'
+                                                    : 'text-gray-400'
+                                            "
                                             class="h-5 w-5"
                                         />
                                     </Button>
-
                                 </div>
                             </CardHeader>
-                            <CardContent class="space-y-4">
-                                <!-- Job Info -->
+
+                            <CardContent class="space-y-2">
                                 <div
-                                    class="flex flex-wrap gap-x-4 gap-y-2 text-xs text-muted-foreground"
+                                    class="flex flex-wrap gap-2 text-xs text-gray-600"
                                 >
-                                    <div class="flex items-center gap-1.5">
-                                        <MapPin class="h-3.5 w-3.5" />
+                                    <div class="flex items-center gap-1">
+                                        <MapPin class="h-3.5 w-3.5 text-orange-600" />
                                         <span>{{ job.location }}</span>
                                     </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <DollarSign class="h-3.5 w-3.5" />
-                                        <span class="font-medium">{{ Number(job.min_salary).toFixed(0) }}$ - {{ Number(job.max_salary).toFixed(0) }}$</span>
+                                    <div class="flex items-center gap-1">
+                                        <DollarSign class="h-3.5 w-3.5 text-green-600" />
+                                        <span class="text-green-600"
+                                            >{{
+                                                Number(job.min_salary).toFixed(
+                                                    0,
+                                                )
+                                            }}$ -
+                                            {{
+                                                Number(job.max_salary).toFixed(
+                                                    0,
+                                                )
+                                            }}$</span
+                                        >
                                     </div>
-                                    <div class="flex items-center gap-1.5">
-                                        <Clock class="h-3.5 w-3.5" />
-                                        <span>{{ formatDate(job.created_at) }}</span>
+                                    <div class="flex items-center gap-1">
+                                        <Clock class="h-3.5 w-3.5 text-orange-600" />
+                                        <span>{{
+                                            formatDate(job.created_at)
+                                        }}</span>
                                     </div>
                                 </div>
 
                                 <!-- Skills -->
-                                <div class="flex flex-wrap gap-1.5">
+                                <div class="flex flex-wrap gap-1">
                                     <Badge
                                         v-for="skill in job.skills"
-                                        :key="skill"
+                                        :key="skill.id || skill"
                                         variant="secondary"
                                         class="text-[10px]"
                                     >
-                                        {{ skill }}
-                                    </Badge>
-                                    <Badge
-                                        variant="outline"
-                                        class="text-[10px]"
-                                    >
-                                        {{ job.type }}
+                                        {{ skill.name || skill }}
                                     </Badge>
                                 </div>
 
                                 <!-- Apply Button -->
-                                <Button
-                                    class="w-full transition-all group-hover:bg-red-600 group-hover:shadow-md"
-                                    variant="default"
+                                <Button class="mt-2 w-full bg-black text-white transition-colors duration-300 hover:bg-orange-600"
+                                    >Ứng tuyển ngay →</Button
                                 >
-                                    Ứng tuyển ngay →
-                                </Button>
                             </CardContent>
                         </Card>
                     </Link>
