@@ -69,16 +69,16 @@ const resendVerification = async () => {
 
 <template>
     <AuthLayout
-        title="Xác minh email"
-        description="Vui lòng xác minh email của bạn bằng cách nhấn vào đường link mà chúng tôi vừa gửi đến email của bạn."
+        title="Xác thực tài khoản"
+        description="Vui lòng xác thực email của bạn bằng cách nhấn vào đường link mà chúng tôi vừa gửi đến email của bạn."
     >
-        <Head title="Xác minh email" />
+        <Head title="Xác thực tài khoản" />
 
         <!-- Success message when verification link is sent -->
         <Alert v-if="status === 'verification-link-sent'" class="mb-4 border-green-200 bg-green-50">
             <CheckCircle2 class="h-4 w-4 text-green-600" />
             <AlertDescription class="text-green-800">
-                Một liên kết xác minh mới đã được gửi đến địa chỉ email mà bạn đã cung cấp khi đăng ký.
+                Một liên kết xác thực mới đã được gửi đến địa chỉ email mà bạn đã cung cấp khi đăng ký.
             </AlertDescription>
         </Alert>
 
