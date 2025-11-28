@@ -100,8 +100,8 @@ Route::get('dashboard', function () {
     }
 
     if ($user->hasRole('Employer')) {
-        Log::info('Redirecting to employer dashboard');
-        return redirect()->route('employer.dashboard');
+        Log::info('Redirecting to admin dashboard');
+        return redirect()->route('admin.dashboard');
     }
 
     if ($user->hasRole('Admin')) {
@@ -115,14 +115,9 @@ Route::get('dashboard', function () {
 })->middleware(['auth', 'active'])->name('dashboard');
 
 
-// Employer Routes
-Route::prefix('employer')->name('employer.')->middleware(['auth', 'active', 'role:Employer'])->group(function () {
-    // Dashboard
-    Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
-});
 // Admin Routes - Using Spatie Permission
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admin'])->group(function () {
-    // Dashboard
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role_or_permission:Admin|Employer'])->group(function () {
+    // Dashboard - cho phép cả Admin và Employer
     Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     // User Management - Only admin
@@ -164,15 +159,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admi
     Route::post('homepage/update-order', [\App\Http\Controllers\Admin\HomepageSectionController::class, 'updateOrder'])
         ->name('homepage.update-order');
 
-    // Interview Management
-    Route::get('interviews', [\App\Http\Controllers\Admin\InterviewController::class, 'index'])
-        ->name('interviews.index');
-    Route::get('interviews/{id}', [\App\Http\Controllers\Admin\InterviewController::class, 'show'])
-        ->name('interviews.show');
-    Route::delete('interviews/{id}', [\App\Http\Controllers\Admin\InterviewController::class, 'destroy'])
-        ->name('interviews.destroy');
+    // Interview Management - For Admin (view all)
+    Route::get('admin-interviews', [\App\Http\Controllers\Admin\InterviewController::class, 'index'])
+        ->name('admin-interviews.index')->middleware('permission:view users');
+    Route::get('admin-interviews/{id}', [\App\Http\Controllers\Admin\InterviewController::class, 'show'])
+        ->name('admin-interviews.show')->middleware('permission:view users');
+    Route::delete('admin-interviews/{id}', [\App\Http\Controllers\Admin\InterviewController::class, 'destroy'])
+        ->name('admin-interviews.destroy')->middleware('permission:view users');
     Route::post('companies/{companyId}/toggle-interview-block', [\App\Http\Controllers\Admin\InterviewController::class, 'toggleBlock'])
-        ->name('companies.toggle-interview-block');
+        ->name('companies.toggle-interview-block')->middleware('permission:view users');
 
     // System Notifications Management
     Route::get('notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
@@ -184,19 +179,58 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admi
     Route::delete('notifications/{id}', [\App\Http\Controllers\Admin\NotificationController::class, 'destroy'])->name('notifications.destroy');
     Route::post('notifications/destroy-multiple', [\App\Http\Controllers\Admin\NotificationController::class, 'destroyMultiple'])->name('notifications.destroy-multiple');
     Route::get('notifications/stats', [\App\Http\Controllers\Admin\NotificationController::class, 'stats'])->name('notifications.stats');
+
+    // Employer Routes - Applications Management (for Employers)
+    Route::get('applications', [EmployerApplicationController::class, 'index'])->name('applications.index');
+    Route::get('applications/{id}', [EmployerApplicationController::class, 'show'])->name('applications.show');
+    Route::patch('applications/{id}/status', [EmployerApplicationController::class, 'updateStatus'])->name('applications.update-status');
+
+    // Employer Routes - Candidate Search (for Employers)
+    Route::get('candidates/search', [CandidateSearchController::class, 'index'])->name('candidates.search');
+
+    // Employer Routes - Interview Management (for Employers) - Uses same route as admin interviews
+    Route::resource('interviews', InterviewController::class)->except(['edit'])->names([
+        'index' => 'interviews.index',
+        'create' => 'interviews.create',
+        'store' => 'interviews.store',
+        'show' => 'interviews.show',
+        'update' => 'interviews.update',
+        'destroy' => 'interviews.destroy',
+    ]);
+    Route::post('interviews/{id}/complete', [InterviewController::class, 'complete'])->name('interviews.complete');
+    Route::post('interviews/{id}/reschedule', [InterviewController::class, 'reschedule'])->name('interviews.reschedule');
+    Route::post('interviews/{id}/reschedule/accept', [InterviewController::class, 'acceptReschedule'])->name('interviews.reschedule.accept');
+    Route::post('interviews/{id}/reschedule/decline', [InterviewController::class, 'declineReschedule'])->name('interviews.reschedule.decline');
+
+    // Employer Routes - Reports (for Employers)
+    Route::post('reports', [\App\Http\Controllers\Employer\EmployerReportController::class, 'store'])->name('reports.store');
+    Route::get('reports', [\App\Http\Controllers\Employer\EmployerReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/{report}', [\App\Http\Controllers\Employer\EmployerReportController::class, 'show'])->name('reports.show');
+
+    // Employer Routes - Job Postings (for Employers)
+    Route::get('postings', [PostingController::class, 'index'])->name('postings.index');
+    Route::get('postings/create', [PostingController::class, 'create'])->name('postings.create');
+    Route::post('postings', [PostingController::class, 'store'])->name('postings.store');
+    Route::get('postings/{id}', [PostingController::class, 'show'])->name('postings.show');
+    Route::get('postings/{id}/edit', [PostingController::class, 'edit'])->name('postings.edit');
+    Route::put('postings/{id}', [PostingController::class, 'update'])->name('postings.update');
+    Route::delete('postings/{id}', [PostingController::class, 'destroy'])->name('postings.destroy');
+    Route::patch('postings/{id}/toggle', [PostingController::class, 'toggle'])->name('postings.toggle');
+
+    // Employer Routes - Company Settings (for Employers)
+    Route::get('company/edit', [EmployerCompanyController::class, 'edit'])->name('company.edit');
+    Route::patch('company/update', [EmployerCompanyController::class, 'update'])->name('company.update');
 });
 
 // Admin Routes - Subscription Management (for Employers)
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admin', 'permission:view subscriptions'])->group(function () {
     Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions');
     Route::post('subscriptions/subscribe', [SubscriptionController::class, 'subscribe'])->middleware('permission:manage subscriptions')->name('subscribe');
+    Route::post('subscriptions/vnpay_payment', [SubscriptionController::class, 'vnpayPayment'])->name('vnpay.payment');
     Route::post('subscriptions/upgrade', [SubscriptionController::class, 'upgrade'])->middleware('permission:manage subscriptions')->name('upgrade');
     Route::post('subscriptions/renew', [SubscriptionController::class, 'renew'])->middleware('permission:manage subscriptions')->name('renew');
     Route::post('subscriptions/cancel', [SubscriptionController::class, 'cancel'])->middleware('permission:manage subscriptions')->name('cancel');
     Route::get('subscriptions/{subscription}', [SubscriptionController::class, 'show'])->name('subscriptions.show');
-    Route::get('subscriptions/qr/data', [SubscriptionController::class, 'getPaymentData'])->name('subscriptions.payment');
-    Route::get('subscriptions/zalopay-demo', [SubscriptionController::class, 'zaloPayDemo'])->name('subscriptions.zalopay-demo');
-    Route::post('subscriptions/test-zalopay', [SubscriptionController::class, 'testZaloPay'])->name('subscriptions.test-zalopay');
     Route::post('subscriptions/simulate-payment', [SubscriptionController::class, 'simulatePayment'])->name('subscriptions.simulate-payment');
     Route::get('subscriptions/vnpay-demo', [SubscriptionController::class, 'vnpayDemo'])->name('subscriptions.vnpay-demo');
     Route::post('subscriptions/test-vnpay', [SubscriptionController::class, 'testVNPay'])->name('subscriptions.test-vnpay');
@@ -229,14 +263,7 @@ Route::prefix('admin/subscriptions/vnpay')->group(function () {
     Route::get('return', [SubscriptionController::class, 'vnpayReturn'])->name('vnpay.return');
 });
 
-// Test route để kiểm tra
-Route::get('test-zalopay', function () {
-    return 'ZaloPay test route works!';
-});
 
-Route::get('test-vnpay', function () {
-    return 'VNPay test route works!';
-});
 
 // Support Chat Widget - Available for all authenticated users
 Route::middleware(['auth', 'active'])->group(function () {
@@ -317,65 +344,54 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'active', 'r
 
 Route::post('candidate/favorites/toggle/{job}', [FavoriteController::class, 'toggle'])->name('candidate.favorites.toggle');
 
-// Admin Reports
+// Admin Reports - Changed route names to avoid conflict with employer reports
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admin'])->group(function () {
-    Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])
-        ->name('reports.index')
+    Route::get('admin-reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])
+        ->name('admin-reports.index')
         ->middleware('permission:view reports');
 
-    Route::get('reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'show'])
-        ->name('reports.show')
+    Route::get('admin-reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'show'])
+        ->name('admin-reports.show')
         ->middleware('permission:view reports');
 
-    Route::patch('reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'update'])
-        ->name('reports.update')
+    Route::patch('admin-reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'update'])
+        ->name('admin-reports.update')
         ->middleware('permission:edit reports');
 
-    Route::delete('reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'destroy'])
-        ->name('reports.destroy')
+    Route::delete('admin-reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'destroy'])
+        ->name('admin-reports.destroy')
         ->middleware('permission:delete reports');
 });
 
-// Employer Routes
-Route::prefix('employer')->name('employer.')->middleware(['auth', 'role:Employer'])->group(function () {
-    Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
-    Route::get('/applications', [EmployerApplicationController::class, 'index'])->name('applications.index');
-    Route::get('/applications/{id}', [EmployerApplicationController::class, 'show'])->name('applications.show');
-    Route::patch('/applications/{id}/status', [EmployerApplicationController::class, 'updateStatus'])->name('applications.update-status');
-    Route::get('candidates/search', [CandidateSearchController::class, 'index'])->name('employer.candidates.search');
-
-    // Interview Management
-    Route::resource('interviews', InterviewController::class)->except(['edit']);
-    Route::post('interviews/{id}/complete', [InterviewController::class, 'complete'])->name('interviews.complete');
-    Route::post('interviews/{id}/reschedule', [InterviewController::class, 'reschedule'])->name('interviews.reschedule');
-    Route::post('interviews/{id}/reschedule/accept', [InterviewController::class, 'acceptReschedule'])->name('interviews.reschedule.accept');
-    Route::post('interviews/{id}/reschedule/decline', [InterviewController::class, 'declineReschedule'])->name('interviews.reschedule.decline');
-
-    // Employer Candidate Report
-    Route::post('reports', [\App\Http\Controllers\Employer\EmployerReportController::class, 'store']);
-    Route::get('reports', [\App\Http\Controllers\Employer\EmployerReportController::class, 'index'])
-        ->name('reports.index');
-
-    Route::get('reports/{report}', [\App\Http\Controllers\Employer\EmployerReportController::class, 'show'])
-        ->name('reports.show');
-});
+// Employer Routes - Moved to admin routes, redirect for backward compatibility
 Route::prefix('employer')->name('employer.')->group(function () {
-    // Danh sách tin tuyển dụng
-    Route::get('posting', [PostingController::class, 'index'])->name('postings.index');
-    // Tạo tin mới
-    Route::get('posting/create', [PostingController::class, 'create'])->name('postings.create');
-    Route::post('posting', [PostingController::class, 'store'])->name('postings.store');
-    // Xem & chỉnh sửa tin
-    Route::get('posting/{id}', [PostingController::class, 'show'])->name('postings.show');
-    Route::get('posting/{id}/edit', [PostingController::class, 'edit'])->name('postings.edit');
-    Route::put('posting/{id}', [PostingController::class, 'update'])->name('postings.update');
-    //Xóa
-    Route::delete('posting/{id}', [PostingController::class, 'destroy'])->name('postings.destroy');
-    //Ẩn , hiện tin tuyển dụng
-    Route::patch('posting/{id}/toggle', [PostingController::class, 'toggle'])->name('postings.toggle');
-    // Cài đặt công ty
-    Route::get('/settings/company', [EmployerCompanyController::class, 'edit'])->name('company.edit');
-    Route::patch('/settings/company', [EmployerCompanyController::class, 'update'])->name('company.update');
+    Route::get('dashboard', function () {
+        return redirect()->route('admin.dashboard');
+    })->name('dashboard');
+    Route::get('/applications', function () {
+        return redirect()->route('admin.applications.index');
+    })->name('applications.index');
+    Route::get('/applications/{id}', function ($id) {
+        return redirect()->route('admin.applications.show', $id);
+    })->name('applications.show');
+    Route::patch('/applications/{id}/status', function ($id) {
+        return redirect()->route('admin.applications.update-status', $id);
+    })->name('applications.update-status');
+    Route::get('candidates/search', function () {
+        return redirect()->route('admin.candidates.search');
+    })->name('employer.candidates.search');
+    Route::any('interviews/{any?}', function () {
+        return redirect()->route('admin.interviews.index');
+    })->where('any', '.*')->name('interviews.index');
+    Route::any('reports/{any?}', function () {
+        return redirect()->route('admin.reports.index');
+    })->where('any', '.*')->name('reports.index');
+    Route::any('posting/{any?}', function () {
+        return redirect()->route('admin.postings.index');
+    })->where('any', '.*')->name('postings.index');
+    Route::any('settings/company/{any?}', function () {
+        return redirect()->route('admin.company.edit');
+    })->where('any', '.*')->name('company.edit');
 });
 
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'verified'])->group(function () {
@@ -406,11 +422,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'verified'
     Route::post('job-postings/{jobPosting:id}/reject', [\App\Http\Controllers\Admin\JobPostingController::class, 'reject'])->name('job-postings.reject');
     Route::delete('job-postings/{jobPosting:id}', [\App\Http\Controllers\Admin\JobPostingController::class, 'destroy'])->name('job-postings.destroy');
 
-    // Reports Management
-    Route::get('reports', [\App\Http\Controllers\Admin\ReportController::class, 'index'])->name('reports.index');
-    Route::get('reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'show'])->name('reports.show');
-    Route::patch('reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'update'])->name('reports.update');
-    Route::delete('reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'destroy'])->name('reports.destroy');
+    // Reports Management - Moved to admin-reports routes above to avoid conflict with employer reports
 });
 
 

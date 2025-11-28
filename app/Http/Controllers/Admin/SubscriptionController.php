@@ -7,8 +7,6 @@ use App\Models\ServicePackage;
 use App\Models\Subscription;
 use App\Models\Payment;
 use App\Models\Company;
-use App\Services\ZaloPayPaymentService;
-use App\Services\VNPayPaymentService;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -27,29 +25,30 @@ class SubscriptionController extends Controller
         $user = Auth::user();
         $company = $user->company;
         
-        if (!$company) {
-            return Inertia::render('admin/subscriptions/Index', [
-                'packages' => ServicePackage::where('is_active', true)->get(),
-                'currentSubscription' => null,
-                'paymentHistory' => [],
-                'company' => null,
-            ]);
-        }
-        
         $packages = ServicePackage::where('is_active', true)->get();
         
-        // Lấy subscription hiện tại hoặc tạo Free mặc định
-            $currentSubscription = Subscription::where('company_id', $company->id)
-                ->where('status', 'active')
-                ->with('package')
-                ->first();
-            
+        // Lấy subscription hiện tại theo user_id (lấy subscription mới nhất và active)
+        // Không phụ thuộc vào company, chỉ cần user_id
+        $currentSubscription = Subscription::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->with('package')
+            ->orderBy('created_at', 'desc')
+            ->first();
+        
+        // Debug: Log để kiểm tra
+        Log::info('Subscription query result', [
+            'user_id' => $user->id,
+            'found_subscription' => $currentSubscription ? true : false,
+            'subscription_id' => $currentSubscription->id ?? null,
+            'package_id' => $currentSubscription->package_id ?? null,
+        ]);
+        
         // Nếu chưa có subscription, tạo Free mặc định
         if (!$currentSubscription) {
             $freePackage = ServicePackage::where('slug', 'free')->first();
             if ($freePackage) {
                 $currentSubscription = Subscription::create([
-                    'company_id' => $company->id,
+                    'user_id' => $user->id,
                     'package_id' => $freePackage->id,
                     'status' => 'active',
                     'starts_at' => now(),
@@ -78,6 +77,39 @@ class SubscriptionController extends Controller
             ->limit(10)
             ->get();
         
+        // Đảm bảo currentSubscription có đầy đủ thông tin package
+        if ($currentSubscription && !$currentSubscription->relationLoaded('package')) {
+            $currentSubscription->load('package');
+        }
+        
+        // Debug: Log subscription info
+        if ($currentSubscription) {
+            Log::info('Sending subscription to frontend', [
+                'subscription_id' => $currentSubscription->id,
+                'user_id' => $user->id,
+                'package_id' => $currentSubscription->package_id,
+                'package_name' => $currentSubscription->package->name ?? 'N/A',
+                'package_id_from_relation' => $currentSubscription->package->id ?? 'N/A',
+                'status' => $currentSubscription->status,
+                'has_package_relation' => $currentSubscription->relationLoaded('package'),
+            ]);
+        } else {
+            Log::info('No subscription found for user', [
+                'user_id' => $user->id,
+            ]);
+        }
+        
+        // Debug: Log trước khi render
+        Log::info('Rendering subscription page', [
+            'user_id' => $user->id,
+            'has_subscription' => $currentSubscription ? true : false,
+            'subscription_data' => $currentSubscription ? [
+                'id' => $currentSubscription->id,
+                'package_id' => $currentSubscription->package_id,
+                'status' => $currentSubscription->status,
+            ] : null,
+        ]);
+        
         return Inertia::render('admin/subscriptions/Index', [
             'packages' => $packages,
             'currentSubscription' => $currentSubscription,
@@ -93,7 +125,7 @@ class SubscriptionController extends Controller
     {
         $request->validate([
             'package_id' => 'required|exists:service_packages,id',
-            'payment_method' => 'required|in:bank_transfer,credit_card,zalopay,vnpay',
+            'payment_method' => 'required|in:vnpay',
         ]);
         
         $user = Auth::user();
@@ -106,7 +138,7 @@ class SubscriptionController extends Controller
         $package = ServicePackage::findOrFail($request->package_id);
         
         // Lấy subscription hiện tại
-        $currentSubscription = Subscription::where('company_id', $company->id)
+        $currentSubscription = Subscription::where('user_id', $user->id)
             ->where('status', 'active')
             ->first();
             
@@ -119,13 +151,12 @@ class SubscriptionController extends Controller
             return redirect()->back()->with('error', 'Chỉ có thể nâng cấp lên gói có giá cao hơn.');
         }
         
-        // Xử lý thanh toán cho gói trả phí
-        if ($request->payment_method === 'zalopay') {
-            return $this->processZaloPayPayment($user, $company, $package, $currentSubscription);
+        // Xử lý thanh toán VNPay
+        if ($request->payment_method === 'vnpay') {
+            return $this->processVNPayPayment($user, $company, $package, $currentSubscription);
         }
         
-        // Các phương thức thanh toán khác
-        return $this->createPendingPayment($user, $company, $package, $request->payment_method, $currentSubscription);
+        return redirect()->back()->with('error', 'Phương thức thanh toán không hợp lệ.');
     }
     
     /**
@@ -138,7 +169,7 @@ class SubscriptionController extends Controller
         try {
             // Tạo subscription
             $subscription = Subscription::create([
-                'company_id' => $company->id,
+                'user_id' => $user->id,
                 'package_id' => $package->id,
                 'status' => 'active',
                 'starts_at' => now(),
@@ -165,95 +196,6 @@ class SubscriptionController extends Controller
         }
     }
     
-    /**
-     * Xử lý thanh toán ZaloPay cho upgrade
-     */
-    private function processZaloPayPayment($user, $company, $package, $currentSubscription)
-    {
-        try {
-            $zalopayService = new ZaloPayPaymentService();
-
-            $orderId = 'UPGRADE_' . $company->id . '_' . $package->id;
-            $orderInfo = "Nang cap tu {$currentSubscription->package->name} len {$package->name} - {$company->company_name}";
-
-            $result = $zalopayService->createPayment(
-                $orderId,
-                $package->price,
-                $orderInfo,
-                json_encode([
-                    'company_id' => $company->id,
-                    'package_id' => $package->id,
-                    'user_id' => $user->id,
-                    'current_subscription_id' => $currentSubscription->id
-                ])
-            );
-
-            if ($result['success']) {
-                // Lưu thông tin payment
-                $payment = Payment::create([
-                    'user_id' => $user->id,
-                    'package_id' => $package->id,
-                    'payment_method' => 'zalopay',
-                    'amount' => $package->price,
-                    'status' => 'pending',
-                    'transaction_id' => $result['app_trans_id'],
-                    'payment_details' => json_encode([
-                        'zalopay_order_token' => $result['order_token'],
-                        'zalopay_order_url' => $result['order_url'],
-                        'zp_trans_token' => $result['zp_trans_token'],
-                        'current_subscription_id' => $currentSubscription->id,
-                        'upgrade_type' => 'zalopay',
-                        'order_info' => $orderInfo,
-                    ]),
-                ]);
-
-                Log::info('ZaloPay Payment Created', [
-                    'payment_id' => $payment->id,
-                    'order_url' => $result['order_url']
-                ]);
-
-                return redirect()->back()->with('success', 'Đã tạo thanh toán ZaloPay');
-            } else {
-                return redirect()->back()->with('error', 'Lỗi tạo thanh toán ZaloPay: ' . $result['message']);
-            }
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
-        }
-    }
-    
-    /**
-     * Tạo payment pending cho các phương thức khác
-     */
-    private function createPendingPayment($user, $company, $package, $paymentMethod, $currentSubscription)
-    {
-        try {
-            Payment::create([
-                'user_id' => $user->id,
-                'package_id' => $package->id,
-                'payment_method' => $paymentMethod,
-                'amount' => $package->price,
-                'status' => 'pending',
-                'notes' => "Nâng cấp từ {$currentSubscription->package->name} lên {$package->name} - " . $this->getPaymentMethodText($paymentMethod),
-            ]);
-            
-            return redirect()->back()->with('success', 'Đã tạo yêu cầu nâng cấp. Vui lòng liên hệ admin để hoàn tất.');
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
-        }
-    }
-    
-    // TODO: Implement MoMo payment service
-    /*
-    public function momoCallback(Request $request)
-    {
-        // MoMo callback implementation
-    }
-    
-    public function momoReturn(Request $request)
-    {
-        // MoMo return implementation
-    }
-    */
     
     /**
      * Gia hạn subscription
@@ -261,7 +203,7 @@ class SubscriptionController extends Controller
     public function renew(Request $request): RedirectResponse
     {
         $request->validate([
-            'payment_method' => 'required|in:bank_transfer,credit_card,zalopay,vnpay',
+            'payment_method' => 'required|in:vnpay',
         ]);
         
         $user = Auth::user();
@@ -271,7 +213,7 @@ class SubscriptionController extends Controller
             return redirect()->back()->with('error', 'Bạn cần tạo công ty trước khi gia hạn gói dịch vụ.');
         }
         
-        $currentSubscription = Subscription::where('company_id', $company->id)
+        $currentSubscription = Subscription::where('user_id', $user->id)
             ->where('status', 'active')
             ->with('package')
             ->first();
@@ -314,11 +256,11 @@ class SubscriptionController extends Controller
     /**
      * Nâng cấp subscription
      */
-    public function upgrade(Request $request): RedirectResponse
+    public function upgrade(Request $request)
     {
         $request->validate([
             'package_id' => 'required|exists:service_packages,id',
-            'payment_method' => 'required|in:bank_transfer,credit_card,zalopay,vnpay',
+            'payment_method' => 'required|in:vnpay',
         ]);
         
         $user = Auth::user();
@@ -328,7 +270,7 @@ class SubscriptionController extends Controller
             return redirect()->back()->with('error', 'Bạn cần tạo công ty trước khi nâng cấp gói dịch vụ.');
         }
         
-        $currentSubscription = Subscription::where('company_id', $company->id)
+        $currentSubscription = Subscription::where('user_id', $user->id)
             ->where('status', 'active')
             ->with('package')
             ->first();
@@ -343,45 +285,12 @@ class SubscriptionController extends Controller
             return redirect()->back()->with('error', 'Gói dịch vụ mới phải có giá cao hơn gói hiện tại.');
         }
         
-        // Xử lý thanh toán theo phương thức được chọn
-        switch ($request->payment_method) {
-            case 'zalopay':
-                return $this->processZaloPayPayment($user, $company, $newPackage, $currentSubscription);
-            case 'vnpay':
-                return $this->processVNPayPayment($user, $company, $newPackage, $currentSubscription);
-            case 'bank_transfer':
-            case 'credit_card':
-            default:
-                // Xử lý thanh toán truyền thống (ngay lập tức)
-                DB::beginTransaction();
-                
-                try {
-                    // Cập nhật subscription
-                    $currentSubscription->update([
-                        'package_id' => $newPackage->id,
-                        'expires_at' => $currentSubscription->expires_at->addDays($newPackage->duration_days),
-                    ]);
-                    
-                    // Tạo payment record
-                    Payment::create([
-                        'user_id' => $user->id,
-                        'subscription_id' => $currentSubscription->id,
-                        'package_id' => $newPackage->id,
-                        'payment_method' => $request->payment_method,
-                        'amount' => $newPackage->price - $currentSubscription->package->price,
-                        'status' => 'completed',
-                        'paid_at' => now(),
-                        'notes' => 'Nâng cấp từ ' . $currentSubscription->package->name . ' lên ' . $newPackage->name,
-                    ]);
-                    
-                    DB::commit();
-                    
-                    return redirect()->back()->with('success', 'Nâng cấp gói dịch vụ thành công!');
-                } catch (\Exception $e) {
-                    DB::rollBack();
-                    return redirect()->back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
-                }
+        // Xử lý thanh toán VNPay
+        if ($request->payment_method === 'vnpay') {
+            return $this->processVNPayPayment($user, $company, $newPackage, $currentSubscription);
         }
+        
+        return redirect()->back()->with('error', 'Phương thức thanh toán không hợp lệ.');
     }
     
     /**
@@ -390,13 +299,9 @@ class SubscriptionController extends Controller
     public function cancel(): RedirectResponse
     {
         $user = Auth::user();
-        $company = $user->company;
+
         
-        if (!$company) {
-            return redirect()->back()->with('error', 'Bạn cần tạo công ty trước khi hủy gói dịch vụ.');
-        }
-        
-        $currentSubscription = Subscription::where('company_id', $company->id)
+        $currentSubscription = Subscription::where('user_id', $user->id)
             ->where('status', 'active')
             ->first();
             
@@ -432,117 +337,6 @@ class SubscriptionController extends Controller
         ]);
     }
     
-    /**
-     * Lấy text cho payment method
-     */
-    private function getPaymentMethodText($method)
-    {
-        $methodMap = [
-            'bank_transfer' => 'Chuyển khoản ngân hàng',
-            'credit_card' => 'Thẻ tín dụng',
-            'zalopay' => 'Ví ZaloPay',
-            'vnpay' => 'VNPay',
-        ];
-        
-        return $methodMap[$method] ?? $method;
-    }
-    
-    /**
-     * Lấy payment data từ database
-     */
-    public function getPaymentData()
-    {
-        $user = Auth::user();
-        
-        // Lấy payment pending gần nhất của user
-        $payment = Payment::where('user_id', $user->id)
-            ->where('status', 'pending')
-            ->where('payment_method', 'zalopay')
-            ->orderBy('created_at', 'desc')
-            ->first();
-            
-        if (!$payment || !$payment->payment_details) {
-            Log::info('No pending ZaloPay payment found', ['user_id' => $user->id]);
-            return response()->json(['error' => 'No payment data found'], 404);
-        }
-        
-        $paymentDetails = json_decode($payment->payment_details, true);
-        
-        $responseData = [
-            'payment_id' => $payment->id,
-            'order_url' => $paymentDetails['zalopay_order_url'] ?? null,
-            'order_token' => $paymentDetails['zalopay_order_token'] ?? null,
-            'amount' => $payment->amount,
-            'order_info' => $paymentDetails['order_info'] ?? 'Thanh toán ZaloPay',
-        ];
-        
-        Log::info('Payment Data Retrieved from Database', $responseData);
-        
-        return response()->json($responseData);
-    }
-
-    /**
-     * Test ZaloPay sandbox payment
-     */
-    public function testZaloPay(Request $request)
-    {
-        $request->validate([
-            'amount' => 'required|numeric|min:1000',
-            'description' => 'required|string|max:255',
-        ]);
-
-        try {
-            $zalopayService = new ZaloPayPaymentService();
-            
-            $orderId = 'TEST_' . time();
-            $result = $zalopayService->createPayment(
-                $orderId,
-                $request->amount,
-                $request->description,
-                json_encode(['test' => true])
-            );
-
-            if ($result['success']) {
-                // Tạo payment record để có thể simulate
-                $user = Auth::user();
-                $package = ServicePackage::where('slug', 'premium')->first();
-                
-                $payment = Payment::create([
-                    'user_id' => $user->id,
-                    'package_id' => $package->id,
-                    'payment_method' => 'zalopay',
-                    'amount' => $request->amount,
-                    'status' => 'pending',
-                    'transaction_id' => $result['app_trans_id'],
-                    'payment_details' => json_encode([
-                        'zalopay_order_url' => $result['order_url'],
-                        'zalopay_order_token' => $result['order_token'],
-                        'order_info' => $request->description,
-                        'test_mode' => true,
-                    ]),
-                ]);
-
-                $result['payment_id'] = $payment->id;
-
-                return redirect()->back()->with([
-                    'success' => true,
-                    'payment_result' => $result
-                ]);
-            } else {
-                return redirect()->back()->with('error', 'Lỗi tạo test payment: ' . $result['message']);
-            }
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
-        }
-    }
-
-    /**
-     * Hiển thị trang demo ZaloPay sandbox
-     */
-    public function zaloPayDemo(): Response
-    {
-        return Inertia::render('admin/subscriptions/ZaloPayDemo');
-    }
 
     /**
      * Simulate payment callback (for testing)
@@ -557,15 +351,37 @@ class SubscriptionController extends Controller
         try {
             $user = Auth::user();
             
-            // Tìm payment pending gần nhất
-            $payment = Payment::where('user_id', $user->id)
-                ->where('status', 'pending')
-                ->where('payment_method', 'zalopay')
-                ->orderBy('created_at', 'desc')
-                ->first();
+            // Tìm payment theo ID hoặc transaction_id
+            $payment = null;
+            
+            if (is_numeric($request->payment_id)) {
+                // Tìm theo ID
+                $payment = Payment::where('user_id', $user->id)
+                    ->where('id', $request->payment_id)
+                    ->where('status', 'pending')
+                    ->first();
+            } else {
+                // Tìm theo transaction_id (có thể có hoặc không có timestamp)
+                $payment = Payment::where('user_id', $user->id)
+                    ->where(function($query) use ($request) {
+                        $query->where('transaction_id', 'like', $request->payment_id . '%')
+                              ->orWhere('transaction_id', $request->payment_id);
+                    })
+                    ->where('status', 'pending')
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+            }
+            
+            // Nếu không tìm thấy theo ID, tìm payment pending gần nhất (fallback)
+            if (!$payment) {
+                $payment = Payment::where('user_id', $user->id)
+                    ->where('status', 'pending')
+                    ->orderBy('created_at', 'desc')
+                    ->first();
+            }
 
             if (!$payment) {
-                return redirect()->back()->with('error', 'Không tìm thấy payment để simulate');
+                return redirect()->back()->with('error', 'Không tìm thấy payment để simulate. Vui lòng kiểm tra payment_id hoặc đảm bảo có payment pending.');
             }
 
             DB::beginTransaction();
@@ -605,32 +421,153 @@ class SubscriptionController extends Controller
     }
 
     /**
-     * Xử lý payment thành công
+     * Xử lý payment thành công (được sử dụng bởi callback)
      */
     private function processSuccessfulPayment($payment)
     {
         $paymentDetails = json_decode($payment->payment_details, true);
+        $package = $payment->package;
+        $user = $payment->user;
+        $company = $user ? $user->company : null;
         
         if (isset($paymentDetails['current_subscription_id'])) {
-            // Upgrade subscription hiện tại
+            // Nâng cấp subscription hiện tại
             $currentSubscription = Subscription::find($paymentDetails['current_subscription_id']);
-            if ($currentSubscription) {
+            if ($currentSubscription && $package) {
                 $currentSubscription->update([
-                    'package_id' => $payment->package_id,
-                    'expires_at' => $currentSubscription->expires_at->addDays($payment->package->duration_days),
+                    'package_id' => $package->id,
+                    'status' => 'active',
+                    'expires_at' => now()->addDays($package->duration_days),
                 ]);
                 $payment->update(['subscription_id' => $currentSubscription->id]);
             }
         } else {
-            // Tạo subscription mới
-            $subscription = Subscription::create([
-                'company_id' => $payment->user->company->id,
-                'package_id' => $payment->package_id,
-                'status' => 'active',
-                'starts_at' => now(),
-                'expires_at' => now()->addDays($payment->package->duration_days),
+            // Deactivate tất cả subscription cũ của user này
+            Subscription::where('user_id', $payment->user_id)
+                ->where('status', 'active')
+                ->update(['status' => 'expired']);
+            
+            // Tạo subscription mới cho user này
+            if ($package) {
+                $subscriptionData = [
+                    'user_id' => $payment->user_id,
+                    'package_id' => $package->id,
+                    'status' => 'active',
+                    'starts_at' => now(),
+                    'expires_at' => now()->addDays($package->duration_days),
+                ];
+                
+                
+                $subscription = Subscription::create($subscriptionData);
+                $payment->update(['subscription_id' => $subscription->id]);
+            
+            }
+        }
+    }
+
+    /**
+     * Xử lý thanh toán VNPay - Redirect đến VNPay sandbox
+     */
+    public function vnpayPayment(Request $request)
+    {
+        try {
+            $request->validate([
+                'package_id' => 'required|exists:service_packages,id',
+                'payment_method' => 'required|in:vnpay',
             ]);
-            $payment->update(['subscription_id' => $subscription->id]);
+            
+            $user = Auth::user();
+            $package = ServicePackage::findOrFail($request->package_id);
+            
+            // Lấy subscription hiện tại (nếu có)
+            $currentSubscription = Subscription::where('user_id', $user->id)
+                ->where('status', 'active')
+                ->with('package')
+                ->first();
+            
+            // Tạo order ID duy nhất
+            $vnp_TxnRef = 'ORDER_' . $user->id . '_' . $package->id . '_' . time();
+            
+            // Tạo payment record trước khi redirect
+            $payment = Payment::create([
+                'user_id' => $user->id,
+                'package_id' => $package->id,
+                'payment_method' => 'vnpay',
+                'amount' => $package->price,
+                'status' => 'pending',
+                'transaction_id' => $vnp_TxnRef,
+                'payment_details' => json_encode([
+                    'current_subscription_id' => $currentSubscription ? $currentSubscription->id : null,
+                ]),
+            ]);
+            
+            // Cấu hình VNPay (sandbox)
+            $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+            // Sử dụng route name để đảm bảo URL đúng
+            $vnp_Returnurl = route('vnpay.return');
+            $vnp_TmnCode = "NVGDTU1Q";
+            $vnp_HashSecret = "LYHQBKQVVD6PC32DEB2F7IYOCXTJG4X3";
+            
+            // Log URL để debug
+            Log::info('VNPay Payment: Creating payment with return URL', [
+                'return_url' => $vnp_Returnurl,
+                'return_url_full' => url('/admin/subscriptions/vnpay/return'),
+                'payment_url' => $vnp_Url,
+                'user_id' => $user->id,
+                'package_id' => $package->id,
+            ]);
+            
+            $vnp_OrderInfo = $currentSubscription 
+                ? "Nang cap tu {$currentSubscription->package->name} len {$package->name}"
+                : "Dang ky goi {$package->name}";
+            $vnp_OrderType = 'other';
+            $vnp_Amount = $package->price * 100; // VNPay tính bằng xu
+            $vnp_Locale = 'vn';
+            $vnp_IpAddr = request()->ip() ?? '127.0.0.1';
+            
+            $inputData = [
+              "vnp_Version" => "2.1.0",
+              "vnp_TmnCode" => $vnp_TmnCode,
+              "vnp_Amount" => $vnp_Amount,
+              "vnp_Command" => "pay",
+              "vnp_CreateDate" => date('YmdHis'),
+              "vnp_CurrCode" => "VND",
+              "vnp_IpAddr" => $vnp_IpAddr,
+              "vnp_Locale" => $vnp_Locale,
+              "vnp_OrderInfo" => $vnp_OrderInfo,
+              "vnp_OrderType" => $vnp_OrderType,
+              "vnp_ReturnUrl" => $vnp_Returnurl,
+              "vnp_TxnRef" => $vnp_TxnRef,
+            ];
+        
+            // Loại bỏ các tham số rỗng
+            $inputData = array_filter($inputData, function($value) {
+                return $value !== null && $value !== '';
+            });
+        
+            // Sắp xếp các tham số theo thứ tự alphabet
+            ksort($inputData);
+            
+            // Tạo query string
+            $queryString = http_build_query($inputData);
+            
+            // Tạo secure hash
+            $vnpSecureHash = hash_hmac('sha512', $queryString, $vnp_HashSecret);
+            
+            // Tạo URL thanh toán
+            $paymentUrl = $vnp_Url . "?" . $queryString . '&vnp_SecureHash=' . $vnpSecureHash;
+            
+            Log::info('VNPay Payment Created', [
+                'payment_id' => $payment->id,
+                'order_id' => $vnp_TxnRef,
+            ]);
+            
+            // Redirect đến VNPay sandbox
+            return redirect()->away($paymentUrl);
+            
+        } catch (\Exception $e) {
+            Log::error('VNPay Payment Error', ['error' => $e->getMessage()]);
+            return redirect()->back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
         }
     }
 
@@ -640,114 +577,401 @@ class SubscriptionController extends Controller
     private function processVNPayPayment($user, $company, $package, $currentSubscription)
     {
         try {
-            $vnpayService = new VNPayPaymentService();
+            $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+            $vnp_Returnurl = "http://localhost:8000/admin/subscriptions/vnpay/return";
+            $vnp_TmnCode = "NVGDTU1Q";
+            $vnp_HashSecret = "LYHQBKQVVD6PC32DEB2F7IYOCXTJG4X3";
 
-            $orderId = 'UPGRADE_' . $company->id . '_' . $package->id;
+            $orderId = 'UPGRADE_' . $user->id . '_' . $package->id . '_' . time();
             $orderInfo = "Nang cap tu {$currentSubscription->package->name} len {$package->name} - {$company->company_name}";
-
-            $result = $vnpayService->createPayment(
-                $orderId,
-                $package->price,
-                $orderInfo,
-                json_encode([
-                    'company_id' => $company->id,
-                    'package_id' => $package->id,
-                    'user_id' => $user->id,
-                    'current_subscription_id' => $currentSubscription->id
-                ])
+            $vnp_Amount = $package->price * 100;
+            $vnp_Locale = 'vn';
+            $vnp_IpAddr = request()->ip() ?? '127.0.0.1';
+            
+            $inputData = array(
+              "vnp_Version" => "2.1.0",
+              "vnp_TmnCode" => $vnp_TmnCode,
+              "vnp_Amount" => $vnp_Amount,
+              "vnp_Command" => "pay",
+              "vnp_CreateDate" => date('YmdHis'),
+              "vnp_CurrCode" => "VND",
+              "vnp_IpAddr" => $vnp_IpAddr,
+              "vnp_Locale" => $vnp_Locale,
+              "vnp_OrderInfo" => $orderInfo,
+              "vnp_OrderType" => "other",
+              "vnp_ReturnUrl" => $vnp_Returnurl,
+              "vnp_TxnRef" => $orderId,
             );
+        
+            // Loại bỏ các tham số rỗng
+            $inputData = array_filter($inputData, function($value) {
+                return $value !== null && $value !== '';
+            });
+        
+            // Sắp xếp các tham số theo thứ tự alphabet
+            ksort($inputData);
+            
+            // Tạo query string bằng http_build_query
+            $queryString = http_build_query($inputData);
+            
+            // Tạo secure hash từ query string
+            $vnpSecureHash = hash_hmac('sha512', $queryString, $vnp_HashSecret);
+            
+            // Thêm secure hash vào query string
+            $queryString .= '&vnp_SecureHash=' . $vnpSecureHash;
+            
+            // Tạo URL thanh toán
+            $paymentUrl = $vnp_Url . "?" . $queryString;
 
-            if ($result['success']) {
-                // Lưu thông tin payment
-                $payment = Payment::create([
-                    'user_id' => $user->id,
-                    'package_id' => $package->id,
-                    'payment_method' => 'vnpay',
-                    'amount' => $package->price,
-                    'status' => 'pending',
-                    'transaction_id' => $result['order_id'],
-                    'payment_details' => json_encode([
-                        'vnpay_payment_url' => $result['payment_url'],
-                        'current_subscription_id' => $currentSubscription->id,
-                        'upgrade_type' => 'vnpay',
-                        'order_info' => $orderInfo,
-                    ]),
-                ]);
+            // Lưu thông tin payment
+            $payment = Payment::create([
+                'user_id' => $user->id,
+                'package_id' => $package->id,
+                'payment_method' => 'vnpay',
+                'amount' => $package->price,
+                'status' => 'pending',
+                'transaction_id' => $orderId,
+                'payment_details' => json_encode([
+                    'vnpay_payment_url' => $paymentUrl,
+                    'current_subscription_id' => $currentSubscription->id,
+                    'upgrade_type' => 'vnpay',
+                    'order_info' => $orderInfo,
+                ]),
+            ]);
 
-                Log::info('VNPay Payment Created', [
-                    'payment_id' => $payment->id,
-                    'payment_url' => $result['payment_url']
-                ]);
+            Log::info('VNPay Payment Created', [
+                'payment_id' => $payment->id,
+                'payment_url' => $paymentUrl
+            ]);
 
-                return redirect()->to($result['payment_url']);
-            } else {
-                return redirect()->back()->with('error', 'Lỗi tạo thanh toán VNPay: ' . $result['message']);
-            }
+            // Trả về JSON với payment info để hiển thị QR code
+            return response()->json([
+                'success' => true,
+                'payment_id' => $payment->id,
+                'payment_url' => $paymentUrl,
+                'amount' => $package->price,
+                'order_info' => $orderInfo,
+            ]);
         } catch (\Exception $e) {
             Log::error('VNPay Payment Error', ['error' => $e->getMessage()]);
-            return redirect()->back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Có lỗi xảy ra: ' . $e->getMessage()
+            ], 500);
         }
     }
 
     /**
-     * Callback từ VNPay
+     * Callback từ VNPay (IPN - Instant Payment Notification)
+     * VNPay sẽ gọi URL này để thông báo kết quả thanh toán
      */
     public function vnpayCallback(Request $request)
     {
         try {
-            $vnpayService = new VNPayPaymentService();
+            Log::info('VNPay Callback Received', $request->all());
             
-            if (!$vnpayService->verifyCallback($request->all())) {
-                return response()->json(['error' => 'Invalid signature'], 400);
+            // Cấu hình VNPay
+            $vnp_HashSecret = "LYHQBKQVVD6PC32DEB2F7IYOCXTJG4X3";
+            $secureHash = $request->input('vnp_SecureHash', '');
+            
+            if (empty($secureHash)) {
+                Log::error('VNPay Callback: Missing SecureHash');
+                return response()->json(['RspCode' => '97', 'Message' => 'Invalid signature'], 400);
+            }
+            
+            // Tạo bản sao để không ảnh hưởng đến data gốc
+            $inputData = $request->all();
+            unset($inputData['vnp_SecureHash']);
+            unset($inputData['vnp_SecureHashType']);
+            
+            // Loại bỏ các tham số rỗng
+            $inputData = array_filter($inputData, function($value) {
+                return $value !== null && $value !== '';
+            });
+            
+            // Sắp xếp các tham số theo thứ tự alphabet
+            ksort($inputData);
+            
+            // Tạo query string
+            $queryString = http_build_query($inputData);
+            
+            // Tạo secure hash
+            $expectedHash = hash_hmac('sha512', $queryString, $vnp_HashSecret);
+            
+            if (!hash_equals($expectedHash, $secureHash)) {
+                Log::error('VNPay Callback: Invalid signature');
+                return response()->json(['RspCode' => '97', 'Message' => 'Invalid signature'], 400);
             }
             
             $orderId = $request->input('vnp_TxnRef');
             $responseCode = $request->input('vnp_ResponseCode');
+            $amount = $request->input('vnp_Amount') / 100; // VNPay trả về bằng xu
+            $transactionNo = $request->input('vnp_TransactionNo');
             
-            $payment = Payment::where('transaction_id', $orderId)->first();
+            // Tìm payment
+            $payment = Payment::where('transaction_id', $orderId)
+                ->where('payment_method', 'vnpay')
+                ->where('status', 'pending')
+                ->first();
             
             if (!$payment) {
-                return response()->json(['error' => 'Payment not found'], 404);
+                Log::error('VNPay Callback: Payment not found', ['orderId' => $orderId]);
+                return response()->json(['RspCode' => '01', 'Message' => 'Payment not found'], 404);
+            }
+            
+            // Kiểm tra số tiền
+            if (abs($payment->amount - $amount) > 0.01) {
+                Log::error('VNPay Callback: Amount mismatch', [
+                    'expected' => $payment->amount,
+                    'received' => $amount
+                ]);
+                return response()->json(['RspCode' => '04', 'Message' => 'Amount mismatch'], 400);
             }
             
             DB::beginTransaction();
             
             if ($responseCode == '00') {
-                // Thanh toán thành công
+                // Thanh toán thành công - Tạo subscription và active package
                 $payment->update([
                     'status' => 'completed',
                     'paid_at' => now(),
+                    'payment_details' => json_encode(array_merge(
+                        json_decode($payment->payment_details, true) ?? [],
+                        [
+                            'vnpay_transaction_no' => $transactionNo,
+                            'vnpay_response_code' => $responseCode,
+                        ]
+                    )),
                 ]);
                 
                 // Xử lý subscription
                 $this->processSuccessfulPayment($payment);
                 
                 DB::commit();
-                return response()->json(['success' => true, 'message' => 'Payment successful']);
+                
+                Log::info('VNPay Callback: Payment completed successfully', [
+                    'payment_id' => $payment->id,
+                    'orderId' => $orderId
+                ]);
+                
+                return response()->json(['RspCode' => '00', 'Message' => 'Success']);
             } else {
                 // Thanh toán thất bại
-                $payment->update(['status' => 'failed']);
+                $payment->update([
+                    'status' => 'failed',
+                    'payment_details' => json_encode(array_merge(
+                        json_decode($payment->payment_details, true) ?? [],
+                        [
+                            'vnpay_response_code' => $responseCode,
+                        ]
+                    )),
+                ]);
+                
                 DB::commit();
-                return response()->json(['success' => false, 'message' => 'Payment failed']);
+                
+                Log::info('VNPay Callback: Payment failed', [
+                    'payment_id' => $payment->id,
+                    'response_code' => $responseCode
+                ]);
+                
+                return response()->json(['RspCode' => '00', 'Message' => 'Payment failed recorded']);
             }
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json(['error' => $e->getMessage()], 500);
+            Log::error('VNPay Callback Exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['RspCode' => '99', 'Message' => $e->getMessage()], 500);
         }
     }
 
     /**
-     * Return URL từ VNPay
+     * Return URL từ VNPay (sau khi người dùng thanh toán xong)
+     * Tạo subscription và active package khi thanh toán thành công
      */
     public function vnpayReturn(Request $request)
     {
-        $orderId = $request->input('vnp_TxnRef');
-        $responseCode = $request->input('vnp_ResponseCode');
+        // Log ngay đầu hàm để đảm bảo hàm được gọi
+        Log::info('=== VNPay Return URL Called ===', [
+            'url' => $request->fullUrl(),
+            'method' => $request->method(),
+            'all_params' => $request->all(),
+            'ip' => $request->ip(),
+            'headers' => $request->headers->all(),
+        ]);
         
-        if ($responseCode == '00') {
-            return redirect('/admin/subscriptions')->with('success', 'Thanh toán thành công! Gói dịch vụ đã được kích hoạt.');
-        } else {
-            return redirect('/admin/subscriptions')->with('error', 'Thanh toán thất bại. Vui lòng thử lại.');
+        // Debug: Log để xem có vào hàm không
+        error_log('VNPay Return called - ' . now()->toDateTimeString());
+        
+        try {
+            
+            // Cấu hình VNPay
+            $vnp_HashSecret = "LYHQBKQVVD6PC32DEB2F7IYOCXTJG4X3";
+            $secureHash = $request->input('vnp_SecureHash', '');
+            
+            if (empty($secureHash)) {
+                Log::error('VNPay Return: Missing SecureHash');
+                return redirect('/admin/subscriptions')->with('error', 'Chữ ký không hợp lệ. Vui lòng liên hệ hỗ trợ.');
+            }
+            
+            // Tạo bản sao để không ảnh hưởng đến data gốc
+            $inputData = $request->all();
+            unset($inputData['vnp_SecureHash']);
+            unset($inputData['vnp_SecureHashType']);
+            
+            // Loại bỏ các tham số rỗng
+            $inputData = array_filter($inputData, function($value) {
+                return $value !== null && $value !== '';
+            });
+            
+            // Sắp xếp các tham số theo thứ tự alphabet
+            ksort($inputData);
+            
+            // Tạo query string
+            $queryString = http_build_query($inputData);
+            
+            // Tạo secure hash
+            $expectedHash = hash_hmac('sha512', $queryString, $vnp_HashSecret);
+            
+            if (!hash_equals($expectedHash, $secureHash)) {
+                Log::error('VNPay Return: Invalid signature');
+                return redirect('/admin/subscriptions')->with('error', 'Chữ ký không hợp lệ. Vui lòng liên hệ hỗ trợ.');
+            }
+            
+            $orderId = $request->input('vnp_TxnRef');
+            $responseCode = $request->input('vnp_ResponseCode');
+            $responseMessage = $request->input('vnp_ResponseMessage', '');
+            
+            // Tìm payment
+            $payment = Payment::where('transaction_id', $orderId)
+                ->where('payment_method', 'vnpay')
+                ->where('status', 'pending')
+                ->first();
+            
+            if (!$payment) {
+                Log::error('VNPay Return: Payment not found', ['orderId' => $orderId]);
+                return redirect('/admin/subscriptions')->with('error', 'Không tìm thấy giao dịch thanh toán.');
+            }
+            
+            if ($responseCode == '00') {
+                // Thanh toán thành công - Tạo subscription và active package
+                DB::beginTransaction();
+                try {
+                    // Cập nhật payment
+                    $payment->update([
+                        'status' => 'completed',
+                        'paid_at' => now(),
+                        'payment_details' => json_encode(array_merge(
+                            json_decode($payment->payment_details, true) ?? [],
+                            [
+                                'vnpay_transaction_no' => $request->input('vnp_TransactionNo'),
+                                'vnpay_response_code' => $responseCode,
+                            ]
+                        )),
+                    ]);
+                    
+                    // Lấy thông tin package và user
+                    $package = $payment->package;
+                    $user = $payment->user;
+                    $company = $user->company;
+                    
+             
+                    // Lấy subscription hiện tại (nếu có)
+                    $paymentDetails = json_decode($payment->payment_details, true);
+                    $currentSubscriptionId = $paymentDetails['current_subscription_id'] ?? null;
+                    
+                    if ($currentSubscriptionId) {
+                        // Nâng cấp subscription hiện tại
+                        $currentSubscription = Subscription::find($currentSubscriptionId);
+                        if ($currentSubscription) {
+                            $currentSubscription->update([
+                                'package_id' => $package->id,
+                                'status' => 'active',
+                                'expires_at' => now()->addDays($package->duration_days),
+                            ]);
+                            $payment->update(['subscription_id' => $currentSubscription->id]);
+                            
+                            Log::info('VNPay Return: Subscription upgraded', [
+                                'subscription_id' => $currentSubscription->id,
+                                'package_id' => $package->id,
+                            ]);
+                        }
+                    } else {
+                        // Deactivate tất cả subscription cũ của user này
+                        Subscription::where('user_id', $payment->user_id)
+                            ->where('status', 'active')
+                            ->update(['status' => 'expired']);
+                        
+                        // Tạo subscription mới cho user này
+                        $subscriptionData = [
+                            'user_id' => $payment->user_id,
+                            'package_id' => $package->id,
+                            'status' => 'active',
+                            'starts_at' => now(),
+                            'expires_at' => now()->addDays($package->duration_days),
+                        ];
+                        
+                        // Thêm company_id nếu user có company
+                     
+                        
+                    
+                        $subscription = Subscription::create($subscriptionData);
+                        
+                        // Cập nhật payment với subscription_id
+                        $payment->update(['subscription_id' => $subscription->id]);
+                        
+                        // Load lại subscription với package để đảm bảo có đầy đủ thông tin
+                        $subscription->load('package');
+                        
+                  
+               
+                    }
+                    
+                    DB::commit();
+                    
+                    Log::info('VNPay Return: Payment completed and subscription activated', [
+                        'payment_id' => $payment->id,
+                        'package_id' => $package->id,
+                    ]);
+                    
+                    return redirect('/admin/subscriptions')->with('success', 'Thanh toán thành công! Gói dịch vụ ' . $package->name . ' đã được kích hoạt.');
+                    
+                } catch (\Exception $e) {
+                    DB::rollBack();
+                    Log::error('VNPay Return: Error processing payment', [
+                        'error' => $e->getMessage(),
+                        'payment_id' => $payment->id
+                    ]);
+                    return redirect('/admin/subscriptions')->with('error', 'Có lỗi xảy ra khi xử lý thanh toán: ' . $e->getMessage());
+                }
+            } else {
+                // Thanh toán thất bại
+                $payment->update(['status' => 'failed']);
+                
+                $errorMessages = [
+                    '07' => 'Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường).',
+                    '09' => 'Thẻ/Tài khoản chưa đăng ký dịch vụ InternetBanking',
+                    '10' => 'Xác thực thông tin thẻ/tài khoản không đúng. Quá 3 lần',
+                    '11' => 'Đã hết hạn chờ thanh toán. Xin vui lòng thực hiện lại giao dịch.',
+                    '12' => 'Thẻ/Tài khoản bị khóa.',
+                    '13' => 'Nhập sai mật khẩu xác thực giao dịch (OTP). Quá 3 lần',
+                    '51' => 'Tài khoản không đủ số dư để thực hiện giao dịch.',
+                    '65' => 'Tài khoản đã vượt quá hạn mức giao dịch trong ngày.',
+                    '75' => 'Ngân hàng thanh toán đang bảo trì.',
+                    '79' => 'Nhập sai mật khẩu thanh toán quá số lần quy định.',
+                ];
+                
+                $errorMessage = $errorMessages[$responseCode] ?? $responseMessage ?: 'Thanh toán thất bại. Vui lòng thử lại.';
+                
+                return redirect('/admin/subscriptions')->with('error', $errorMessage);
+            }
+        } catch (\Exception $e) {
+            Log::error('VNPay Return Exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect('/admin/subscriptions')->with('error', 'Có lỗi xảy ra khi xử lý thanh toán: ' . $e->getMessage());
         }
     }
 
@@ -762,44 +986,78 @@ class SubscriptionController extends Controller
         ]);
 
         try {
-            $vnpayService = new VNPayPaymentService();
+            $vnp_Url = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
+            $vnp_Returnurl = "http://localhost:8000/admin/subscriptions/vnpay/return";
+            $vnp_TmnCode = "NVGDTU1Q";
+            $vnp_HashSecret = "LYHQBKQVVD6PC32DEB2F7IYOCXTJG4X3";
             
             $orderId = 'TEST_' . time();
-            $result = $vnpayService->createPayment(
-                $orderId,
-                $request->amount,
-                $request->description,
-                json_encode(['test' => true])
+            $vnp_Amount = $request->amount * 100;
+            $vnp_Locale = 'vn';
+            $vnp_IpAddr = request()->ip() ?? '127.0.0.1';
+            
+            $inputData = array(
+              "vnp_Version" => "2.1.0",
+              "vnp_TmnCode" => $vnp_TmnCode,
+              "vnp_Amount" => $vnp_Amount,
+              "vnp_Command" => "pay",
+              "vnp_CreateDate" => date('YmdHis'),
+              "vnp_CurrCode" => "VND",
+              "vnp_IpAddr" => $vnp_IpAddr,
+              "vnp_Locale" => $vnp_Locale,
+              "vnp_OrderInfo" => $request->description,
+              "vnp_OrderType" => "other",
+              "vnp_ReturnUrl" => $vnp_Returnurl,
+              "vnp_TxnRef" => $orderId,
             );
+        
+            // Loại bỏ các tham số rỗng
+            $inputData = array_filter($inputData, function($value) {
+                return $value !== null && $value !== '';
+            });
+        
+            // Sắp xếp các tham số theo thứ tự alphabet
+            ksort($inputData);
+            
+            // Tạo query string bằng http_build_query
+            $queryString = http_build_query($inputData);
+            
+            // Tạo secure hash từ query string
+            $vnpSecureHash = hash_hmac('sha512', $queryString, $vnp_HashSecret);
+            
+            // Thêm secure hash vào query string
+            $queryString .= '&vnp_SecureHash=' . $vnpSecureHash;
+            
+            // Tạo URL thanh toán
+            $paymentUrl = $vnp_Url . "?" . $queryString;
 
-            if ($result['success']) {
-                // Tạo payment record để có thể simulate
-                $user = Auth::user();
-                $package = ServicePackage::where('slug', 'premium')->first();
-                
-                $payment = Payment::create([
-                    'user_id' => $user->id,
-                    'package_id' => $package->id,
-                    'payment_method' => 'vnpay',
-                    'amount' => $request->amount,
-                    'status' => 'pending',
-                    'transaction_id' => $result['order_id'],
-                    'payment_details' => json_encode([
-                        'vnpay_payment_url' => $result['payment_url'],
-                        'order_info' => $request->description,
-                        'test_mode' => true,
-                    ]),
-                ]);
+            // Tạo payment record để có thể simulate
+            $user = Auth::user();
+            $package = ServicePackage::where('slug', 'premium')->first();
+            
+            $payment = Payment::create([
+                'user_id' => $user->id,
+                'package_id' => $package->id,
+                'payment_method' => 'vnpay',
+                'amount' => $request->amount,
+                'status' => 'pending',
+                'transaction_id' => $orderId,
+                'payment_details' => json_encode([
+                    'vnpay_payment_url' => $paymentUrl,
+                    'order_info' => $request->description,
+                    'test_mode' => true,
+                ]),
+            ]);
 
-                $result['payment_id'] = $payment->id;
-
-                return redirect()->back()->with([
+            return redirect()->back()->with([
+                'success' => true,
+                'payment_result' => [
                     'success' => true,
-                    'payment_result' => $result
-                ]);
-            } else {
-                return redirect()->back()->with('error', 'Lỗi tạo test payment: ' . $result['message']);
-            }
+                    'payment_id' => $payment->id,
+                    'payment_url' => $paymentUrl,
+                    'order_id' => $orderId,
+                ]
+            ]);
         } catch (\Exception $e) {
             return redirect()->back()->with('error', 'Có lỗi xảy ra: ' . $e->getMessage());
         }

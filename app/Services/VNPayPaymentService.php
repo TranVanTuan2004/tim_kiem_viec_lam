@@ -30,25 +30,33 @@ class VNPayPaymentService
     public function createPayment($orderId, $amount, $description, $extraData = '')
     {
         try {
-            $orderId = $orderId . '_' . time(); // Ensure unique orderId
-            
-            // Kiểm tra môi trường sandbox
-            if ($this->environment === 'sandbox') {
-                return $this->createMockPayment($orderId, $amount, $description);
+            // Đảm bảo orderId là duy nhất
+            $orderId = $orderId . '_' . time();
+
+            // Kiểm tra cấu hình
+            if (empty($this->tmnCode) || empty($this->hashSecret)) {
+                Log::error('VNPay Configuration Missing', [
+                    'tmn_code' => empty($this->tmnCode),
+                    'hash_secret' => empty($this->hashSecret)
+                ]);
+                return [
+                    'success' => false,
+                    'message' => 'VNPay chưa được cấu hình. Vui lòng kiểm tra file .env',
+                ];
             }
 
             $vnpParams = [
-                'vnp_Version' => config('services.vnpay.version'),
-                'vnp_Command' => config('services.vnpay.command'),
+                'vnp_Version' => config('services.vnpay.version', '2.1.0'),
+                'vnp_Command' => config('services.vnpay.command', 'pay'),
                 'vnp_TmnCode' => $this->tmnCode,
                 'vnp_Amount' => $amount * 100, // VNPay tính bằng xu
-                'vnp_CurrCode' => config('services.vnpay.curr_code'),
+                'vnp_CurrCode' => config('services.vnpay.curr_code', 'VND'),
                 'vnp_TxnRef' => $orderId,
                 'vnp_OrderInfo' => $description,
                 'vnp_OrderType' => 'other',
-                'vnp_Locale' => config('services.vnpay.locale'),
+                'vnp_Locale' => config('services.vnpay.locale', 'vn'),
                 'vnp_ReturnUrl' => $this->returnUrl,
-                'vnp_IpAddr' => request()->ip(),
+                'vnp_IpAddr' => request()->ip() ?? '127.0.0.1',
                 'vnp_CreateDate' => date('YmdHis'),
             ];
 
@@ -56,6 +64,11 @@ class VNPayPaymentService
             if ($extraData) {
                 $vnpParams['vnp_ExtraData'] = $extraData;
             }
+
+            // Loại bỏ các tham số rỗng
+            $vnpParams = array_filter($vnpParams, function($value) {
+                return $value !== null && $value !== '';
+            });
 
             // Sắp xếp các tham số theo thứ tự alphabet
             ksort($vnpParams);
@@ -76,6 +89,7 @@ class VNPayPaymentService
                 'orderId' => $orderId,
                 'amount' => $amount,
                 'description' => $description,
+                'environment' => $this->environment,
                 'paymentUrl' => $paymentUrl
             ]);
 
@@ -87,51 +101,15 @@ class VNPayPaymentService
             ];
 
         } catch (\Exception $e) {
-            Log::error('VNPay Payment Exception', ['error' => $e->getMessage()]);
+            Log::error('VNPay Payment Exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return [
                 'success' => false,
-                'message' => 'Payment service error: ' . $e->getMessage(),
+                'message' => 'Lỗi tạo thanh toán VNPay: ' . $e->getMessage(),
             ];
         }
-    }
-
-    /**
-     * Tạo mock payment cho sandbox environment
-     */
-    private function createMockPayment($orderId, $amount, $description)
-    {
-        Log::info('VNPay Sandbox Mock Payment', [
-            'orderId' => $orderId,
-            'amount' => $amount,
-            'description' => $description
-        ]);
-
-        // Tạo mock URL với các tham số giả lập
-        $mockParams = [
-            'vnp_Version' => '2.1.0',
-            'vnp_Command' => 'pay',
-            'vnp_TmnCode' => 'MOCK_TMN',
-            'vnp_Amount' => $amount * 100,
-            'vnp_CurrCode' => 'VND',
-            'vnp_TxnRef' => $orderId,
-            'vnp_OrderInfo' => $description,
-            'vnp_OrderType' => 'other',
-            'vnp_Locale' => 'vn',
-            'vnp_ReturnUrl' => $this->returnUrl,
-            'vnp_IpAddr' => '127.0.0.1',
-            'vnp_CreateDate' => date('YmdHis'),
-            'vnp_SecureHash' => 'mock_hash_' . $orderId,
-        ];
-
-        $queryString = http_build_query($mockParams);
-        $paymentUrl = 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html?' . $queryString;
-
-        return [
-            'success' => true,
-            'payment_url' => $paymentUrl,
-            'order_id' => $orderId,
-            'amount' => $amount,
-        ];
     }
 
     /**
@@ -141,20 +119,47 @@ class VNPayPaymentService
     {
         try {
             $secureHash = $data['vnp_SecureHash'] ?? '';
-            unset($data['vnp_SecureHash']);
+            
+            if (empty($secureHash)) {
+                Log::error('VNPay Callback: Missing SecureHash');
+                return false;
+            }
+
+            // Tạo bản sao để không ảnh hưởng đến data gốc
+            $inputData = $data;
+            unset($inputData['vnp_SecureHash']);
+            unset($inputData['vnp_SecureHashType']);
+            
+            // Loại bỏ các tham số rỗng
+            $inputData = array_filter($inputData, function($value) {
+                return $value !== null && $value !== '';
+            });
             
             // Sắp xếp các tham số theo thứ tự alphabet
-            ksort($data);
+            ksort($inputData);
             
             // Tạo query string
-            $queryString = http_build_query($data);
+            $queryString = http_build_query($inputData);
             
             // Tạo secure hash
             $expectedHash = hash_hmac('sha512', $queryString, $this->hashSecret);
             
-            return hash_equals($expectedHash, $secureHash);
+            $isValid = hash_equals($expectedHash, $secureHash);
+            
+            if (!$isValid) {
+                Log::warning('VNPay Callback Verification Failed', [
+                    'expected' => $expectedHash,
+                    'received' => $secureHash,
+                    'data' => $data
+                ]);
+            }
+            
+            return $isValid;
         } catch (\Exception $e) {
-            Log::error('VNPay Callback Verification Error', ['error' => $e->getMessage()]);
+            Log::error('VNPay Callback Verification Error', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return false;
         }
     }
@@ -162,61 +167,59 @@ class VNPayPaymentService
     /**
      * Kiểm tra trạng thái payment từ VNPay
      */
-    public function checkPaymentStatus($orderId)
+    public function checkPaymentStatus($orderId, $transactionDate = null)
     {
         try {
-            // Trong môi trường sandbox, trả về mock status
-            if ($this->environment === 'sandbox') {
+            if (empty($this->tmnCode) || empty($this->hashSecret)) {
                 return [
-                    'success' => true,
-                    'status' => 'success',
-                    'message' => 'Mock payment status check',
+                    'success' => false,
+                    'message' => 'VNPay chưa được cấu hình',
                 ];
             }
 
-            // API để check status từ VNPay (cần implement theo VNPay API)
+            $apiUrl = $this->environment === 'sandbox' 
+                ? 'https://sandbox.vnpayment.vn/merchant_webapi/api/transaction'
+                : 'https://vnpayment.vn/merchant_webapi/api/transaction';
+
             $vnpParams = [
-                'vnp_Version' => config('services.vnpay.version'),
+                'vnp_RequestId' => time(),
+                'vnp_Version' => config('services.vnpay.version', '2.1.0'),
                 'vnp_Command' => 'querydr',
                 'vnp_TmnCode' => $this->tmnCode,
                 'vnp_TxnRef' => $orderId,
                 'vnp_OrderInfo' => 'Check payment status',
-                'vnp_TransactionDate' => date('YmdHis'),
+                'vnp_TransactionDate' => $transactionDate ?? date('YmdHis'),
             ];
 
             ksort($vnpParams);
             $queryString = http_build_query($vnpParams);
             $secureHash = hash_hmac('sha512', $queryString, $this->hashSecret);
+            $vnpParams['vnp_SecureHash'] = $secureHash;
 
-            $response = Http::timeout(30)->post('https://sandbox.vnpayment.vn/merchant_webapi/api/transaction', [
-                'vnp_RequestId' => time(),
-                'vnp_Version' => config('services.vnpay.version'),
-                'vnp_Command' => 'querydr',
-                'vnp_TmnCode' => $this->tmnCode,
-                'vnp_TxnRef' => $orderId,
-                'vnp_OrderInfo' => 'Check payment status',
-                'vnp_TransactionDate' => date('YmdHis'),
-                'vnp_SecureHash' => $secureHash,
-            ]);
+            $response = Http::timeout(30)->post($apiUrl, $vnpParams);
 
             if ($response->successful()) {
                 $result = $response->json();
                 return [
                     'success' => true,
-                    'status' => $result['vnp_ResponseCode'] == '00' ? 'success' : 'failed',
+                    'status' => ($result['vnp_ResponseCode'] ?? '') == '00' ? 'success' : 'failed',
                     'message' => $result['vnp_ResponseMessage'] ?? '',
+                    'data' => $result,
                 ];
             } else {
                 return [
                     'success' => false,
-                    'message' => 'Network error',
+                    'message' => 'Lỗi kết nối với VNPay',
                 ];
             }
         } catch (\Exception $e) {
-            Log::error('VNPay Status Check Exception', ['error' => $e->getMessage()]);
+            Log::error('VNPay Status Check Exception', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
             return [
                 'success' => false,
-                'message' => 'Status check error: ' . $e->getMessage(),
+                'message' => 'Lỗi kiểm tra trạng thái: ' . $e->getMessage(),
             ];
         }
     }

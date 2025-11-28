@@ -52,18 +52,6 @@
                 <!-- Action Buttons - Chỉ hiện khi không phải gói Free -->
                 <div v-if="currentSubscription.package.price > 0" class="flex gap-3">
                     <button 
-                        @click="showRenewModal = true"
-                        class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                        Gia Hạn
-                    </button>
-                    <button 
-                        @click="showUpgradeModal = true"
-                        class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                        Nâng Cấp
-                    </button>
-                    <button 
                         @click="cancelSubscription"
                         class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
                     >
@@ -121,6 +109,12 @@
                 </div>
                 
                 <div class="mt-auto">
+                    <!-- Badge hiển thị nếu là gói hiện tại -->
+                    <div v-if="isCurrentPackage(packageItem)" class="mb-2 text-center">
+                        <span class="inline-block bg-green-500 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                            ✓ Gói Hiện Tại
+                        </span>
+                    </div>
                     <button 
                         @click="subscribe(packageItem)"
                         class="w-full py-3 px-6 rounded-lg font-semibold transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
@@ -182,11 +176,7 @@
                 <div class="mb-4">
                     <label class="block text-sm font-medium mb-2">Phương thức thanh toán</label>
                     <select v-model="renewForm.payment_method" class="w-full border rounded-lg px-3 py-2">
-                        <option value="bank_transfer">Chuyển khoản ngân hàng</option>
-                        <option value="credit_card">Thẻ tín dụng</option>
-                        <option value="momo">Ví MoMo</option>
                         <option value="vnpay">VNPay</option>
-                        <option value="zalopay">ZaloPay</option>
                     </select>
                 </div>
                 
@@ -235,11 +225,7 @@
                 <div class="mb-4">
                     <label class="block text-sm font-medium mb-2">Phương thức thanh toán</label>
                     <select v-model="upgradeForm.payment_method" class="w-full border rounded-lg px-3 py-2">
-                        <option value="bank_transfer">Chuyển khoản ngân hàng</option>
-                        <option value="credit_card">Thẻ tín dụng</option>
-                        <option value="momo">Ví MoMo</option>
                         <option value="vnpay">VNPay</option>
-                        <option value="zalopay">ZaloPay</option>
                     </select>
                 </div>
                 
@@ -262,111 +248,248 @@
         </div>
 
         <!-- Payment Method Modal -->
-    <div v-if="showPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-white rounded-lg p-6 w-full max-w-md">
-            <h3 class="text-lg font-semibold mb-4">Nâng Cấp Gói Dịch Vụ</h3>
-            
-            <div class="mb-4">
-                <p class="text-sm text-gray-600 mb-2">Gói dịch vụ: <strong>{{ selectedPackage?.name }}</strong></p>
-                <p class="text-sm text-gray-600 mb-4">Số tiền: <strong>{{ formatPrice(selectedPackage?.price) }}</strong></p>
+    <div v-if="showPaymentModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg transform transition-all animate-scaleIn">
+            <!-- Header với gradient -->
+            <div class="bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 rounded-t-2xl p-6 text-white">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-white bg-opacity-20 rounded-full p-3">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 class="text-2xl font-bold">Nâng Cấp Gói Dịch Vụ</h3>
+                            <p class="text-blue-100 text-sm mt-1">Chọn phương thức thanh toán</p>
+                        </div>
+                    </div>
+                    <button 
+                        @click="showPaymentModal = false"
+                        class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
             </div>
             
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-2">Phương thức thanh toán</label>
-                        <select v-model="selectedPaymentMethod" class="w-full border rounded-lg px-3 py-2">
-                            <option value="zalopay">Ví ZaloPay</option>
-                            <option value="bank_transfer">Chuyển khoản ngân hàng</option>
-                            <option value="credit_card">Thẻ tín dụng</option>
-                            <option value="vnpay">VNPay</option>
+            <!-- Body -->
+            <div class="p-6">
+                <!-- Package Info Card -->
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 mb-6 border border-gray-200">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="bg-blue-100 rounded-lg p-2">
+                                <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="text-sm text-gray-500 font-medium">Gói dịch vụ</p>
+                                <p class="text-lg font-bold text-gray-900">{{ selectedPackage?.name }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="pt-4 border-t border-gray-200">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-gray-600">Tổng thanh toán</span>
+                            <span class="text-2xl font-bold text-blue-600">{{ formatPrice(selectedPackage?.price) }}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Payment Method Selection -->
+                <div class="mb-6">
+                    <label class="block text-sm font-semibold text-gray-700 mb-3">Phương thức thanh toán</label>
+                    <div class="relative">
+                        <select v-model="selectedPaymentMethod" class="w-full border-2 border-gray-200 rounded-xl px-4 py-3.5 pr-10 text-gray-700 font-medium focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all appearance-none bg-white cursor-pointer hover:border-gray-300">
+                            <option value="vnpay">VNPay - Thanh toán qua ví điện tử</option>
                         </select>
-            </div>
-            
-            <div class="flex gap-3">
-                <button 
-                    @click="confirmPayment"
-                    class="flex-1 bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
-                >
-                    Nâng Cấp Ngay
-                </button>
-                <button 
-                    @click="showPaymentModal = false"
-                    class="flex-1 bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400"
-                >
-                    Hủy
-                </button>
+                        <div class="absolute inset-y-0 right-0 flex items-center pr-4 pointer-events-none">
+                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-3 flex items-center space-x-2 text-sm text-gray-500">
+                        <svg class="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span>Bảo mật và an toàn</span>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex gap-3">
+                    <form 
+                        id="vnpay-payment-form"
+                        action="/admin/subscriptions/vnpay_payment" 
+                        method="POST" 
+                        class="flex-1"
+                    >
+                        <input type="hidden" name="_token" id="vnpay-csrf-token" value="">
+                        <input type="hidden" name="package_id" id="vnpay-package-id" value="">
+                        <input type="hidden" name="total_vnpay" id="vnpay-total" value="">
+                        <input type="hidden" name="payment_method" value="vnpay">
+                        <input type="hidden" name="redirect" value="1">
+                        <button 
+                            type="submit"
+                            class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white py-3.5 px-6 rounded-xl font-semibold hover:from-blue-700 hover:to-indigo-700 transform hover:scale-[1.02] transition-all shadow-lg hover:shadow-xl flex items-center justify-center space-x-2"
+                        >
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>Thanh Toán Ngay</span>
+                        </button>
+                    </form>
+                    <button 
+                        @click="showPaymentModal = false"
+                        class="px-6 py-3.5 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+                    >
+                        Hủy
+                    </button>
+                </div>
             </div>
         </div>
     </div>
     
-                <!-- ZaloPay Payment Modal -->
-                <div v-if="showQRModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div class="bg-white rounded-lg p-6 w-full max-w-md">
-                        <h3 class="text-lg font-semibold mb-4 text-center">Thanh Toán ZaloPay</h3>
-
-                        <div class="text-center mb-4">
-                            <p class="text-sm text-gray-600 mb-2">{{ paymentOrderInfo }}</p>
-                            <p class="text-lg font-bold text-blue-600">{{ formatPrice(paymentAmount) }}</p>
+    <!-- VNPay QR Code Modal -->
+    <div v-if="showQRModal" class="fixed inset-0 bg-black bg-opacity-60 backdrop-blur-sm flex items-center justify-center z-50 animate-fadeIn">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg transform transition-all animate-scaleIn overflow-hidden">
+            <!-- Header với gradient xanh lá -->
+            <div class="bg-gradient-to-r from-green-500 via-green-600 to-emerald-600 p-6 text-white">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="bg-white bg-opacity-20 rounded-full p-3">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                            </svg>
                         </div>
-
-                        <div class="text-center mb-4">
-                            <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-lg">
-                                <p class="text-sm mb-2">📱 Mở ứng dụng ZaloPay để thanh toán</p>
-                                <a 
-                                    :href="qrCodeUrl" 
-                                    target="_blank" 
-                                    class="inline-block bg-white text-blue-600 px-6 py-2 rounded-lg font-semibold hover:bg-gray-100 transition-colors"
-                                >
-                                    Mở ZaloPay App
-                                </a>
-                            </div>
+                        <div>
+                            <h3 class="text-2xl font-bold">Thanh Toán VNPay</h3>
+                            <p class="text-green-100 text-sm mt-1">Quét mã QR để thanh toán</p>
                         </div>
-
-                        <div class="text-center mb-4">
-                            <p class="text-xs text-gray-500">Hoặc copy link này vào trình duyệt:</p>
-                            <div class="bg-gray-100 p-2 rounded text-xs break-all">
-                                {{ qrCodeUrl }}
-                            </div>
+                    </div>
+                    <button 
+                        @click="closeQRModal"
+                        class="text-white hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-colors"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Body -->
+            <div class="p-6">
+                <!-- Order Info -->
+                <div class="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-5 mb-6 border border-gray-200">
+                    <div class="text-center">
+                        <p class="text-sm text-gray-600 mb-2">{{ paymentOrderInfo }}</p>
+                        <p class="text-3xl font-bold text-green-600">{{ formatPrice(paymentAmount) }}</p>
+                    </div>
+                </div>
+                
+                <!-- QR Code -->
+                <div class="text-center mb-6">
+                    <div class="bg-white p-6 rounded-2xl border-4 border-green-500 shadow-lg inline-block">
+                        <div class="bg-white p-2 rounded-lg">
+                            <img :src="qrCodeUrl" alt="VNPay QR Code" class="w-64 h-64 mx-auto" />
                         </div>
-
-                        <div class="text-center">
-                            <button
-                                @click="showQRModal = false"
-                                class="bg-gray-300 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-400"
-                            >
-                                Đóng
-                            </button>
+                    </div>
+                    <div class="mt-4 flex items-center justify-center space-x-2 text-sm text-gray-600">
+                        <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                        </svg>
+                        <span class="font-medium">Mã QR hợp lệ</span>
+                    </div>
+                </div>
+                
+                <!-- Instructions -->
+                <div class="bg-blue-50 rounded-xl p-4 mb-6 border border-blue-200">
+                    <div class="flex items-start space-x-3">
+                        <svg class="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div class="text-sm text-blue-800">
+                            <p class="font-semibold mb-1">Hướng dẫn thanh toán:</p>
+                            <ul class="list-disc list-inside space-y-1 text-blue-700">
+                                <li>Mở ứng dụng VNPay trên điện thoại</li>
+                                <li>Quét mã QR code ở trên</li>
+                                <li>Xác nhận thanh toán trong app</li>
+                            </ul>
                         </div>
                     </div>
                 </div>
-
-        <!-- Demo Links Section -->
-        <div class="mt-8 bg-gray-50 border rounded-lg p-6">
-            <h3 class="text-lg font-semibold mb-4">Payment Gateway Demo</h3>
-            <p class="text-gray-600 mb-4">Test các phương thức thanh toán trong môi trường sandbox:</p>
-            
-            <div class="flex flex-wrap gap-3">
-                <a 
-                    href="/admin/subscriptions/zalopay-demo"
-                    class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                >
-                    <span class="mr-2">💳</span>
-                    ZaloPay Demo
-                </a>
-                <a 
-                    href="/admin/subscriptions/vnpay-demo"
-                    class="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                >
-                    <span class="mr-2">🏦</span>
-                    VNPay Demo
-                </a>
+                
+                <!-- Action Buttons -->
+                <div class="space-y-3">
+                    <a 
+                        :href="vnpayPaymentUrl" 
+                        target="_blank"
+                        class="block w-full bg-gradient-to-r from-green-600 to-emerald-600 text-white py-3.5 px-6 rounded-xl font-semibold hover:from-green-700 hover:to-emerald-700 transform hover:scale-[1.02] transition-all shadow-lg hover:shadow-xl text-center flex items-center justify-center space-x-2"
+                    >
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                        </svg>
+                        <span>Mở Trang Thanh Toán VNPay</span>
+                    </a>
+                    <button
+                        @click="closeQRModal"
+                        class="w-full bg-gray-100 text-gray-700 py-3 px-6 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+                    >
+                        Đóng
+                    </button>
+                </div>
             </div>
         </div>
+    </div>
+        <!-- Toast Notification -->
+        <Transition
+            enter-active-class="transition-all duration-300 ease-out"
+            enter-from-class="opacity-0 translate-x-full"
+            enter-to-class="opacity-100 translate-x-0"
+            leave-active-class="transition-all duration-200 ease-in"
+            leave-from-class="opacity-100 translate-x-0"
+            leave-to-class="opacity-0 translate-x-full"
+        >
+            <div
+                v-if="toast.show"
+                :class="toast.type === 'error' ? 'bg-red-50 border-red-200 text-red-800' : 'bg-green-50 border-green-200 text-green-800'"
+                class="fixed top-4 right-4 z-50 max-w-md rounded-lg border shadow-lg p-4 flex items-start space-x-3"
+            >
+                <div v-if="toast.type === 'error'" class="flex-shrink-0">
+                    <svg class="w-5 h-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div v-else class="flex-shrink-0">
+                    <svg class="w-5 h-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                    </svg>
+                </div>
+                <div class="flex-1">
+                    <p class="font-medium">{{ toast.message }}</p>
+                </div>
+                <button
+                    @click="hideToast"
+                    class="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                    <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                </button>
+            </div>
+        </Transition>
     </AdminLayout>
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { router } from '@inertiajs/vue3';
+import { ref, computed, nextTick, onMounted, watch } from 'vue';
+import { router, usePage } from '@inertiajs/vue3';
 import { Check } from 'lucide-vue-next';
 import AdminLayout from '@/layouts/AppLayout.vue';
 
@@ -388,18 +511,74 @@ const showUpgradeModal = ref(false);
 const showPaymentModal = ref(false);
 const showQRModal = ref(false);
 const selectedPackage = ref(null);
-const selectedPaymentMethod = ref('zalopay');
+const selectedPaymentMethod = ref('vnpay');
 const qrCodeUrl = ref('');
+const vnpayPaymentUrl = ref('');
 const paymentAmount = ref(0);
 const paymentOrderInfo = ref('');
 
+// Toast notification
+const toast = ref({
+    show: false,
+    message: '',
+    type: 'error' // 'error' or 'success'
+});
+
+let toastTimeout = null;
+
+const showToast = (message, type = 'error') => {
+    toast.value = {
+        show: true,
+        message,
+        type
+    };
+    
+    // Auto hide after 5 seconds
+    if (toastTimeout) {
+        clearTimeout(toastTimeout);
+    }
+    toastTimeout = setTimeout(() => {
+        hideToast();
+    }, 5000);
+};
+
+const hideToast = () => {
+    toast.value.show = false;
+    if (toastTimeout) {
+        clearTimeout(toastTimeout);
+        toastTimeout = null;
+    }
+};
+
+// Check for flash messages on mount
+const page = usePage();
+onMounted(() => {
+    // Debug: Log subscription data
+    console.log('=== Subscription Debug ===');
+    console.log('Current Subscription:', props.currentSubscription);
+    console.log('Packages:', props.packages);
+    if (props.currentSubscription) {
+        console.log('Current Package ID:', props.currentSubscription.package_id);
+        console.log('Current Package Object:', props.currentSubscription.package);
+        console.log('Package ID from relationship:', props.currentSubscription.package?.id);
+    }
+    
+    if (page.props.flash?.error) {
+        showToast(page.props.flash.error, 'error');
+    }
+    if (page.props.flash?.success) {
+        showToast(page.props.flash.success, 'success');
+    }
+});
+
+
 const renewForm = ref({
-    payment_method: 'bank_transfer',
+    payment_method: 'vnpay',
 });
 
 const upgradeForm = ref({
     package_id: null,
-    payment_method: 'bank_transfer',
+    payment_method: 'vnpay',
 });
 
 // Computed
@@ -412,130 +591,143 @@ const availableUpgrades = computed(() => {
 const subscribe = (packageItem) => {
     // Kiểm tra xem có phải gói hiện tại không
     if (isCurrentPackage(packageItem)) {
-        alert('Bạn đang sử dụng gói này rồi!');
+        showToast('Bạn đang sử dụng gói này rồi!', 'error');
         return;
     }
     
     // Kiểm tra xem có phải downgrade không
     if (props.currentSubscription && packageItem.price < props.currentSubscription.package.price) {
-        alert('Không thể hạ cấp gói dịch vụ. Vui lòng liên hệ admin.');
+        showToast('Không thể hạ cấp gói dịch vụ. Vui lòng liên hệ admin.', 'error');
         return;
     }
     
     // Hiển thị modal chọn phương thức thanh toán
     showPaymentModal.value = true;
     selectedPackage.value = packageItem;
+    
+    // Set giá trị vào form HTML thuần sau khi modal render
+    nextTick(() => {
+        // Lấy CSRF token từ meta tag hoặc cookie
+        let csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+        
+        // Nếu không có trong meta tag, thử lấy từ cookie
+        if (!csrfToken) {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'XSRF-TOKEN') {
+                    csrfToken = decodeURIComponent(value);
+                    break;
+                }
+            }
+        }
+        
+        const form = document.getElementById('vnpay-payment-form');
+        if (form) {
+            const csrfInput = document.getElementById('vnpay-csrf-token');
+            const packageInput = document.getElementById('vnpay-package-id');
+            const totalInput = document.getElementById('vnpay-total');
+            
+            if (csrfInput && csrfToken) csrfInput.value = csrfToken;
+            if (packageInput) packageInput.value = packageItem.id;
+            if (totalInput) totalInput.value = packageItem.price;
+        }
+    });
 };
 
-const confirmPayment = () => {
+const confirmPayment = async () => {
     if (!selectedPackage.value || !selectedPaymentMethod.value) {
         alert('Vui lòng chọn phương thức thanh toán');
         return;
     }
     
-    if (selectedPaymentMethod.value === 'zalopay') {
-        // Xử lý thanh toán ZaloPay
-        router.post('/admin/subscriptions/subscribe', {
-            package_id: selectedPackage.value.id,
-            payment_method: selectedPaymentMethod.value,
-        }, {
-            onSuccess: () => {
-                showPaymentModal.value = false;
-                // Lấy payment data từ API
-                fetchPaymentData();
+    // Xử lý thanh toán VNPay - tạo payment và hiển thị QR code
+    // Sử dụng fetch để nhận JSON response
+    try {
+        const response = await fetch('/admin/subscriptions/subscribe', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
+                'Accept': 'application/json',
             },
-            onError: (errors) => {
-                console.error('Subscription error:', errors);
-                alert('Có lỗi xảy ra khi tạo thanh toán ZaloPay. Vui lòng thử lại.');
-            }
+            body: JSON.stringify({
+                package_id: selectedPackage.value.id,
+                payment_method: selectedPaymentMethod.value,
+            }),
         });
-    } else if (selectedPaymentMethod.value === 'vnpay') {
-        // Xử lý thanh toán VNPay
-        router.post('/admin/subscriptions/subscribe', {
-            package_id: selectedPackage.value.id,
-            payment_method: selectedPaymentMethod.value,
-        }, {
-            onSuccess: () => {
-                showPaymentModal.value = false;
-                // Lấy payment data từ API
-                fetchPaymentData();
-            },
-            onError: (errors) => {
-                console.error('Subscription error:', errors);
-                alert('Có lỗi xảy ra khi tạo thanh toán VNPay. Vui lòng thử lại.');
-            }
-        });
-    } else {
-        // Các phương thức thanh toán khác
-        router.post('/admin/subscriptions/subscribe', {
-            package_id: selectedPackage.value.id,
-            payment_method: selectedPaymentMethod.value,
-        }, {
-            onSuccess: () => {
-                showPaymentModal.value = false;
-                router.reload();
-            },
-            onError: (errors) => {
-                console.error('Subscription error:', errors);
-                alert('Có lỗi xảy ra khi đăng ký gói dịch vụ. Vui lòng thử lại.');
-            }
-        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            showPaymentModal.value = false;
+            displayQRCode(data);
+        } else {
+            showToast(data.message || 'Có lỗi xảy ra khi tạo thanh toán VNPay. Vui lòng thử lại.', 'error');
+        }
+    } catch (error) {
+        console.error('Subscription error:', error);
+        showToast('Có lỗi xảy ra khi tạo thanh toán VNPay. Vui lòng thử lại.', 'error');
     }
 };
 
-const fetchPaymentData = async () => {
+// Hiển thị QR code từ payment URL
+const displayQRCode = async (paymentData) => {
     try {
-        const response = await fetch('/admin/subscriptions/qr/data');
-        const data = await response.json();
+        paymentAmount.value = paymentData.amount || selectedPackage.value.price;
+        paymentOrderInfo.value = paymentData.order_info || `Thanh toán gói ${selectedPackage.value.name}`;
+        vnpayPaymentUrl.value = paymentData.payment_url;
         
-        if (data.error) {
-            alert('Không tìm thấy payment data');
-            return;
-        }
+        // Tạo QR code từ payment URL sử dụng API QR code
+        // Sử dụng qrcode.js hoặc API online
+        const qrApiUrl = `https://api.qrserver.com/v1/create-qr-code/?size=256x256&data=${encodeURIComponent(paymentData.payment_url)}`;
+        qrCodeUrl.value = qrApiUrl;
         
-        paymentAmount.value = data.amount;
-        paymentOrderInfo.value = data.order_info;
-        
-        // Hiển thị modal với link đến ZaloPay
-        showPaymentModal.value = false;
         showQRModal.value = true;
-        
-        // Lưu URL để có thể redirect
-        qrCodeUrl.value = data.order_url;
-        
     } catch (error) {
-        console.error('Error fetching payment data:', error);
-        alert('Có lỗi khi lấy payment data');
+        console.error('Error displaying QR code:', error);
+        showToast('Có lỗi khi tạo QR code. Vui lòng thử lại.', 'error');
     }
 };
+
+const closeQRModal = () => {
+    showQRModal.value = false;
+    // Reload để cập nhật trạng thái payment
+    router.reload();
+};
+
 
 const renewSubscription = () => {
     router.post('/admin/subscriptions/renew', renewForm.value, {
         onSuccess: () => {
             showRenewModal.value = false;
+            showToast('Gia hạn gói dịch vụ thành công!', 'success');
             router.reload();
         },
         onError: (errors) => {
             console.error('Renew error:', errors);
-            alert('Có lỗi xảy ra khi gia hạn gói dịch vụ. Vui lòng thử lại.');
+            const errorMessage = errors?.message || errors?.error || 'Có lỗi xảy ra khi gia hạn gói dịch vụ. Vui lòng thử lại.';
+            showToast(errorMessage, 'error');
         }
     });
 };
 
 const upgradeSubscription = () => {
     if (!upgradeForm.value.package_id) {
-        alert('Vui lòng chọn gói dịch vụ để nâng cấp');
+        showToast('Vui lòng chọn gói dịch vụ để nâng cấp', 'error');
         return;
     }
     
     router.post('/admin/subscriptions/upgrade', upgradeForm.value, {
         onSuccess: () => {
             showUpgradeModal.value = false;
+            showToast('Nâng cấp gói dịch vụ thành công!', 'success');
             router.reload();
         },
         onError: (errors) => {
             console.error('Upgrade error:', errors);
-            alert('Có lỗi xảy ra khi nâng cấp gói dịch vụ. Vui lòng thử lại.');
+            const errorMessage = errors?.message || errors?.error || 'Có lỗi xảy ra khi nâng cấp gói dịch vụ. Vui lòng thử lại.';
+            showToast(errorMessage, 'error');
         }
     });
 };
@@ -544,18 +736,44 @@ const cancelSubscription = () => {
     if (confirm('Bạn có chắc chắn muốn hủy gói dịch vụ?')) {
         router.post('/admin/subscriptions/cancel', {}, {
             onSuccess: () => {
+                showToast('Hủy gói dịch vụ thành công!', 'success');
                 router.reload();
             },
             onError: (errors) => {
                 console.error('Cancel error:', errors);
-                alert('Có lỗi xảy ra khi hủy gói dịch vụ. Vui lòng thử lại.');
+                const errorMessage = errors?.message || errors?.error || 'Có lỗi xảy ra khi hủy gói dịch vụ. Vui lòng thử lại.';
+                showToast(errorMessage, 'error');
             }
         });
     }
 };
 
 const isCurrentPackage = (packageItem) => {
-    return props.currentSubscription?.package_id === packageItem.id;
+    if (!props.currentSubscription) {
+        return false;
+    }
+    
+    // So sánh package_id để xác định gói hiện tại
+    // Kiểm tra cả package_id trực tiếp và package.id từ relationship
+    const currentPackageId = props.currentSubscription.package_id || props.currentSubscription.package?.id;
+    
+    if (!currentPackageId) {
+        console.log('No package ID found for subscription');
+        return false;
+    }
+    
+    const isMatch = currentPackageId === packageItem.id;
+    
+    // Debug log
+    if (isMatch) {
+        console.log('Package matched:', {
+            currentPackageId,
+            packageItemId: packageItem.id,
+            packageName: packageItem.name
+        });
+    }
+    
+    return isMatch;
 };
 
 const formatPrice = (price) => {
@@ -617,11 +835,39 @@ const getStatusClass = (status) => {
 
 const getPaymentMethodText = (method) => {
     const methodMap = {
-        'bank_transfer': 'Chuyển khoản',
-        'credit_card': 'Thẻ tín dụng',
-        'zalopay': 'ZaloPay',
         'vnpay': 'VNPay',
+        'free': 'Miễn phí',
     };
     return methodMap[method] || method;
 };
 </script>
+
+<style scoped>
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.2s ease-out;
+}
+
+.animate-scaleIn {
+    animation: scaleIn 0.3s ease-out;
+}
+</style>

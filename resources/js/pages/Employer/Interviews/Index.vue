@@ -170,7 +170,7 @@ const confirmDelete = () => {
                         <Calendar class="h-12 w-12 text-gray-400 mx-auto mb-4" />
                         <p class="text-gray-600 mb-2">Chưa có lịch phỏng vấn nào</p>
                         <p class="text-sm text-gray-500 mb-4">Tạo lịch phỏng vấn từ trang chi tiết ứng tuyển</p>
-                        <Link :href="route('employer.applications.index')">
+                        <Link :href="'/admin/applications'">
                             <Button>
                                 <FileText class="h-4 w-4 mr-2" />
                                 Xem Danh Sách Ứng Tuyển
