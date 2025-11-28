@@ -174,12 +174,6 @@ const adminNavItems: NavItem[] = [
         icon: CreditCard,
         permission: 'view subscriptions',
     },
-    {
-        title: 'ZaloPay Demo',
-        href: '/admin/subscriptions/zalopay-demo',
-        icon: CreditCard,
-        permission: 'view subscriptions',
-    },
 ];
 
 const employerNavItems: NavItem[] = [

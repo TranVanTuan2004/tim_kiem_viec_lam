@@ -190,13 +190,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admi
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admin', 'permission:view subscriptions'])->group(function () {
     Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions');
     Route::post('subscriptions/subscribe', [SubscriptionController::class, 'subscribe'])->middleware('permission:manage subscriptions')->name('subscribe');
+    Route::post('subscriptions/vnpay_payment', [SubscriptionController::class, 'vnpayPayment'])->name('vnpay.payment');
     Route::post('subscriptions/upgrade', [SubscriptionController::class, 'upgrade'])->middleware('permission:manage subscriptions')->name('upgrade');
     Route::post('subscriptions/renew', [SubscriptionController::class, 'renew'])->middleware('permission:manage subscriptions')->name('renew');
     Route::post('subscriptions/cancel', [SubscriptionController::class, 'cancel'])->middleware('permission:manage subscriptions')->name('cancel');
     Route::get('subscriptions/{subscription}', [SubscriptionController::class, 'show'])->name('subscriptions.show');
-    Route::get('subscriptions/qr/data', [SubscriptionController::class, 'getPaymentData'])->name('subscriptions.payment');
-    Route::get('subscriptions/zalopay-demo', [SubscriptionController::class, 'zaloPayDemo'])->name('subscriptions.zalopay-demo');
-    Route::post('subscriptions/test-zalopay', [SubscriptionController::class, 'testZaloPay'])->name('subscriptions.test-zalopay');
     Route::post('subscriptions/simulate-payment', [SubscriptionController::class, 'simulatePayment'])->name('subscriptions.simulate-payment');
     Route::get('subscriptions/vnpay-demo', [SubscriptionController::class, 'vnpayDemo'])->name('subscriptions.vnpay-demo');
     Route::post('subscriptions/test-vnpay', [SubscriptionController::class, 'testVNPay'])->name('subscriptions.test-vnpay');
@@ -229,14 +227,7 @@ Route::prefix('admin/subscriptions/vnpay')->group(function () {
     Route::get('return', [SubscriptionController::class, 'vnpayReturn'])->name('vnpay.return');
 });
 
-// Test route để kiểm tra
-Route::get('test-zalopay', function () {
-    return 'ZaloPay test route works!';
-});
 
-Route::get('test-vnpay', function () {
-    return 'VNPay test route works!';
-});
 
 // Support Chat Widget - Available for all authenticated users
 Route::middleware(['auth', 'active'])->group(function () {
