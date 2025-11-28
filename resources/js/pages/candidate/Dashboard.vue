@@ -441,7 +441,7 @@
                                     <div class="flex items-start space-x-4">
                                         <img
                                             v-if="job.company.logo"
-                                            :src="job.company.logo"
+                                            :src="getCompanyLogoUrl(job.company.logo, job.company.company_name)"
                                             :alt="job.company.name"
                                             class="h-12 w-12 rounded-lg border border-gray-200 object-cover"
                                         />
@@ -562,6 +562,7 @@ import {
     Sparkles,
     User,
 } from 'lucide-vue-next';
+import { getCompanyLogoUrl } from '@/utils/storage';
 
 interface Props {
     stats: {
