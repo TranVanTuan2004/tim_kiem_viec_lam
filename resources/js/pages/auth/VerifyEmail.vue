@@ -7,9 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import TextLink from '@/components/TextLink.vue';
 import AuthLayout from '@/layouts/AuthLayout.vue';
-import { logout } from '@/routes';
-import { LoaderCircle, CheckCircle2, XCircle, Mail } from 'lucide-vue-next';
 import axios from 'axios';
+import { router } from '@inertiajs/vue3';
 
 const props = defineProps<{
     status?: string;
@@ -129,14 +128,13 @@ const resendVerification = async () => {
 
             <!-- Action links -->
             <div class="flex flex-col gap-2 text-center text-sm">
-                <TextLink
+                <button
                     v-if="isAuthenticated"
-                    :href="logout()"
-                    as="button"
+                    @click="router.post('/logout')"
                     class="text-muted-foreground hover:text-foreground"
                 >
                     Đăng xuất
-                </TextLink>
+                </button>
                 <TextLink
                     v-else
                     href="/login"

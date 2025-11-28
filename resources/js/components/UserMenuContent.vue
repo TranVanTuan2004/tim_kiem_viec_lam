@@ -6,7 +6,6 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
-import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
 import { Link, router } from '@inertiajs/vue3';
@@ -21,7 +20,7 @@ const props = defineProps<Props>();
 
 const handleLogout = () => {
     router.post(
-        logout.url(),
+        '/logout',
         {},
         {
             onFinish: () => router.flushAll(),
@@ -57,11 +56,11 @@ const dashboardLink = computed(() => {
     if (isCandidate.value) {
         return '/profile';
     } else if (isEmployer.value) {
-        return '/employer/dashboard';
+        return '/admin/dashboard';
     } else if (isAdmin.value) {
         return '/admin/dashboard';
     }
-    return '/candidate/dashboard'; // Default to candidate
+    return '/profile'; // Default to candidate
 });
 </script>
 
