@@ -67,7 +67,7 @@ const rescheduleForm = useForm({
 });
 
 const complete = () => {
-    router.post(route('employer.interviews.complete', props.interview.id), {}, {
+    router.post(`/employer/interviews/${props.interview.id}/complete`, {}, {
         onSuccess: () => {
             showCompleteDialog.value = false;
         }
@@ -75,7 +75,7 @@ const complete = () => {
 };
 
 const cancel = () => {
-    router.delete(route('employer.interviews.destroy', props.interview.id), {
+    router.delete(`/employer/interviews/${props.interview.id}`, {
         onSuccess: () => {
             showCancelDialog.value = false;
         }
@@ -83,7 +83,7 @@ const cancel = () => {
 };
 
 const reschedule = () => {
-    rescheduleForm.post(route('employer.interviews.reschedule', props.interview.id), {
+    rescheduleForm.post(`/employer/interviews/${props.interview.id}/reschedule`, {
         onSuccess: () => {
             showRescheduleDialog.value = false;
         }
@@ -96,7 +96,7 @@ const openAcceptModal = (time: string) => {
 };
 
 const acceptReschedule = () => {
-    router.post(route('employer.interviews.reschedule.accept', props.interview.id), {
+    router.post(`/employer/interviews/${props.interview.id}/reschedule/accept`, {
         scheduled_at: selectedTime.value,
     }, {
         preserveScroll: true,
@@ -111,7 +111,7 @@ const openDeclineModal = () => {
 };
 
 const declineReschedule = () => {
-    router.post(route('employer.interviews.reschedule.decline', props.interview.id), {}, {
+    router.post(`/employer/interviews/${props.interview.id}/reschedule/decline`, {}, {
         preserveScroll: true,
         onSuccess: () => {
             showDeclineModal.value = false;
@@ -134,7 +134,7 @@ const formatDateTime = (dateString: string) => {
         <div class="container mx-auto px-4 py-8">
             <!-- Header -->
             <div class="mb-6">
-                <Button variant="ghost" @click="router.visit(route('employer.interviews.index'))" class="mb-4">
+                <Button variant="ghost" @click="router.visit('/employer/interviews')" class="mb-4">
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Quay lại
                 </Button>

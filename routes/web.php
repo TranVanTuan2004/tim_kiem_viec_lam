@@ -115,11 +115,6 @@ Route::get('dashboard', function () {
 })->middleware(['auth', 'active'])->name('dashboard');
 
 
-// Employer Routes
-Route::prefix('employer')->name('employer.')->middleware(['auth', 'active', 'role:Employer'])->group(function () {
-    // Dashboard
-    Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
-});
 // Admin Routes - Using Spatie Permission
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admin'])->group(function () {
     // Dashboard
