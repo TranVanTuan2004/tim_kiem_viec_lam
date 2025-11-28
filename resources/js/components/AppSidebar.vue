@@ -17,13 +17,13 @@ import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
     Activity,
+    AlertTriangle,
     BookOpen,
     Bookmark,
     Briefcase,
     Calendar,
     CreditCard,
     FileText,
-    AlertTriangle,
     Folder,
     Home,
     Image,
@@ -93,15 +93,9 @@ const candidateNavItems: NavItem[] = [
         href: '/candidate/portfolios',
         icon: Briefcase,
     },
-
 ];
 
 const adminNavItems: NavItem[] = [
-    {
-        title: 'Home',
-        href: '/',
-        icon: Home,
-    },
     {
         title: 'Dashboard',
         href: dashboard(),
@@ -179,15 +173,9 @@ const adminNavItems: NavItem[] = [
         icon: CreditCard,
         permission: 'view subscriptions',
     },
-    
 ];
 
 const employerNavItems: NavItem[] = [
-    {
-        title: 'Home',
-        href: '/',
-        icon: Home,
-    },
     {
         title: 'Dashboard',
         href: '/employer/dashboard',

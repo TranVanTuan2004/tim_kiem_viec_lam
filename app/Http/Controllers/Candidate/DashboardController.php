@@ -67,7 +67,7 @@ class DashboardController extends Controller
             'recommendedJobs' => $recommendedJobs,
             'candidateProfile' => [
                 'id' => $candidateProfile->id,
-                'avatar_url' => $candidateProfile->avatar ? asset('storage/' . $candidateProfile->avatar) : null,
+                'avatar_url' => storage_url($candidateProfile->avatar),
                 'current_position' => $candidateProfile->current_position,
                 'current_company' => $candidateProfile->current_company,
                 'is_available' => $candidateProfile->is_available,

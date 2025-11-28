@@ -2,6 +2,7 @@
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { useLanguage } from '@/composables/useLanguage';
+import { getCompanyLogoUrl } from '@/utils/storage';
 import { router } from '@inertiajs/vue3';
 import {
     ArrowRight,
@@ -12,7 +13,7 @@ import {
     TrendingUp,
     Users,
 } from 'lucide-vue-next';
-import { defineProps } from 'vue';
+
 
 const props = defineProps({
     topCompanies: {
@@ -43,12 +44,12 @@ const { t } = useLanguage();
         </div>
 
         <div class="relative z-10 container mx-auto px-4">
-            <!-- Section Header -->
-            <div class="mb-16 text-center">
+            <!-- Enhanced Section Header -->
+            <div class="mb-16 text-center animate-fade-in-up">
                 <div
-                    class="mb-4 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-50 to-orange-50 px-5 py-2.5 text-sm font-semibold text-red-600 shadow-lg ring-1 ring-red-100 dark:from-red-950 dark:to-orange-950 dark:ring-red-900"
+                    class="mb-6 inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-50 via-orange-50 to-red-50 px-5 py-2.5 text-sm font-semibold text-red-600 shadow-xl ring-2 ring-red-100 dark:from-red-950 dark:via-orange-950 dark:to-red-950 dark:ring-red-900 border border-red-200 dark:border-red-800"
                 >
-                    <TrendingUp class="h-4 w-4" />
+                    <TrendingUp class="h-4 w-4 animate-pulse" />
                     <span>{{ t.topCompanies }}</span>
                     <div class="relative flex h-2 w-2">
                         <span
@@ -60,23 +61,24 @@ const { t } = useLanguage();
                     </div>
                 </div>
 
-                <h2 class="mb-4 text-4xl font-bold tracking-tight md:text-5xl">
+                <h2 class="mb-4 text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight bg-gradient-to-r from-gray-900 via-red-600 to-orange-600 dark:from-white dark:via-red-400 dark:to-orange-400 bg-clip-text text-transparent">
                     {{ t.topCompanies }}
                 </h2>
 
-                <p class="mx-auto max-w-2xl text-lg text-muted-foreground">
+                <p class="mx-auto max-w-2xl text-lg md:text-xl text-muted-foreground leading-relaxed">
                     {{ t.topCompaniesDescription }}
                 </p>
             </div>
 
-            <!-- Companies Grid -->
+            <!-- Enhanced Companies Grid -->
             <div
                 class="mb-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4"
             >
                 <Card
-                    v-for="company in props.topCompanies"
+                    v-for="(company, index) in props.topCompanies"
                     :key="company.id"
-                    class="group relative cursor-pointer overflow-hidden border-2 transition-all duration-300 hover:-translate-y-2 hover:border-red-200 hover:shadow-2xl dark:hover:border-red-800"
+                    class="company-card group relative cursor-pointer overflow-hidden rounded-2xl border-2 bg-card transition-all duration-500 hover:-translate-y-3 hover:shadow-2xl dark:border-gray-800 animate-fade-in-up"
+                    :style="{ animationDelay: `${index * 0.1}s` }"
                     @click="router.visit(`/companies/${company.slug}`)"
                 >
                     <!-- Top Gradient Banner -->
@@ -112,15 +114,13 @@ const { t } = useLanguage();
                         <!-- Company Logo -->
                         <div class="absolute -top-14 left-1/2 -translate-x-1/2">
                             <div
-                                class="relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-white shadow-2xl ring-4 ring-red-50 transition-all duration-300 group-hover:scale-110 group-hover:ring-red-100 dark:bg-card dark:ring-red-950"
+                                class="relative flex h-28 w-28 items-center justify-center overflow-hidden rounded-2xl border-4 border-background bg-white shadow-xl ring-1 ring-gray-100 transition-all duration-500 group-hover:scale-110 group-hover:shadow-2xl dark:bg-card dark:ring-gray-800"
                             >
                                 <img
-                                    v-if="company.logo"
-                                    :src="`/storage/${company.logo}`"
+                                    :src="getCompanyLogoUrl(company.logo, company.name)"
                                     :alt="company.name"
                                     class="h-full w-full object-contain p-3"
                                 />
-                                <div v-else class="text-5xl">🏢</div>
 
                                 <!-- Shine Effect on Hover -->
                                 <div
@@ -226,21 +226,43 @@ const { t } = useLanguage();
                 </Card>
             </div>
 
-            <!-- View All Button -->
-            <div class="text-center">
+            <!-- Enhanced View All Button -->
+            <div class="text-center animate-fade-in-up" style="animation-delay: 0.6s">
                 <Button
                     size="lg"
                     variant="outline"
-                    class="group border-2 px-8 font-semibold shadow-lg transition-all hover:border-red-300 hover:bg-red-50 hover:text-red-600 hover:shadow-xl dark:hover:bg-red-950"
+                    class="group border-2 border-red-600 px-8 py-6 font-semibold shadow-lg transition-all duration-500 hover:border-transparent hover:bg-gradient-to-r hover:from-red-600 hover:to-orange-600 hover:text-white hover:shadow-xl hover:scale-105 dark:hover:bg-gradient-to-r dark:hover:from-red-600 dark:hover:to-orange-600"
                     @click="router.visit('/companies')"
                 >
-                    <TrendingUp class="mr-2 h-5 w-5" />
+                    <TrendingUp class="mr-2 h-5 w-5 transition-transform group-hover:rotate-12" />
                     {{ t.exploreAllCompanies }}
                     <ArrowRight
-                        class="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1"
+                        class="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1"
                     />
                 </Button>
             </div>
         </div>
     </section>
 </template>
+
+<style scoped>
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-fade-in-up {
+    animation: fade-in-up 0.8s ease-out forwards;
+    opacity: 0;
+}
+
+.company-card {
+    opacity: 0;
+}
+</style>

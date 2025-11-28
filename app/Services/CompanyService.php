@@ -40,6 +40,18 @@ class CompanyService
             $query->has('jobPostings');
         }
 
+        // Search by keyword (company name, description, industry)
+        if (!empty($filters['q'])) {
+            $keyword = $filters['q'];
+            $query->where(function($q) use ($keyword) {
+                $q->where('company_name', 'like', "%{$keyword}%")
+                  ->orWhere('description', 'like', "%{$keyword}%")
+                  ->orWhere('industry', 'like', "%{$keyword}%")
+                  ->orWhere('city', 'like', "%{$keyword}%")
+                  ->orWhere('province', 'like', "%{$keyword}%");
+            });
+        }
+
         if (!empty($filters['industry'])) {
             $query->byIndustry($filters['industry']);
         }
@@ -54,7 +66,8 @@ class CompanyService
 
         return $query->orderBy('rating', 'desc')
             ->orderBy('total_reviews', 'desc')
-            ->paginate($perPage);
+            ->paginate($perPage)
+            ->withQueryString();
     }
 
     /**

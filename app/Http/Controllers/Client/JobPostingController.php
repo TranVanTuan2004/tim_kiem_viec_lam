@@ -47,7 +47,9 @@ class JobPostingController extends Controller
         $filters = $this->jobPostingService->validateFilters([
             'featured' => request('featured', false),
             'q' => request('q', ''),
+            'q' => request('q', ''),
             'location' => request('location', ''),
+            'industry' => request('industry', ''),
         ]);
 
         $user = auth()->user();
@@ -69,8 +71,9 @@ class JobPostingController extends Controller
             'jobs' => $jobs,
             'filters' => [
                 'featured' => request('featured', false),
-                'q' => request('q', ''),
-                'location' => request('location', ''),
+            'q' => request('q', ''),
+            'location' => request('location', ''),
+            'industry' => request('industry', ''),
             ],
         ]);
     }

@@ -10,7 +10,8 @@ import {
 } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import ClientLayout from '@/layouts/ClientLayout.vue';
-import { Link } from '@inertiajs/vue3';
+import { getCompanyLogoUrl } from '@/utils/storage';
+import { Link, router } from '@inertiajs/vue3';
 import axios from 'axios';
 import {
     Briefcase,
@@ -24,7 +25,7 @@ import {
     TrendingUp,
     X,
 } from 'lucide-vue-next';
-import { computed, defineProps, ref } from 'vue';
+import { computed, defineProps, nextTick, onMounted, ref } from 'vue';
 
 const props = defineProps({
     jobs: {
@@ -81,105 +82,174 @@ const hasActiveFilters = computed(
     () => props.filters.featured || props.filters.q || props.filters.location,
 );
 
+// Search functionality
 const searchQuery = ref(props.filters.q || '');
+const locationQuery = ref(props.filters.location || '');
 
-// Live search computed
-const filteredJobs = computed(() => {
-    if (!searchQuery.value) return jobs.value;
+// Handle search
+const handleSearch = () => {
+    const params: any = {};
 
-    const keyword = searchQuery.value.toLowerCase();
+    if (searchQuery.value) {
+        params.q = searchQuery.value;
+    }
 
-    return jobs.value.filter((job) => {
-        const titleMatch = job.title.toLowerCase().includes(keyword);
-        const companyMatch = job.company.company_name
-            .toLowerCase()
-            .includes(keyword);
+    if (locationQuery.value) {
+        params.location = locationQuery.value;
+    }
 
-        const skillsMatch = Array.isArray(job.skills)
-            ? job.skills.some((skill: any) =>
-                  (skill.name || skill).toLowerCase().includes(keyword),
-              )
-            : job.skills.toLowerCase().includes(keyword);
+    if (props.filters.featured) {
+        params.featured = '1';
+    }
 
-        return titleMatch || companyMatch || skillsMatch;
+    router.get('/jobs', params, {
+        preserveState: false,
+        preserveScroll: false,
+    });
+};
+
+// Scroll animations
+onMounted(() => {
+    nextTick(() => {
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px',
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in-view');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        const elements = document.querySelectorAll('.animate-on-scroll');
+        elements.forEach((el) => observer.observe(el));
     });
 });
-
 </script>
 
 <template>
     <ClientLayout :title="pageTitle + ' - Job Portal'">
-        <!-- Hero Section with Search -->
+        <!-- Enhanced Hero Section with Search -->
         <div
-            class="relative overflow-hidden bg-gradient-to-br from-red-600 via-red-500 to-orange-500 py-16"
+            class="relative overflow-hidden bg-gradient-to-br from-red-600 via-red-500 to-orange-500 py-20 md:py-24"
         >
-            <div
-                class="bg-grid-white/[0.05] absolute inset-0 bg-[size:20px_20px]"
-            ></div>
-            <div class="relative container mx-auto px-4">
+            <!-- Animated Background -->
+            <div class="absolute inset-0 overflow-hidden">
+                <div
+                    class="bg-grid-white/[0.05] absolute inset-0 bg-[size:20px_20px]"
+                ></div>
+                <!-- Floating Orbs -->
+                <div
+                    class="animate-float-orb absolute top-20 left-10 h-64 w-64 rounded-full bg-yellow-400/20 blur-3xl"
+                    style="animation-delay: 0s"
+                ></div>
+                <div
+                    class="animate-float-orb absolute top-40 right-20 h-80 w-80 rounded-full bg-orange-400/20 blur-3xl"
+                    style="animation-delay: 2s"
+                ></div>
+                <div
+                    class="animate-float-orb absolute bottom-20 left-1/3 h-72 w-72 rounded-full bg-pink-400/20 blur-3xl"
+                    style="animation-delay: 4s"
+                ></div>
+            </div>
+
+            <div class="relative z-10 container mx-auto px-4">
                 <div class="mx-auto max-w-3xl text-center text-white">
-                    <div class="mb-4 flex items-center justify-center gap-3">
-                        <Briefcase class="h-10 w-10" />
-                        <h1 class="text-5xl font-bold tracking-tight">
+                    <div
+                        class="animate-on-scroll mb-6 flex items-center justify-center gap-3"
+                    >
+                        <div
+                            class="rounded-full bg-white/20 p-3 backdrop-blur-sm"
+                        >
+                            <Briefcase class="h-10 w-10 animate-pulse" />
+                        </div>
+                        <h1
+                            class="bg-gradient-to-r from-white via-yellow-100 to-white bg-clip-text text-5xl font-extrabold tracking-tight text-transparent drop-shadow-2xl md:text-6xl lg:text-7xl"
+                        >
                             {{ pageTitle }}
                         </h1>
                     </div>
-                    <p class="mb-8 text-xl text-red-50">
+                    <p
+                        class="animate-on-scroll mb-8 text-xl text-red-50/95 drop-shadow-lg md:text-2xl"
+                        style="animation-delay: 0.1s"
+                    >
                         {{ pageDescription }}
                     </p>
 
-                    <!-- Active Filters -->
+                    <!-- Enhanced Active Filters -->
                     <div
                         v-if="hasActiveFilters"
-                        class="mb-6 flex flex-wrap items-center justify-center gap-3"
+                        class="animate-on-scroll mb-6 flex flex-wrap items-center justify-center gap-3"
+                        style="animation-delay: 0.2s"
                     >
                         <Badge
                             v-if="filters.featured"
-                            class="gap-2 bg-white/20 px-4 py-2 text-sm text-white backdrop-blur-sm"
+                            class="gap-2 border border-white/30 bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-white/30"
                         >
                             ⭐ Việc làm nổi bật
-                            <Link href="/jobs" class="hover:opacity-75">
+                            <Link
+                                href="/jobs"
+                                class="transition-opacity hover:opacity-75"
+                            >
                                 <X class="h-3 w-3" />
                             </Link>
                         </Badge>
                         <Badge
                             v-if="filters.q"
-                            class="gap-2 bg-white/20 px-4 py-2 text-sm text-white backdrop-blur-sm"
+                            class="gap-2 border border-white/30 bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-white/30"
                         >
                             Từ khóa: {{ filters.q }}
                             <Link
                                 :href="`/jobs?${filters.location ? 'location=' + filters.location : ''}`"
-                                class="hover:opacity-75"
+                                class="transition-opacity hover:opacity-75"
                             >
                                 <X class="h-3 w-3" />
                             </Link>
                         </Badge>
                         <Badge
                             v-if="filters.location"
-                            class="gap-2 bg-white/20 px-4 py-2 text-sm text-white backdrop-blur-sm"
+                            class="gap-2 border border-white/30 bg-white/20 px-4 py-2 text-sm font-semibold text-white backdrop-blur-md transition-all duration-300 hover:scale-105 hover:bg-white/30"
                         >
                             Địa điểm: {{ filters.location }}
                             <Link
                                 :href="`/jobs?${filters.q ? 'q=' + filters.q : ''}`"
-                                class="hover:opacity-75"
+                                class="transition-opacity hover:opacity-75"
                             >
                                 <X class="h-3 w-3" />
                             </Link>
                         </Badge>
                     </div>
 
-                    <!-- Search Bar -->
-                    <div class="mx-auto flex max-w-2xl gap-2">
-                        <div class="relative flex-1">
+                    <!-- Enhanced Search Bar -->
+                    <div
+                        class="animate-on-scroll mx-auto flex max-w-2xl gap-2"
+                        style="animation-delay: 0.3s"
+                    >
+                        <div class="group relative flex-1">
                             <Search
-                                class="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-muted-foreground"
+                                class="absolute top-1/2 left-3 h-5 w-5 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-red-600"
                             />
                             <Input
                                 v-model="searchQuery"
                                 placeholder="Tìm kiếm theo vị trí, công ty, kỹ năng..."
-                                class="h-12 bg-white pl-10 text-base text-black shadow-lg"
+                                class="h-12 border-2 bg-white/95 pl-10 text-base shadow-xl backdrop-blur-sm transition-all duration-300 focus-visible:border-red-500 focus-visible:ring-red-500"
+                                @keyup.enter="handleSearch"
                             />
                         </div>
+                        <Button
+                            size="lg"
+                            class="group/btn relative h-12 overflow-hidden bg-white px-8 font-semibold text-red-600 shadow-xl transition-all duration-300 hover:scale-105 hover:bg-red-50 hover:shadow-2xl"
+                            @click="handleSearch"
+                        >
+                            <span class="relative z-10">Tìm kiếm</span>
+                            <span
+                                class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-red-50/50 to-transparent transition-transform duration-1000 group-hover/btn:translate-x-full"
+                            ></span>
+                        </Button>
                     </div>
                 </div>
             </div>
@@ -197,9 +267,9 @@ const filteredJobs = computed(() => {
                             <TrendingUp class="h-5 w-5 text-red-600" />
                             <p class="text-sm font-medium">
                                 <span class="text-lg font-bold text-red-600">
-                                    1 - {{ filteredJobs.length }}
+                                    1 - {{ jobs.length }}
                                 </span>
-                                trong {{ filteredJobs.length }} việc làm
+                                trong {{ jobs.length }} việc làm
                             </p>
                         </div>
                         <Badge
@@ -355,37 +425,51 @@ const filteredJobs = computed(() => {
                     </Card>
                 </Transition>
 
-                <!-- Jobs Grid -->
+                <!-- Enhanced Jobs Grid -->
                 <div
-                    v-if="filteredJobs.length > 0"
+                    v-if="jobs.length > 0"
                     class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
                 >
                     <Link
-                        v-for="job in filteredJobs"
+                        v-for="(job, index) in jobs"
                         :key="job.id"
                         :href="`/jobs/${job.slug}`"
-                        class="group"
+                        class="group job-card animate-on-scroll"
+                        :style="{ animationDelay: `${index * 0.1}s` }"
                     >
                         <Card
-                            class="h-full cursor-pointer border-2 border-gray-200 rounded-lg bg-white transition-all duration-300
-         hover:-translate-y-1 hover:shadow-xl hover:border-red-500"
+                            class="relative h-full cursor-pointer overflow-hidden border-2 bg-card transition-all duration-500 hover:-translate-y-2 hover:border-red-300 hover:shadow-2xl"
                         >
-                            <CardHeader>
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-3">
+                            <!-- Shine Effect -->
+                            <div
+                                class="absolute inset-0 z-20 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-full"
+                            ></div>
+
+                            <!-- Gradient Border on Hover -->
+                            <div
+                                class="absolute inset-0 rounded-xl border-2 border-transparent bg-gradient-to-r from-red-500 via-orange-500 to-red-500 [mask-composite:exclude] opacity-0 transition-opacity duration-500 [mask:linear-gradient(#fff_0_0)_padding-box,linear-gradient(#fff_0_0)] group-hover:opacity-100"
+                            ></div>
+                            <CardHeader class="pb-3">
+                                <div class="flex items-start justify-between">
+                                    <div class="flex flex-1 items-start gap-3">
                                         <div
-                                            class="flex h-14 w-14 items-center justify-center overflow-hidden rounded-xl 
-           bg-gray-100 border-2 border-gray-200 transition-all duration-300
-           group-hover:border-red-500"
+                                            class="relative flex h-14 w-14 flex-shrink-0 items-center justify-center overflow-hidden rounded-xl bg-gradient-to-br from-red-50 via-orange-50 to-yellow-50 shadow-lg ring-2 ring-red-100 transition-all duration-500 group-hover:scale-110 group-hover:rotate-3 group-hover:ring-red-300"
                                         >
                                             <img
-                                                v-if="job.company.logo"
-                                                :src="job.company.logo"
-                                                class="h-full w-full object-contain"
+                                                :src="
+                                                    getCompanyLogoUrl(
+                                                        job.company.logo,
+                                                        job.company
+                                                            .company_name,
+                                                    )
+                                                "
+                                                :alt="job.company.company_name"
+                                                class="relative z-10 h-full w-full object-contain p-2"
                                             />
-                                            <div v-else class="text-2xl">
-                                                {{ job.logo }}
-                                            </div>
+                                            <!-- Glow Effect -->
+                                            <div
+                                                class="absolute inset-0 rounded-xl bg-gradient-to-br from-red-400/30 to-orange-400/30 opacity-0 blur-xl transition-opacity duration-500 group-hover:opacity-100"
+                                            ></div>
                                         </div>
                                         <div>
                                             <CardTitle class="font-bold">{{
@@ -435,11 +519,15 @@ const filteredJobs = computed(() => {
                                     class="flex flex-wrap gap-2 text-xs text-gray-600"
                                 >
                                     <div class="flex items-center gap-1">
-                                        <MapPin class="h-3.5 w-3.5 text-orange-600" />
+                                        <MapPin
+                                            class="h-3.5 w-3.5 text-orange-600"
+                                        />
                                         <span>{{ job.location }}</span>
                                     </div>
                                     <div class="flex items-center gap-1">
-                                        <DollarSign class="h-3.5 w-3.5 text-green-600" />
+                                        <DollarSign
+                                            class="h-3.5 w-3.5 text-green-600"
+                                        />
                                         <span class="text-green-600"
                                             >{{
                                                 Number(job.min_salary).toFixed(
@@ -454,7 +542,9 @@ const filteredJobs = computed(() => {
                                         >
                                     </div>
                                     <div class="flex items-center gap-1">
-                                        <Clock class="h-3.5 w-3.5 text-orange-600" />
+                                        <Clock
+                                            class="h-3.5 w-3.5 text-orange-600"
+                                        />
                                         <span>{{
                                             formatDate(job.created_at)
                                         }}</span>
@@ -473,10 +563,25 @@ const filteredJobs = computed(() => {
                                     </Badge>
                                 </div>
 
-                                <!-- Apply Button -->
-                                <Button class="mt-2 w-full bg-black text-white transition-colors duration-300 hover:bg-orange-600"
-                                    >Ứng tuyển ngay →</Button
+                                <!-- Enhanced Apply Button -->
+                                <Button
+                                    class="group/btn relative w-full overflow-hidden bg-gradient-to-r from-red-600 via-orange-600 to-red-600 font-semibold shadow-lg transition-all duration-500 hover:scale-105 hover:from-red-700 hover:via-orange-700 hover:to-red-700 hover:shadow-xl"
+                                    variant="default"
                                 >
+                                    <span
+                                        class="relative z-10 flex items-center justify-center"
+                                    >
+                                        Ứng tuyển ngay
+                                        <span
+                                            class="ml-2 transition-transform duration-300 group-hover/btn:translate-x-1"
+                                            >→</span
+                                        >
+                                    </span>
+                                    <!-- Shine Effect -->
+                                    <span
+                                        class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent transition-transform duration-1000 group-hover/btn:translate-x-full"
+                                    ></span>
+                                </Button>
                             </CardContent>
                         </Card>
                     </Link>
@@ -516,24 +621,83 @@ const filteredJobs = computed(() => {
                     </template>
                 </div>
 
-                <!-- Empty State -->
+                <!-- Enhanced Empty State -->
                 <div
                     v-if="!props.jobs.data || props.jobs.data.length === 0"
-                    class="py-16 text-center"
+                    class="animate-on-scroll py-20 text-center"
                 >
                     <div
-                        class="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-muted"
+                        class="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-gradient-to-br from-red-100 to-orange-100 shadow-lg dark:from-red-950 dark:to-orange-950"
                     >
-                        <Briefcase class="h-12 w-12 text-muted-foreground" />
+                        <Briefcase
+                            class="h-12 w-12 animate-pulse text-red-500"
+                        />
                     </div>
-                    <h3 class="mb-2 text-xl font-semibold">
+                    <h3 class="mb-3 text-2xl font-bold">
                         Không tìm thấy việc làm nào
                     </h3>
-                    <p class="text-muted-foreground">
+                    <p class="mb-6 text-lg text-muted-foreground">
                         Thử điều chỉnh bộ lọc hoặc tìm kiếm với từ khóa khác
                     </p>
+                    <Button
+                        size="lg"
+                        class="bg-gradient-to-r from-red-600 to-orange-500 font-semibold shadow-lg transition-all duration-300 hover:scale-105 hover:shadow-xl"
+                        @click="showFilters = true"
+                    >
+                        <Filter class="mr-2 h-5 w-5" />
+                        Mở bộ lọc
+                    </Button>
                 </div>
             </div>
         </section>
     </ClientLayout>
 </template>
+
+<style scoped>
+/* Scroll Animations */
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition:
+        opacity 0.8s ease-out,
+        transform 0.8s ease-out;
+}
+
+.animate-on-scroll.animate-in-view {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.job-card {
+    opacity: 0;
+}
+
+/* Float Orb Animation */
+@keyframes float-orb {
+    0%,
+    100% {
+        transform: translate(0, 0) scale(1);
+    }
+    33% {
+        transform: translate(50px, -50px) scale(1.1);
+    }
+    66% {
+        transform: translate(-30px, 30px) scale(0.9);
+    }
+}
+
+.animate-float-orb {
+    animation: float-orb 8s ease-in-out infinite;
+}
+</style>

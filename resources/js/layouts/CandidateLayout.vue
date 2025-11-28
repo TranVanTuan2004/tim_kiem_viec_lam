@@ -6,6 +6,7 @@ import CandidateSidebar from '@/components/candidate/CandidateSidebar.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
 import { Head } from '@inertiajs/vue3';
 
+
 interface Props {
     title?: string;
 }
@@ -31,7 +32,10 @@ withDefaults(defineProps<Props>(), {
             </main>
         </div>
 
-        <ClientFooter />
+        <!-- Footer with margin to account for fixed sidebar -->
+        <div class="lg:ml-64">
+            <ClientFooter />
+        </div>
 
         <!-- Floating Support Chat Widget -->
         <ChatWidget />
@@ -40,3 +44,4 @@ withDefaults(defineProps<Props>(), {
         <FlashMessage />
     </div>
 </template>
+

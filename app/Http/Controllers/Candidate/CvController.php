@@ -41,7 +41,7 @@ class CvController extends Controller
                 'id' => $cv->id,
                 'name' => $cv->name,
                 'file_path' => $cv->file_path,
-                'file_url' => asset('storage/' . $cv->file_path),
+                'file_url' => storage_url($cv->file_path),
                 'is_default' => $cv->is_default,
                 'created_at' => $cv->created_at->format('d/m/Y H:i'),
             ];

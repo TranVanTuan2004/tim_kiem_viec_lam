@@ -16,6 +16,7 @@ import {
     Upload,
 } from 'lucide-vue-next';
 import { computed, defineProps, ref, onMounted } from 'vue';
+import { getCompanyLogoUrl } from '@/utils/storage';
 
 const props = defineProps({
     job: {
@@ -137,20 +138,13 @@ const submit = () => {
                         <CardContent class="p-6">
                             <div class="flex items-start gap-4">
                                 <div
-                                    v-if="job.company?.logo"
                                     class="flex h-16 w-16 flex-shrink-0 items-center justify-center overflow-hidden rounded-lg bg-muted"
                                 >
                                     <img
-                                        :src="job.company.logo"
-                                        :alt="job.company.name"
+                                        :src="getCompanyLogoUrl(job.company?.logo, job.company?.name)"
+                                        :alt="job.company?.name"
                                         class="h-full w-full object-contain p-2"
                                     />
-                                </div>
-                                <div
-                                    v-else
-                                    class="flex h-16 w-16 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-red-50 to-orange-50"
-                                >
-                                    <Building2 class="h-8 w-8 text-red-600" />
                                 </div>
                                 <div class="flex-1">
                                     <h2 class="mb-2 text-2xl font-bold">

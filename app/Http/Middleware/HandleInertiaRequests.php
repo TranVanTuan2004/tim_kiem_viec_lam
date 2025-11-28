@@ -56,10 +56,8 @@ class HandleInertiaRequests extends Middleware
                         }
                     }
 
-                    // Xử lý URL avatar (nếu không phải full URL thì thêm storage path)
-                    if ($avatar && !filter_var($avatar, FILTER_VALIDATE_URL)) {
-                        $avatar = asset('storage/' . $avatar);
-                    }
+                    // Xử lý URL avatar
+                    $avatar = storage_url($avatar);
 
                     return [
                         'id' => $user->id,
@@ -82,9 +80,7 @@ class HandleInertiaRequests extends Middleware
                 }
                 
                 return [
-                    'avatar_url' => $candidateProfile->avatar 
-                        ? asset('storage/' . $candidateProfile->avatar) 
-                        : null,
+                    'avatar_url' => storage_url($candidateProfile->avatar),
                 ];
             },
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
