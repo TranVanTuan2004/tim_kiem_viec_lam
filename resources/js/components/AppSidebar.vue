@@ -18,6 +18,7 @@ import { Link, usePage } from '@inertiajs/vue3';
 import {
     Activity,
     AlertTriangle,
+    Bell,
     BookOpen,
     Bookmark,
     Briefcase,
@@ -148,6 +149,12 @@ const adminNavItems: NavItem[] = [
         href: '/admin/chat',
         icon: MessageSquare,
         permission: 'view messages',
+    },
+    {
+        title: 'Thông báo',
+        href: '/admin/notifications',
+        icon: Bell,
+        permission: 'view users',
     },
     {
         title: 'Activity Logs',

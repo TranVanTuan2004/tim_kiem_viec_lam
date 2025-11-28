@@ -57,7 +57,7 @@ const getIcon = (iconName: string) => {
                 <Link 
                     v-for="(category, index) in props.popularCategories" 
                     :key="category.id"
-                    :href="route('jobs.index', { industry: category.slug })"
+                    :href="`/jobs?industry=${category.slug}`"
                     class="group relative overflow-hidden rounded-2xl border-2 bg-card p-6 transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl hover:border-red-300 dark:hover:border-red-700 cursor-pointer block animate-fade-in-up"
                     :style="{ animationDelay: `${index * 0.1}s` }"
                 >
@@ -103,7 +103,7 @@ const getIcon = (iconName: string) => {
             </div>
 
             <div class="text-center mt-12 animate-fade-in-up" style="animation-delay: 0.8s">
-                <Link :href="route('industries.index')">
+                <Link href="/industries">
                     <Button variant="outline" size="lg" class="group border-2 border-red-600 text-red-600 hover:bg-red-600 hover:text-white px-8 font-semibold transition-all duration-300 hover:scale-105 hover:shadow-lg">
                         Xem tất cả danh mục
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="ml-2 transition-transform group-hover:translate-x-1">

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import {
     DropdownMenu,
     DropdownMenuContent,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
@@ -34,8 +35,10 @@ import { toUrl, urlIsActive } from '@/lib/utils';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem, NavItem } from '@/types';
 import { InertiaLinkProps, Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-vue-next';
+import { BookOpen, Bell, Folder, LayoutGrid, Menu, Search } from 'lucide-vue-next';
 import { computed } from 'vue';
+import { Badge } from '@/components/ui/badge';
+import { router } from '@inertiajs/vue3';
 
 interface Props {
     breadcrumbs?: BreadcrumbItem[];
@@ -47,6 +50,28 @@ const props = withDefaults(defineProps<Props>(), {
 
 const page = usePage();
 const auth = computed(() => page.props.auth);
+const notifications = computed(() => page.props.notifications as { unread_count: number; recent: any[] } | undefined);
+const isAdmin = computed(() => auth.value?.user?.roles?.includes('Admin') ?? false);
+
+const handleNotificationClick = (notification: any, event: Event) => {
+    event.preventDefault();
+    
+    // Đánh dấu đã đọc nếu chưa đọc
+    if (!notification.is_read) {
+        router.post(`/admin/notifications/${notification.id}/read`, {}, {
+            preserveScroll: true,
+            preserveState: true,
+            only: ['notifications'],
+            onSuccess: () => {
+                // Điều hướng đến trang thông báo sau khi đánh dấu đã đọc
+                router.visit('/admin/notifications');
+            },
+        });
+    } else {
+        // Điều hướng đến trang thông báo
+        router.visit('/admin/notifications');
+    }
+};
 
 const isCurrentRoute = computed(
     () => (url: NonNullable<InertiaLinkProps['href']>) =>
@@ -198,6 +223,78 @@ const rightNavItems: NavItem[] = [
                                 class="size-5 opacity-80 group-hover:opacity-100"
                             />
                         </Button>
+
+                        <!-- Notification Bell Icon (Admin only) -->
+                        <DropdownMenu v-if="isAdmin">
+                            <DropdownMenuTrigger as-child>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    class="group relative h-9 w-9 cursor-pointer"
+                                >
+                                    <Bell
+                                        class="size-5 opacity-80 group-hover:opacity-100"
+                                    />
+                                    <Badge
+                                        v-if="notifications?.unread_count && notifications.unread_count > 0"
+                                        class="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full p-0 text-xs"
+                                        variant="destructive"
+                                    >
+                                        {{ notifications.unread_count > 99 ? '99+' : notifications.unread_count }}
+                                    </Badge>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" class="w-80 p-0">
+                                <div class="flex items-center justify-between p-4 border-b">
+                                    <h3 class="font-semibold">Thông báo</h3>
+                                    <Link
+                                        v-if="notifications?.unread_count && notifications.unread_count > 0"
+                                        href="/admin/notifications"
+                                        class="text-xs text-primary hover:underline"
+                                    >
+                                        Xem tất cả
+                                    </Link>
+                                </div>
+                                <div class="max-h-96 overflow-y-auto">
+                                    <div
+                                        v-if="!notifications?.recent || notifications.recent.length === 0"
+                                        class="p-4 text-center text-sm text-muted-foreground"
+                                    >
+                                        Không có thông báo nào
+                                    </div>
+                                    <template v-else>
+                                        <button
+                                            v-for="notification in notifications.recent"
+                                            :key="notification.id"
+                                            @click="(e) => handleNotificationClick(notification, e)"
+                                            class="w-full text-left block border-b border-border p-3 hover:bg-accent transition-colors cursor-pointer"
+                                            :class="{ 'bg-accent/50': !notification.is_read }"
+                                        >
+                                            <div class="flex items-start gap-2">
+                                                <div class="flex-1">
+                                                    <p
+                                                        class="text-sm font-medium"
+                                                        :class="{ 'font-semibold': !notification.is_read }"
+                                                    >
+                                                        {{ notification.title }}
+                                                    </p>
+                                                    <p class="text-xs text-muted-foreground line-clamp-2 mt-1">
+                                                        {{ notification.message }}
+                                                    </p>
+                                                    <p class="text-xs text-muted-foreground mt-1">
+                                                        {{ notification.created_at }}
+                                                    </p>
+                                                </div>
+                                                <div
+                                                    v-if="!notification.is_read"
+                                                    class="h-2 w-2 rounded-full bg-primary mt-1"
+                                                ></div>
+                                            </div>
+                                        </button>
+                                    </template>
+                                </div>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
 
                         <div class="hidden space-x-1 lg:flex">
                             <template
