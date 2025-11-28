@@ -9,6 +9,12 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\URL;
 use Inertia\Inertia;
+use App\Models\User;
+use App\Models\CandidateProfile;
+use App\Models\JobPosting;
+use App\Observers\UserObserver;
+use App\Observers\CandidateProfileObserver;
+use App\Observers\JobPostingObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -37,5 +43,10 @@ class AppServiceProvider extends ServiceProvider
             );
         });
         Vite::prefetch(concurrency: 3);
+
+        // Đăng ký Observers
+        User::observe(UserObserver::class);
+        CandidateProfile::observe(CandidateProfileObserver::class);
+        JobPosting::observe(JobPostingObserver::class);
     }
 }

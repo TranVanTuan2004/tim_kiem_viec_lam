@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
             ServicePackageSeeder::class,
             HomepageSectionSeeder::class,
             BannerSeeder::class,
+            NotificationSeeder::class,
         ]);
 
         // Create or get test admin user
