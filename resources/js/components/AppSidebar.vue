@@ -12,7 +12,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { usePermissions } from '@/composables/usePermissions';
-// import { dashboard } from '@/routes';
+import { dashboard } from '@/routes';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
@@ -48,11 +48,13 @@ const isCandidateContext = computed(() => {
 // Determine dashboard link based on role
 const getDashboardLink = () => {
     if (isCandidateContext.value) {
-        return '/profile';
-    } else if (hasRole('Employer') || hasRole('Admin')) {
+        return '/candidate/dashboard';
+    } else if (hasRole('Employer')) {
+        return '/employer/dashboard';
+    } else if (hasRole('Admin')) {
         return '/admin/dashboard';
     }
-    return '/profile'; // Default to candidate
+    return '/candidate/dashboard'; // Default to candidate
 };
 
 // Define different navigation items for different roles
@@ -97,7 +99,7 @@ const candidateNavItems: NavItem[] = [
 const adminNavItems: NavItem[] = [
     {
         title: 'Dashboard',
-        href: '/admin/dashboard',
+        href: dashboard(),
         icon: LayoutGrid,
     },
     {

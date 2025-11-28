@@ -135,6 +135,12 @@
                                         required
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     />
+                                    <p
+                                        v-if="form.errors.city"
+                                        class="mt-1 text-sm text-red-600"
+                                    >
+                                        {{ form.errors.city }}
+                                    </p>
                                 </div>
 
                                 <div>
@@ -148,6 +154,12 @@
                                         required
                                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     />
+                                    <p
+                                        v-if="form.errors.province"
+                                        class="mt-1 text-sm text-red-600"
+                                    >
+                                        {{ form.errors.province }}
+                                    </p>
                                 </div>
 
                                 <div class="md:col-span-2">
@@ -210,6 +222,12 @@
                                             type="text"
                                             class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                         />
+                                        <p
+                                            v-if="form.errors.current_company"
+                                            class="mt-1 text-sm text-red-600"
+                                        >
+                                            {{ form.errors.current_company }}
+                                        </p>
                                     </div>
 
                                     <div>
@@ -342,6 +360,18 @@
                                     + Thêm kỹ năng
                                 </button>
                             </div>
+                            <p
+                                v-if="form.errors.skills"
+                                class="mt-2 text-sm text-red-600"
+                            >
+                                {{ form.errors.skills }}
+                            </p>
+                            <p
+                                v-if="form.errors['skills.0.name']"
+                                class="mt-2 text-sm text-red-600"
+                            >
+                                Vui lòng nhập tên kỹ năng
+                            </p>
                         </div>
 
                         <!-- Work Experience -->

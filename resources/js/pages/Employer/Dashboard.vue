@@ -217,7 +217,7 @@ const formatDate = (dateString) => {
                   <Users class="w-5 h-5 text-purple-600" />
                   Ứng viên mới nhất
                 </h2>
-                <Link href="/admin/applications" class="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                <Link href="/employer/applications" class="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
                   Xem tất cả <ChevronRight class="w-4 h-4" />
                 </Link>
               </div>
@@ -285,7 +285,7 @@ const formatDate = (dateString) => {
                 </Link>
 
                 <Link
-                  href="/admin/applications"
+                  href="/employer/applications"
                   class="flex items-center gap-3 p-3 rounded-xl hover:bg-purple-50 text-gray-700 hover:text-purple-700 transition group"
                 >
                   <div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition">
