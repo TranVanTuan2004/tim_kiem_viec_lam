@@ -53,7 +53,7 @@ class FavoriteController extends Controller
                 $isFavorited = $favorite->pivot->is_favorited;
                 $message = $isFavorited
                     ? 'Đã lưu tin tuyển dụng vào danh sách yêu thích.'
-                    : 'Đã xóa công việc khỏi danh sách yêu thích.';
+                    : 'Đã xóa tin tuyển dụng khỏi danh sách yêu thích.';
             } else {
                 $user->favorites()->attach($job->id, ['is_favorited' => true]);
                 $isFavorited = true;
