@@ -131,11 +131,7 @@ class FavoriteController extends Controller
 
                     // Company
                     'company' => $job->company->company_name ?? null,
-                    'company_logo' => $job->company->logo
-                        ? (str_starts_with($job->company->logo, 'http')
-                            ? $job->company->logo
-                            : asset('storage/' . $job->company->logo))
-                        : null,
+                    'company_logo' => storage_url($job->company->logo),
 
                     // Job type
                     'type' => $job->job_type,

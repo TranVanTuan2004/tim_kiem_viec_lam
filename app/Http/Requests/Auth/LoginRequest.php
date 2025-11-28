@@ -80,7 +80,7 @@ class LoginRequest extends FormRequest
         /** @var User|null $user */
         $user = Auth::getProvider()->retrieveByCredentials($this->only('email', 'password'));
 
-        if (! $user || ! Auth::getProvider()->validateCredentials($user, $this->only('password'))) {
+        if (!$user || !Auth::getProvider()->validateCredentials($user, $this->only('password'))) {
             RateLimiter::hit($this->throttleKey());
 
             // Custom message khi credentials sai
@@ -89,12 +89,8 @@ class LoginRequest extends FormRequest
             ]);
         }
 
-        // ✅ Kiểm tra nếu tài khoản chưa được xác thực
-        if (! $user->hasVerifiedEmail()) {
-            throw ValidationException::withMessages([
-                'email' => 'Tài khoản của bạn chưa được xác thực. Vui lòng kiểm tra email hoặc nhấn "Gửi lại email xác thực".',
-            ]);
-        }
+        // ✅ Không chặn đăng nhập nếu chưa xác thực
+        // Sẽ xử lý redirect trong AuthenticatedSessionController
 
         RateLimiter::clear($this->throttleKey());
 
@@ -108,7 +104,7 @@ class LoginRequest extends FormRequest
      */
     public function ensureIsNotRateLimited(): void
     {
-        if (! RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
+        if (!RateLimiter::tooManyAttempts($this->throttleKey(), 5)) {
             return;
         }
 
@@ -128,7 +124,7 @@ class LoginRequest extends FormRequest
     {
         return $this->string('email')
             ->lower()
-            ->append('|'.$this->ip())
+            ->append('|' . $this->ip())
             ->transliterate()
             ->value();
     }

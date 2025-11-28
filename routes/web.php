@@ -50,7 +50,8 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 // Company Pages
 Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
-Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
+Route::get('/companies/{company:company_slug}', [CompanyController::class, 'show'])->name('companies.show');
+Route::get('/industries', [App\Http\Controllers\Client\IndustryController::class, 'index'])->name('industries.index');
 Route::get('/companies/{company}/jobs', [CompanyController::class, 'jobs'])->name('companies.jobs');
 
 // Company Reviews (require authentication)
@@ -172,6 +173,17 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admi
         ->name('interviews.destroy');
     Route::post('companies/{companyId}/toggle-interview-block', [\App\Http\Controllers\Admin\InterviewController::class, 'toggleBlock'])
         ->name('companies.toggle-interview-block');
+
+    // System Notifications Management
+    Route::get('notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('notifications/create', [\App\Http\Controllers\Admin\NotificationController::class, 'create'])->name('notifications.create');
+    Route::post('notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'store'])->name('notifications.store');
+    Route::get('notifications/{id}', [\App\Http\Controllers\Admin\NotificationController::class, 'show'])->name('notifications.show');
+    Route::post('notifications/{id}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('notifications/read-all', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::delete('notifications/{id}', [\App\Http\Controllers\Admin\NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::post('notifications/destroy-multiple', [\App\Http\Controllers\Admin\NotificationController::class, 'destroyMultiple'])->name('notifications.destroy-multiple');
+    Route::get('notifications/stats', [\App\Http\Controllers\Admin\NotificationController::class, 'stats'])->name('notifications.stats');
 });
 
 // Admin Routes - Subscription Management (for Employers)

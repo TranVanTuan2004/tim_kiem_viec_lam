@@ -40,8 +40,8 @@ class ProfileController extends Controller
         }
 
         // Append attributes for frontend
-        $candidate->avatar_url = $candidate->avatar ? asset('storage/' . $candidate->avatar) : null;
-        $candidate->cv_url = $candidate->cv_file ? asset('storage/' . $candidate->cv_file) : null;
+        $candidate->avatar_url = storage_url($candidate->avatar);
+        $candidate->cv_url = storage_url($candidate->cv_file);
         $candidate->age = $candidate->getAge();
 
         return Inertia::render('candidate/Profile/Index', [
@@ -173,8 +173,8 @@ class ProfileController extends Controller
         }
 
         // Append attributes for frontend
-        $candidate->avatar_url = $candidate->avatar ? asset('storage/' . $candidate->avatar) : null;
-        $candidate->cv_url = $candidate->cv_file ? asset('storage/' . $candidate->cv_file) : null;
+        $candidate->avatar_url = storage_url($candidate->avatar);
+        $candidate->cv_url = storage_url($candidate->cv_file);
 
         return Inertia::render('candidate/Profile/Edit', [
             'profile' => $candidate,
@@ -198,6 +198,7 @@ class ProfileController extends Controller
 
         $validated = $request->validate([
             'current_position' => 'nullable|string|max:255',
+            'current_company' => 'nullable|string|max:255',
             'summary' => 'nullable|string',
             'experience_level' => 'nullable|string|max:100',
             'expected_salary' => 'nullable|numeric|min:0',
@@ -206,9 +207,21 @@ class ProfileController extends Controller
             'province' => 'nullable|string|max:100',
             'gender' => 'nullable|in:male,female,other',
             'birth_date' => 'nullable|date',
+            'phone' => 'nullable|string|max:20',
             'avatar' => 'nullable|image|max:2048',
             'skills' => 'nullable|array',
+            'skills.*.name' => 'nullable|string|max:255',
             'cv_file' => 'nullable|mimes:pdf,doc,docx|max:5120',
+            'work_experiences' => 'nullable|array',
+            'work_experiences.*.company_name' => 'nullable|string|max:255',
+            'work_experiences.*.position' => 'nullable|string|max:255',
+            'work_experiences.*.start_date' => 'nullable|date',
+            'work_experiences.*.end_date' => 'nullable|date',
+            'educations' => 'nullable|array',
+            'educations.*.institution' => 'nullable|string|max:255',
+            'educations.*.degree' => 'nullable|string|max:255',
+            'educations.*.start_date' => 'nullable|date',
+            'educations.*.end_date' => 'nullable|date',
         ]);
 
         // Handle avatar upload
@@ -236,9 +249,80 @@ class ProfileController extends Controller
         // Update candidate profile
         $candidate->update($validated);
 
-        // Sync skills if provided
-        if ($request->has('skills')) {
-            $candidate->skills()->sync($request->skills);
+        // Handle Skills - convert names to IDs
+        if ($request->has('skills') && is_array($request->skills)) {
+            $skillIds = [];
+            foreach ($request->skills as $skillData) {
+                // If skillData is just a string (skill name)
+                if (is_string($skillData)) {
+                    $skill = Skill::firstOrCreate(
+                        ['name' => $skillData],
+                        ['slug' => \Illuminate\Support\Str::slug($skillData)]
+                    );
+                    $skillIds[] = $skill->id;
+                }
+                // If skillData is an array with 'name' key
+                elseif (is_array($skillData) && isset($skillData['name'])) {
+                    $skill = Skill::firstOrCreate(
+                        ['name' => $skillData['name']],
+                        ['slug' => \Illuminate\Support\Str::slug($skillData['name'])]
+                    );
+                    $skillIds[] = $skill->id;
+                }
+                // If skillData already has skill_id
+                elseif (is_array($skillData) && isset($skillData['skill_id'])) {
+                    $skillIds[] = $skillData['skill_id'];
+                }
+            }
+            
+            // Sync only the skill IDs (not the names)
+            $candidate->skills()->sync($skillIds);
+        }
+
+        // Handle Work Experiences
+        if ($request->has('work_experiences') && is_array($request->work_experiences)) {
+            // Delete existing work experiences
+            $candidate->workExperiences()->delete();
+            
+            // Create new work experiences
+            foreach ($request->work_experiences as $exp) {
+                if (isset($exp['company_name']) && isset($exp['position'])) {
+                    $candidate->workExperiences()->create([
+                        'company_name' => $exp['company_name'],
+                        'position' => $exp['position'],
+                        'description' => $exp['description'] ?? null,
+                        'start_date' => $exp['start_date'],
+                        'end_date' => $exp['end_date'] ?? null,
+                        'is_current' => $exp['is_current'] ?? false,
+                    ]);
+                }
+            }
+        }
+
+        // Handle Educations
+        if ($request->has('educations') && is_array($request->educations)) {
+            // Delete existing educations
+            $candidate->educations()->delete();
+            
+            // Create new educations
+            foreach ($request->educations as $edu) {
+                if (isset($edu['institution']) && isset($edu['degree'])) {
+                    $candidate->educations()->create([
+                        'institution' => $edu['institution'],
+                        'degree' => $edu['degree'],
+                        'field_of_study' => $edu['field_of_study'] ?? null,
+                        'start_date' => $edu['start_date'],
+                        'end_date' => $edu['end_date'] ?? null,
+                        'gpa' => $edu['gpa'] ?? null,
+                        'description' => $edu['description'] ?? null,
+                    ]);
+                }
+            }
+        }
+
+        // Update user phone if provided
+        if ($request->filled('phone')) {
+            $user->update(['phone' => $request->phone]);
         }
 
         return redirect()->route('candidate.profile.index')
