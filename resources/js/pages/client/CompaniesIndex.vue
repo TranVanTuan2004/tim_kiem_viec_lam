@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/composables/useLanguage';
 import ClientLayout from '@/layouts/ClientLayout.vue';
 import { router } from '@inertiajs/vue3';
+
 import {
     ArrowRight,
     Briefcase,
@@ -21,7 +22,7 @@ import {
     TrendingUp,
     Users,
 } from 'lucide-vue-next';
-import { computed, defineProps, ref } from 'vue';
+import { computed, defineProps, ref ,watch} from 'vue';
 
 const props = defineProps({
     companies: {
@@ -32,6 +33,10 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    filters: {
+    type: Object,
+    default: () => ({ q: '' }),
+  },
 });
 
 const companiesData = computed(() => props.companies?.data || []);
@@ -74,8 +79,32 @@ const getLocationText = (company: any) => {
     return city || province || 'Không xác định';
 };
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters.q || '');
 const showFilters = ref(false);
+
+const companies = ref<any[]>(props.companies.data ?? []);
+
+const filteredCompanies = computed(() => {
+  if (!searchQuery.value) return companies.value;
+
+  const keyword = searchQuery.value.toLowerCase();
+  return companies.value.filter(company => {
+    const nameMatch = company.company_name.toLowerCase().includes(keyword);
+    const industryMatch = company.industry?.toLowerCase().includes(keyword) ?? false;
+    const locationMatch = `${company.city || ''} ${company.province || ''}`
+      .toLowerCase()
+      .includes(keyword);
+    return nameMatch || industryMatch || locationMatch;
+  });
+});
+
+
+
+
+const pageTitle = 'Danh sách công ty';
+const pageDescription = `Khám phá ${companies.value.length} công ty`;
+
+const hasActiveFilters = computed(() => !!searchQuery.value);
 
 const { t, currentLanguage } = useLanguage();
 
@@ -188,7 +217,7 @@ const getCompanySizeTextTranslated = (size: string) => {
                                 </div>
 
                                 <!-- Filter Buttons -->
-                                <div class="flex gap-2">
+                                <!-- <div class="flex gap-2">
                                     <Button
                                         variant="outline"
                                         class="h-12 border-2 px-6 font-semibold hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
@@ -203,7 +232,7 @@ const getCompanySizeTextTranslated = (size: string) => {
                                         <Search class="mr-2 h-4 w-4" />
                                         {{ t.search }}
                                     </Button>
-                                </div>
+                                </div> -->
                             </div>
 
                             <!-- Advanced Filters (Optional) -->
@@ -296,7 +325,7 @@ const getCompanySizeTextTranslated = (size: string) => {
                     class="mb-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3"
                 >
                     <Card
-                        v-for="company in companiesData"
+                        v-for="company in filteredCompanies"
                         :key="company.id"
                         class="group relative cursor-pointer overflow-hidden border-2 transition-all duration-300 hover:-translate-y-2 hover:border-red-200 hover:shadow-2xl dark:hover:border-red-800"
                         @click="

@@ -35,6 +35,7 @@ class CompanyController extends Controller
         return Inertia::render('client/CompaniesIndex', [
             'companies' => $companies,
             'hasJobsFilter' => $filters['has_jobs'],
+            // 'filters' => request()->only('q'),
         ]);
     }
 
