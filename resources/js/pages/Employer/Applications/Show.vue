@@ -488,13 +488,13 @@ const updateStatus = (newStatus) => {
 const confirmStatusChange = () => {
   // Special handling for interview status - redirect to interview creation
   if (pendingStatus.value === 'interview') {
-    router.visit(route('employer.interviews.create', { application_id: props.application.id}))
+    router.visit(`/employer/interviews/create?application_id=${props.application.id}`)
     return
   }
   
   // For other statuses, update via API
   router.patch(
-    route('employer.applications.update-status', props.application.id),
+    `/employer/applications/${props.application.id}/status`,
     { status: pendingStatus.value },
     {
       preserveScroll: true,
@@ -549,7 +549,7 @@ const getStatusModalContent = () => {
 
 const saveNotes = () => {
   notesForm.patch(
-    route('employer.applications.update-status', props.application.id),
+    `/employer/applications/${props.application.id}/status`,
     {
       preserveScroll: true,
       onSuccess: () => {

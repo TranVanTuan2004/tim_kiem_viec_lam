@@ -65,7 +65,7 @@ const showDeleteModal = ref(false);
 const interviewToDelete = ref<number | null>(null);
 
 const applyFilter = () => {
-    router.get(route('employer.interviews.index'), {
+    router.get('/employer/interviews', {
         status: filterStatus.value,
     }, {
         preserveState: true,
@@ -88,7 +88,7 @@ const deleteInterview = (id: number) => {
 
 const confirmDelete = () => {
     if (interviewToDelete.value) {
-        router.delete(route('employer.interviews.destroy', interviewToDelete.value), {
+        router.delete(`/employer/interviews/${interviewToDelete.value}`, {
             preserveScroll: true,
             onSuccess: () => {
                 showDeleteModal.value = false;
@@ -170,7 +170,7 @@ const confirmDelete = () => {
                         <Calendar class="h-12 w-12 text-gray-400 mx-auto mb-4" />
                         <p class="text-gray-600 mb-2">Chưa có lịch phỏng vấn nào</p>
                         <p class="text-sm text-gray-500 mb-4">Tạo lịch phỏng vấn từ trang chi tiết ứng tuyển</p>
-                        <Link :href="route('employer.applications.index')">
+                        <Link href="/employer/applications">
                             <Button>
                                 <FileText class="h-4 w-4 mr-2" />
                                 Xem Danh Sách Ứng Tuyển
@@ -226,7 +226,7 @@ const confirmDelete = () => {
                                     </td>
                                     <td class="p-4">
                                         <div class="flex gap-2">
-                                            <Link :href="route('employer.interviews.show', interview.id)">
+                                            <Link :href="`/employer/interviews/${interview.id}`">
                                                 <Button size="sm" variant="outline">Xem Chi Tiết</Button>
                                             </Link>
                                             <Button 
@@ -280,7 +280,7 @@ const confirmDelete = () => {
                                     <div class="flex items-center justify-between pt-2">
                                         <Badge variant="outline">{{ interview.type_label }}</Badge>
                                         <div class="flex gap-2">
-                                            <Link :href="route('employer.interviews.show', interview.id)">
+                                            <Link :href="`/employer/interviews/${interview.id}`">
                                                 <Button size="sm">Xem Chi Tiết</Button>
                                             </Link>
                                             <Button 
