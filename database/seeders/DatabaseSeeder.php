@@ -18,16 +18,9 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
         ]);
 
-        // Seed data
-        $this->call([
-            CompanySeeder::class,
-            JobPostingSeeder::class,
-            ServicePackageSeeder::class,
-            HomepageSectionSeeder::class,
-            BannerSeeder::class,
-            NotificationSeeder::class,
-        ]);
-
+        // Create test users BEFORE seeding companies and jobs
+        // This ensures CompanySeeder can find the employer user
+        
         // Create or get test admin user
         $admin = User::firstOrCreate(
             ['email' => 'admin@example.com'],
@@ -69,5 +62,16 @@ class DatabaseSeeder extends Seeder
         if (! $candidate->hasRole('Candidate')) {
             $candidate->assignRole('Candidate');
         }
+
+        // Now seed data that depends on users
+        $this->call([
+            IndustrySeeder::class,
+            CompanySeeder::class,
+            JobPostingSeeder::class,
+            ServicePackageSeeder::class,
+            HomepageSectionSeeder::class,
+            BannerSeeder::class,
+            NotificationSeeder::class,
+        ]);
     }
 }

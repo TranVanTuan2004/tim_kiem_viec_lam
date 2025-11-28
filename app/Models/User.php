@@ -31,6 +31,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'bio',
         'is_active',
         'last_login_at',
+        'email_verified_at', // ✅ Thêm để cho phép set khi tạo user từ social login
     ];
 
     /**
@@ -156,10 +157,10 @@ class User extends Authenticatable implements MustVerifyEmail
     public function favorites()
     {
         return $this->belongsToMany(JobPosting::class, 'favorites')
-                    ->withPivot('is_favorited')
-                    ->withTimestamps();
+            ->withPivot('is_favorited')
+            ->withTimestamps();
     }
 
-    
+
 
 }

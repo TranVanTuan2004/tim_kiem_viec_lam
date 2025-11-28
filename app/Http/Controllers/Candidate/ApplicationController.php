@@ -154,7 +154,7 @@ class ApplicationController extends Controller
                     'id' => $jobPosting->company->id,
                     'slug' => $jobPosting->company->company_slug,
                     'name' => $jobPosting->company->name ?? $jobPosting->company->company_name, // Handle potential field name diff
-                    'logo' => $jobPosting->company->logo ? asset('storage/' . $jobPosting->company->logo) : null,
+                    'logo' => storage_url($jobPosting->company->logo),
                     'website' => $jobPosting->company->website,
                     'location' => $jobPosting->company->address ?? $jobPosting->company->location, // Handle potential field name diff
                 ] : null,

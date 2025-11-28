@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { useLanguage } from '@/composables/useLanguage';
 import ClientLayout from '@/layouts/ClientLayout.vue';
 import { router } from '@inertiajs/vue3';
+
 import {
     ArrowRight,
     Briefcase,
@@ -21,7 +22,8 @@ import {
     TrendingUp,
     Users,
 } from 'lucide-vue-next';
-import { computed, defineProps, ref } from 'vue';
+import { computed, defineProps, ref, onMounted, nextTick } from 'vue';
+import { getCompanyLogoUrl } from '@/utils/storage';
 
 const props = defineProps({
     companies: {
@@ -32,6 +34,10 @@ const props = defineProps({
         type: Boolean,
         default: false,
     },
+    filters: {
+    type: Object,
+    default: () => ({ q: '' }),
+  },
 });
 
 const companiesData = computed(() => props.companies?.data || []);
@@ -74,8 +80,36 @@ const getLocationText = (company: any) => {
     return city || province || 'Không xác định';
 };
 
-const searchQuery = ref('');
+const searchQuery = ref(props.filters?.q || '');
 const showFilters = ref(false);
+
+// Handle search
+const handleSearch = () => {
+    const params: any = {};
+    
+    if (searchQuery.value) {
+        params.q = searchQuery.value;
+    }
+    
+    if (props.hasJobsFilter) {
+        params.has_jobs = '1';
+    }
+    
+    router.get('/companies', params, {
+        preserveState: false,
+        preserveScroll: false,
+    });
+};
+
+
+
+
+const pageTitle = 'Danh sách công ty';
+const pageDescription = computed(
+    () => `Khám phá ${companiesData.value.length} công ty`,
+);
+
+const hasActiveFilters = computed(() => !!searchQuery.value);
 
 const { t, currentLanguage } = useLanguage();
 
@@ -103,6 +137,28 @@ const getCompanySizeTextTranslated = (size: string) => {
     const sizeMap = currentLanguage.value === 'vi' ? sizeMapVi : sizeMapEn;
     return sizeMap[size] || size;
 };
+
+// Scroll animations
+onMounted(() => {
+    nextTick(() => {
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px',
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-in-view');
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, observerOptions);
+
+        const elements = document.querySelectorAll('.animate-on-scroll');
+        elements.forEach((el) => observer.observe(el));
+    });
+});
 </script>
 
 <template>
@@ -126,12 +182,12 @@ const getCompanySizeTextTranslated = (size: string) => {
             </div>
 
             <div class="relative z-10 container mx-auto px-4">
-                <!-- Badge -->
-                <div class="mb-6 flex justify-center">
+                <!-- Enhanced Badge -->
+                <div class="mb-6 flex justify-center animate-on-scroll">
                     <div
-                        class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-50 to-orange-50 px-5 py-2.5 text-sm font-semibold text-red-600 shadow-lg ring-1 ring-red-100 dark:from-red-950 dark:to-orange-950 dark:ring-red-900"
+                        class="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-red-50 via-orange-50 to-red-50 px-5 py-2.5 text-sm font-semibold text-red-600 shadow-xl ring-2 ring-red-100 dark:from-red-950 dark:via-orange-950 dark:to-red-950 dark:ring-red-900 border border-red-200 dark:border-red-800 hover:scale-105 transition-transform duration-300"
                     >
-                        <Building2 class="h-4 w-4" />
+                        <Building2 class="h-4 w-4 animate-pulse" />
                         <span>{{ pagination.total }} {{ t.companies }}</span>
                         <div class="relative flex h-2 w-2">
                             <span
@@ -144,22 +200,22 @@ const getCompanySizeTextTranslated = (size: string) => {
                     </div>
                 </div>
 
-                <!-- Title -->
-                <div class="mb-8 text-center">
+                <!-- Enhanced Title -->
+                <div class="mb-8 text-center animate-on-scroll" style="animation-delay: 0.1s">
                     <h1
-                        class="mb-4 text-5xl font-bold tracking-tight md:text-6xl"
+                        class="mb-4 text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight"
                     >
                         <span
                             v-if="hasJobsFilter"
-                            class="bg-gradient-to-r from-red-600 to-orange-500 bg-clip-text text-transparent"
+                            class="bg-gradient-to-r from-red-600 via-orange-500 to-red-600 bg-clip-text text-transparent animate-gradient"
                         >
                             {{ t.companiesHiring }}
                         </span>
-                        <span v-else>
+                        <span v-else class="bg-gradient-to-r from-gray-900 via-red-600 to-orange-600 dark:from-white dark:via-red-400 dark:to-orange-400 bg-clip-text text-transparent">
                             {{ t.companiesPageTitle }}
                         </span>
                     </h1>
-                    <p class="mx-auto max-w-3xl text-lg text-muted-foreground">
+                    <p class="mx-auto max-w-3xl text-lg md:text-xl text-muted-foreground leading-relaxed">
                         {{
                             hasJobsFilter
                                 ? t.discoverCompanies
@@ -168,40 +224,45 @@ const getCompanySizeTextTranslated = (size: string) => {
                     </p>
                 </div>
 
-                <!-- Search and Filters -->
-                <div class="mx-auto max-w-4xl">
-                    <Card class="border-2 shadow-xl">
-                        <CardContent class="p-6">
+                <!-- Enhanced Search and Filters -->
+                <div class="mx-auto max-w-4xl animate-on-scroll" style="animation-delay: 0.2s">
+                    <Card class="border-2 shadow-2xl backdrop-blur-sm bg-white/95 dark:bg-card/95 hover:shadow-3xl transition-all duration-500">
+                        <CardContent class="p-6 md:p-8">
                             <div class="flex flex-col gap-4 lg:flex-row">
-                                <!-- Search Box -->
-                                <div class="flex-1">
+                                <!-- Enhanced Search Box -->
+                                <div class="flex-1 group">
                                     <div class="relative">
                                         <Search
-                                            class="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-muted-foreground"
+                                            class="absolute top-1/2 left-4 h-5 w-5 -translate-y-1/2 text-muted-foreground transition-colors group-focus-within:text-red-600"
                                         />
                                         <Input
                                             v-model="searchQuery"
                                             :placeholder="t.searchByCompanyName"
-                                            class="h-12 border-2 pl-12 text-base focus-visible:ring-red-500"
+                                            class="h-12 border-2 pl-12 text-base focus-visible:ring-red-500 focus-visible:border-red-500 transition-all duration-300"
+                                            @keyup.enter="handleSearch"
                                         />
                                     </div>
                                 </div>
 
-                                <!-- Filter Buttons -->
+                                <!-- Enhanced Filter Buttons -->
                                 <div class="flex gap-2">
                                     <Button
                                         variant="outline"
-                                        class="h-12 border-2 px-6 font-semibold hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950"
+                                        class="h-12 border-2 px-6 font-semibold hover:border-red-300 hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-950 transition-all duration-300 hover:scale-105"
                                         @click="showFilters = !showFilters"
                                     >
-                                        <Filter class="mr-2 h-4 w-4" />
+                                        <Filter class="mr-2 h-4 w-4 transition-transform" :class="showFilters ? 'rotate-180' : ''" />
                                         {{ t.filter }}
                                     </Button>
                                     <Button
-                                        class="h-12 bg-gradient-to-r from-red-600 to-orange-500 px-8 font-semibold shadow-lg hover:shadow-xl"
+                                        class="h-12 bg-gradient-to-r from-red-600 via-orange-500 to-red-600 px-8 font-semibold shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 relative overflow-hidden group/btn"
+                                        @click="handleSearch"
                                     >
-                                        <Search class="mr-2 h-4 w-4" />
-                                        {{ t.search }}
+                                        <span class="relative z-10 flex items-center">
+                                            <Search class="mr-2 h-4 w-4" />
+                                            {{ t.search }}
+                                        </span>
+                                        <span class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover/btn:translate-x-full transition-transform duration-1000"></span>
                                     </Button>
                                 </div>
                             </div>
@@ -291,18 +352,21 @@ const getCompanySizeTextTranslated = (size: string) => {
                     </div>
                 </div>
 
-                <!-- Companies Grid -->
+                <!-- Enhanced Companies Grid -->
                 <div
                     class="mb-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3"
                 >
                     <Card
-                        v-for="company in companiesData"
+                        v-for="(company, index) in companiesData"
                         :key="company.id"
-                        class="group relative cursor-pointer overflow-hidden border-2 transition-all duration-300 hover:-translate-y-2 hover:border-red-200 hover:shadow-2xl dark:hover:border-red-800"
+                        class="company-card group relative cursor-pointer overflow-hidden border-2 transition-all duration-500 hover:-translate-y-3 hover:border-red-300 hover:shadow-2xl dark:hover:border-red-700 animate-on-scroll"
+                        :style="{ animationDelay: `${index * 0.1}s` }"
                         @click="
                             router.visit(`/companies/${company.company_slug}`)
                         "
                     >
+                        <!-- Shine Effect -->
+                        <div class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:translate-x-full transition-transform duration-1000 z-20"></div>
                         <!-- Top Gradient Banner -->
                         <div
                             class="relative h-32 overflow-hidden bg-gradient-to-br from-red-500 via-orange-500 to-red-600"
@@ -354,7 +418,7 @@ const getCompanySizeTextTranslated = (size: string) => {
                                 >
                                     <img
                                         v-if="company.logo"
-                                        :src="company.logo"
+                                        :src="getCompanyLogoUrl(company.logo, company.company_name)"
                                         :alt="company.company_name"
                                         class="h-full w-full object-contain p-3"
                                     />
@@ -490,9 +554,9 @@ const getCompanySizeTextTranslated = (size: string) => {
                             </div>
                         </CardContent>
 
-                        <!-- Hover Glow Effect -->
+                        <!-- Enhanced Hover Glow Effect -->
                         <div
-                            class="absolute inset-0 -z-10 rounded-lg bg-gradient-to-r from-red-600/0 via-orange-600/0 to-red-600/0 opacity-0 blur-xl transition-opacity group-hover:opacity-30"
+                            class="absolute inset-0 -z-10 rounded-lg bg-gradient-to-r from-red-600/0 via-orange-600/0 to-red-600/0 opacity-0 blur-2xl transition-opacity duration-500 group-hover:opacity-40"
                         ></div>
                     </Card>
                 </div>
@@ -634,5 +698,47 @@ const getCompanySizeTextTranslated = (size: string) => {
     line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+}
+
+/* Scroll Animations */
+@keyframes fade-in-up {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-on-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.animate-on-scroll.animate-in-view {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.company-card {
+    opacity: 0;
+}
+
+/* Gradient Animation */
+@keyframes gradient {
+    0%, 100% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+}
+
+.animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient 3s ease infinite;
 }
 </style>

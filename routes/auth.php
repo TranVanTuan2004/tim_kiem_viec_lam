@@ -48,12 +48,14 @@ Route::middleware('guest')->group(function () {
     Route::get('auth/facebook/callback', [SocialAuthController::class, 'handleFacebookCallback']);
 });
 
-Route::middleware('auth')->group(function () {
-    Route::get('verify-email', EmailVerificationPromptController::class)
-        ->name('verification.notice');
+// ✅ Route xác thực email - cho phép cả người dùng đã đăng nhập và chưa đăng nhập
+Route::get('verify-email', EmailVerificationPromptController::class)
+    ->name('verification.notice');
 
+Route::middleware('auth')->group(function () {
+    // ✅ Xóa 'signed' middleware để controller tự xử lý validation và redirect
     Route::get('verify-email/{id}/{hash}', VerifyEmailController::class)
-        ->middleware(['signed', 'throttle:6,1'])
+        ->middleware('throttle:6,1')
         ->name('verification.verify');
 
     Route::post('email/verification-notification', [EmailVerificationNotificationController::class, 'store'])
@@ -72,6 +74,7 @@ Route::middleware('auth')->group(function () {
 Route::get('/email/verify/{id}', [VerifyEmailController::class, 'verifyEmail'])
     ->name('verification.verify.manual');
 
+// ✅ Route gửi lại email xác thực - cho phép cả người dùng đã đăng nhập và chưa đăng nhập
 Route::post('/email/resend', [VerifyEmailController::class, 'resendVerificationEmail'])
-    ->middleware(['auth', 'throttle:6,1'])
+    ->middleware('throttle:6,1')
     ->name('verification.resend');

@@ -32,18 +32,47 @@ class SocialAuthController extends Controller
                 return redirect('/login')->with('error', 'Không thể lấy thông tin tài khoản. Vui lòng thử lại hoặc sử dụng email thông thường.');
             }
 
-            // Tạo hoặc cập nhật user
-            $user = User::updateOrCreate(
-                ['email' => $googleUser->getEmail()],
-                [
+            \Log::info('Google login attempt', [
+                'email' => $googleUser->getEmail(),
+                'name' => $googleUser->getName()
+            ]);
+
+            // Tìm user theo email
+            $user = User::where('email', $googleUser->getEmail())->first();
+
+            if ($user) {
+                // User đã tồn tại - cập nhật thông tin và đánh dấu email đã xác thực
+                \Log::info('Existing user found, updating email_verified_at', ['user_id' => $user->id]);
+
+                $user->name = $googleUser->getName();
+                $user->email_verified_at = now();
+                $user->save();
+
+                \Log::info('User updated', [
+                    'user_id' => $user->id,
+                    'email_verified_at' => $user->email_verified_at
+                ]);
+            } else {
+                // Tạo user mới
+                \Log::info('Creating new user from Google login');
+
+                $user = User::create([
+                    'email' => $googleUser->getEmail(),
                     'name' => $googleUser->getName(),
                     'password' => Hash::make('social_login_default_password'),
                     'email_verified_at' => now(),
-                    'is_verified' => true,
-                ]
-            );
+                ]);
 
-            // Tự động gán role Candidate nếu user chưa có role nào
+                \Log::info('New user created', [
+                    'user_id' => $user->id,
+                    'email_verified_at' => $user->email_verified_at
+                ]);
+
+                // Tự động gán role Candidate cho user mới
+                $user->assignRole('Candidate');
+            }
+
+            // Đảm bảo user có ít nhất 1 role
             if ($user->roles->isEmpty()) {
                 $user->assignRole('Candidate');
             }
@@ -59,7 +88,7 @@ class SocialAuthController extends Controller
             } elseif ($user->hasRole('Admin')) {
                 return redirect()->route('admin.dashboard')->with('success', 'Đăng nhập Google thành công!');
             }
-            
+
             // Default redirect - redirect to candidate dashboard
             return redirect()->route('candidate.dashboard')->with('success', 'Đăng nhập Google thành công!');
         } catch (\Laravel\Socialite\Two\InvalidStateException $e) {

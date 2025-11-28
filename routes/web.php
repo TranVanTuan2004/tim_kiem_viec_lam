@@ -50,7 +50,8 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 // Company Pages
 Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
-Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
+Route::get('/companies/{company:company_slug}', [CompanyController::class, 'show'])->name('companies.show');
+Route::get('/industries', [App\Http\Controllers\Client\IndustryController::class, 'index'])->name('industries.index');
 Route::get('/companies/{company}/jobs', [CompanyController::class, 'jobs'])->name('companies.jobs');
 
 // Company Reviews (require authentication)
@@ -313,6 +314,8 @@ Route::prefix('candidate')->name('candidate.')->middleware(['auth', 'active', 'r
     Route::post('reports', [CandidateReportController::class, 'store'])->name('reports.store');
     Route::get('reports/{report}', [CandidateReportController::class, 'show'])->name('reports.show');
 });
+
+Route::post('candidate/favorites/toggle/{job}', [FavoriteController::class, 'toggle'])->name('candidate.favorites.toggle');
 
 // Admin Reports
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admin'])->group(function () {
