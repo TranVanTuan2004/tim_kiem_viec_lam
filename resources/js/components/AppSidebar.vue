@@ -106,73 +106,56 @@ const adminNavItems: NavItem[] = [
         title: 'Quản lý người dùng',
         href: '/admin/users',
         icon: Users,
-        permission: 'view users',
     },
     {
         title: 'Quản lý báo cáo',
         href: '/admin/reports',
         icon: FileText,
-        permission: 'view reports',
     },
     {
         title: 'Quản lý ứng tuyển',
         href: '/admin/applications',
         icon: FileText,
-        permission: 'view applications',
     },
     {
         title: 'Quản lý tin tuyển dụng',
         href: '/admin/job-postings',
         icon: Briefcase,
-        permission: 'view users',
     },
-    {
-        title: 'Quản lý lịch phỏng vấn',
-        href: '/admin/interviews',
-        icon: Calendar,
-        permission: 'view users',
-    },
+    // {
+    //     title: 'Quản lý lịch phỏng vấn',
+    //     href: '/admin/interviews',
+    //     icon: Calendar,
+    // },
     {
         title: 'Quản lý Banner',
         href: '/admin/banners',
         icon: Image,
-        permission: 'view users',
     },
     {
         title: 'Nội dung Trang chủ',
         href: '/admin/homepage',
         icon: Layout,
-        permission: 'view users',
     },
     {
         title: 'Chat',
         href: '/admin/chat',
         icon: MessageSquare,
-        permission: 'view messages',
     },
     {
         title: 'Thông báo',
         href: '/admin/notifications',
         icon: Bell,
-        permission: 'view users',
     },
     {
         title: 'Activity Logs',
         href: '/admin/activity-logs',
         icon: Activity,
-        permission: 'view users',
     },
     {
         title: 'Quản lý gói dịch vụ',
         href: '/admin/service-packages',
         icon: CreditCard,
-        permission: 'view users',
-    },
-    {
-        title: 'Gói Dịch Vụ',
-        href: '/admin/subscriptions',
-        icon: CreditCard,
-        permission: 'view subscriptions',
     },
 ];
 
@@ -207,6 +190,11 @@ const employerNavItems: NavItem[] = [
         href: '/employer/candidates/search',
         icon: Users,
     },
+    {
+        title: 'Gói Dịch Vụ',
+        href: '/employer/subscriptions',
+        icon: CreditCard,
+    },  
     {
         title: 'Cài đặt công ty',
         href: '/employer/settings/company',

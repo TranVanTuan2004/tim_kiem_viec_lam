@@ -93,18 +93,18 @@ const getRevenueGrowth = () => {
                 {{ flashMessage.error }}
             </div>
 
-            <!-- Welcome Header with Animated Gradient -->
-            <div class="relative overflow-hidden bg-gradient-to-br from-indigo-600 via-purple-600 to-pink-600 rounded-2xl p-8 text-white shadow-2xl">
-                <div class="absolute inset-0 bg-black opacity-10"></div>
-                <div class="absolute top-0 right-0 w-96 h-96 bg-white rounded-full opacity-5 transform translate-x-1/2 -translate-y-1/2"></div>
-                <div class="relative z-10">
-                    <h1 class="text-4xl font-bold mb-2 flex items-center gap-3">
-                        <svg class="w-10 h-10 animate-pulse" fill="currentColor" viewBox="0 0 24 24">
+            <!-- Welcome Header -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg border border-gray-200">
+                <div class="flex items-center gap-3">
+                    <div class="bg-blue-100 rounded-xl p-3">
+                        <svg class="w-10 h-10 text-blue-600" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
                         </svg>
-                        Dashboard Tổng Quan
-                    </h1>
-                    <p class="text-indigo-100 text-lg">Chào mừng trở lại! Hệ thống hoạt động tốt.</p>
+                    </div>
+                    <div>
+                        <h1 class="text-4xl font-bold text-gray-900 mb-2">Dashboard Tổng Quan</h1>
+                        <p class="text-gray-600 text-lg">Chào mừng trở lại! Hệ thống hoạt động tốt.</p>
+                    </div>
                 </div>
             </div>
 

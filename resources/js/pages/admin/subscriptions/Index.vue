@@ -1,5 +1,5 @@
 <template>
-    <AdminLayout :breadcrumbs="breadcrumbs">
+    <AppLayout :breadcrumbs="breadcrumbs">
         <div class="container mx-auto py-8 px-4">
         <div class="mb-8">
             <h1 class="text-3xl font-bold text-gray-900 mb-2">Gói Dịch Vụ</h1>
@@ -325,7 +325,7 @@
                 <div class="flex gap-3">
                     <form 
                         id="vnpay-payment-form"
-                        action="/admin/subscriptions/vnpay_payment" 
+                        :action="`${routePrefix}/subscriptions/vnpay_payment`" 
                         method="POST" 
                         class="flex-1"
                     >
@@ -484,14 +484,14 @@
                 </button>
             </div>
         </Transition>
-    </AdminLayout>
+    </AppLayout>
 </template>
 
 <script setup>
 import { ref, computed, nextTick, onMounted, watch } from 'vue';
 import { router, usePage } from '@inertiajs/vue3';
 import { Check } from 'lucide-vue-next';
-import AdminLayout from '@/layouts/AppLayout.vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 
 const props = defineProps({
     packages: Array,
@@ -500,11 +500,18 @@ const props = defineProps({
     company: Object,
 });
 
+const page = usePage();
+
+// Xác định route prefix dựa trên URL hiện tại
+const routePrefix = computed(() => {
+    return page.url.startsWith('/employer') ? '/employer' : '/admin';
+});
+
 // Breadcrumbs
-const breadcrumbs = [
-    { title: 'Dashboard', href: '/admin' },
-    { title: 'Gói Dịch Vụ', href: '/admin/subscriptions' },
-];
+const breadcrumbs = computed(() => [
+    { title: 'Dashboard', href: `${routePrefix.value}/dashboard` },
+    { title: 'Gói Dịch Vụ', href: `${routePrefix.value}/subscriptions` },
+]);
 
 const showRenewModal = ref(false);
 const showUpgradeModal = ref(false);
@@ -551,7 +558,6 @@ const hideToast = () => {
 };
 
 // Check for flash messages on mount
-const page = usePage();
 onMounted(() => {
     // Debug: Log subscription data
     console.log('=== Subscription Debug ===');
@@ -644,7 +650,7 @@ const confirmPayment = async () => {
     // Xử lý thanh toán VNPay - tạo payment và hiển thị QR code
     // Sử dụng fetch để nhận JSON response
     try {
-        const response = await fetch('/admin/subscriptions/subscribe', {
+        const response = await fetch(`${routePrefix.value}/subscriptions/subscribe`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -698,7 +704,7 @@ const closeQRModal = () => {
 
 
 const renewSubscription = () => {
-    router.post('/admin/subscriptions/renew', renewForm.value, {
+    router.post(`${routePrefix.value}/subscriptions/renew`, renewForm.value, {
         onSuccess: () => {
             showRenewModal.value = false;
             showToast('Gia hạn gói dịch vụ thành công!', 'success');
@@ -718,7 +724,7 @@ const upgradeSubscription = () => {
         return;
     }
     
-    router.post('/admin/subscriptions/upgrade', upgradeForm.value, {
+    router.post(`${routePrefix.value}/subscriptions/upgrade`, upgradeForm.value, {
         onSuccess: () => {
             showUpgradeModal.value = false;
             showToast('Nâng cấp gói dịch vụ thành công!', 'success');
@@ -734,7 +740,7 @@ const upgradeSubscription = () => {
 
 const cancelSubscription = () => {
     if (confirm('Bạn có chắc chắn muốn hủy gói dịch vụ?')) {
-        router.post('/admin/subscriptions/cancel', {}, {
+        router.post(`${routePrefix.value}/subscriptions/cancel`, {}, {
             onSuccess: () => {
                 showToast('Hủy gói dịch vụ thành công!', 'success');
                 router.reload();
