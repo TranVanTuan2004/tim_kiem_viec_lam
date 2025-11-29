@@ -208,6 +208,11 @@ const employerNavItems: NavItem[] = [
         icon: Users,
     },
     {
+        title: 'Gói Dịch Vụ',
+        href: '/employer/subscriptions',
+        icon: CreditCard,
+    },  
+    {
         title: 'Cài đặt công ty',
         href: '/employer/settings/company',
         icon: User,
