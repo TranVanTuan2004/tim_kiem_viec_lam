@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { ref, computed } from 'vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 
+const page = usePage();
 const successMessage = ref('');
+const errorMessage = ref('');
+const isSubmitting = ref(false);
+
+// Get validation errors from Inertia
+const errors = computed(() => page.props.errors || {});
 
 interface ReportUser {
   name: string;
@@ -34,22 +40,88 @@ interface Report {
 }
 
 const props = defineProps<{
-  report: Report;
+  report: Report & { updated_at: string };
 }>();
 
 const form = ref({
   status: props.report?.status ?? 'pending',
   admin_notes: props.report?.admin_notes ?? '',
+  updated_at: props.report?.updated_at ?? '', // For optimistic locking
 });
 
+// Client-side validation
+const validateForm = (): boolean => {
+  errorMessage.value = '';
+  
+  // Check if admin_notes is only whitespace (including full-width spaces)
+  if (form.value.admin_notes) {
+    const trimmed = form.value.admin_notes.replace(/[\s\u3000\u00A0]+/g, '');
+    if (trimmed === '') {
+      errorMessage.value = 'Ghi chú không được chỉ chứa khoảng trắng.';
+      return false;
+    }
+  }
+  
+  // Check max length
+  if (form.value.admin_notes && form.value.admin_notes.length > 1000) {
+    errorMessage.value = 'Ghi chú quá dài. Tối đa 1000 ký tự.';
+    return false;
+  }
+  
+  return true;
+};
+
 const updateReport = () => {
-  router.patch(`/admin/reports/${props.report.id}`, form.value, {
+  // Clear previous messages
+  successMessage.value = '';
+  errorMessage.value = '';
+  
+  // Client-side validation
+  if (!validateForm()) {
+    return;
+  }
+  
+  // Trim admin_notes before submitting
+  const dataToSubmit = {
+    ...form.value,
+    admin_notes: form.value.admin_notes?.trim() || null,
+  };
+  
+  isSubmitting.value = true;
+  
+  router.patch(`/admin/reports/${props.report.id}`, dataToSubmit, {
     preserveScroll: true,
     onSuccess: () => {
       successMessage.value = 'Cập nhật trạng thái báo cáo thành công!';
+      isSubmitting.value = false;
+      
+      // Update form's updated_at to current value
+      setTimeout(() => {
+        router.reload({ only: ['report'] });
+      }, 100);
+      
       setTimeout(() => {
         successMessage.value = '';
       }, 3000);
+    },
+    onError: (errors) => {
+      isSubmitting.value = false;
+      
+      // Handle concurrent update error
+      if (errors.concurrent_update) {
+        errorMessage.value = errors.concurrent_update;
+      } else if (errors.error) {
+        errorMessage.value = errors.error;
+      } else {
+        // Display first validation error
+        const firstError = Object.values(errors)[0];
+        if (typeof firstError === 'string') {
+          errorMessage.value = firstError;
+        }
+      }
+    },
+    onFinish: () => {
+      isSubmitting.value = false;
     }
   });
 };
@@ -133,6 +205,19 @@ const breadcrumbs = [
           <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
         </svg>
         <p class="text-sm font-medium text-green-800">{{ successMessage }}</p>
+      </div>
+
+      <!-- Error Message -->
+      <div v-if="errorMessage || Object.keys(errors).length > 0" class="rounded-lg bg-red-50 border border-red-200 p-4 flex items-start gap-3">
+        <svg class="h-5 w-5 text-red-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        <div class="flex-1">
+          <p v-if="errorMessage" class="text-sm font-medium text-red-800">{{ errorMessage }}</p>
+          <div v-else>
+            <p v-for="(error, key) in errors" :key="key" class="text-sm font-medium text-red-800">{{ error }}</p>
+          </div>
+        </div>
       </div>
 
       <div class="grid gap-6 lg:grid-cols-3">
@@ -257,17 +342,26 @@ const breadcrumbs = [
                     v-model="form.admin_notes"
                     placeholder="Nhập ghi chú về cách xử lý báo cáo này..."
                     class="min-h-[120px]"
+                    :disabled="isSubmitting"
+                    maxlength="1000"
                   />
-                  <p class="text-xs text-gray-500 mt-1">Ghi chú này sẽ được lưu lại để tham khảo sau</p>
+                  <p class="text-xs text-gray-500 mt-1">
+                    Ghi chú này sẽ được lưu lại để tham khảo sau 
+                    <span v-if="form.admin_notes" class="font-medium">({{ form.admin_notes.length }}/1000 ký tự)</span>
+                  </p>
                 </div>
 
                 <!-- Action Buttons -->
                 <div class="flex flex-col gap-2 pt-2">
-                  <Button type="submit" class="w-full">
-                    <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <Button type="submit" class="w-full" :disabled="isSubmitting">
+                    <svg v-if="!isSubmitting" class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
-                    Cập nhật báo cáo
+                    <svg v-else class="animate-spin h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {{ isSubmitting ? 'Đang cập nhật...' : 'Cập nhật báo cáo' }}
                   </Button>
                   <Button type="button" variant="outline" class="w-full" @click="router.get('/admin/reports')">
                     <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,28 +373,6 @@ const breadcrumbs = [
               </form>
             </CardContent>
           </Card>
-
-          <!-- Quick Actions -->
-          <Card>
-            <CardHeader class="border-b bg-gray-50/50">
-              <CardTitle class="text-sm">Thao tác nhanh</CardTitle>
-            </CardHeader>
-            <CardContent class="p-4 space-y-2">
-              <Button variant="outline" size="sm" class="w-full justify-start" v-if="report.reportable" @click="openReportable">
-                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                </svg>
-                Xem đối tượng
-              </Button>
-              <Button variant="outline" size="sm" class="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50" @click="deleteReport">
-                <svg class="h-4 w-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                </svg>
-                Xóa báo cáo
-              </Button>
-            </CardContent>
-          </Card>
-
         </div>
       </div>
 
