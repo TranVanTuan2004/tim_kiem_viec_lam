@@ -96,7 +96,7 @@
                     <td class="px-6 py-4" data-label="Thời gian">{{ formatDate(report.created_at) }}</td>
                     <td class="px-6 py-4 text-right" data-label="Hành động">
                       <Link
-                        :href="route('employer.reports.show', report.id)"
+                        :href="`/employer/reports/${report.id}`"
                         class="inline-flex items-center justify-center rounded-md bg-gray-900 px-3 py-1.5 text-sm font-medium text-white hover:bg-gray-800"
                       >
                         Xem
@@ -169,7 +169,7 @@ const debounceSearch = () => {
 
 function applyFilters() {
   // request to same route, keeps state/scroll
-  router.get(route('employer.reports.index'), localFilters, {
+  router.get('/employer/reports', localFilters, {
     preserveState: true,
     preserveScroll: true,
   });

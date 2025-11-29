@@ -88,7 +88,7 @@ const formatDate = (dateString) => {
             </div>
             
             <Link
-              :href="'/admin/postings/create'"
+              href="/employer/posting/create"
               class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-lg shadow-blue-200 hover:shadow-blue-300"
             >
               <Plus class="w-5 h-5" />
@@ -161,7 +161,7 @@ const formatDate = (dateString) => {
                   <Briefcase class="w-5 h-5 text-blue-600" />
                   Tin tuyển dụng gần đây
                 </h2>
-                <Link :href="'/admin/postings'" class="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                <Link href="/employer/posting" class="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
                   Xem tất cả <ChevronRight class="w-4 h-4" />
                 </Link>
               </div>
@@ -202,7 +202,7 @@ const formatDate = (dateString) => {
                     <tr v-if="!recentJobs.length">
                       <td colspan="4" class="px-6 py-8 text-center text-gray-500">
                         Chưa có tin tuyển dụng nào.
-                        <Link :href="'/admin/postings/create'" class="text-blue-600 font-medium hover:underline ml-1">Đăng tin ngay</Link>
+                        <Link href="/employer/posting/create" class="text-blue-600 font-medium hover:underline ml-1">Đăng tin ngay</Link>
                       </td>
                     </tr>
                   </tbody>
@@ -217,7 +217,7 @@ const formatDate = (dateString) => {
                   <Users class="w-5 h-5 text-purple-600" />
                   Ứng viên mới nhất
                 </h2>
-                <Link href="/admin/applications" class="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
+                <Link href="/employer/applications" class="text-sm font-medium text-blue-600 hover:text-blue-700 flex items-center gap-1">
                   Xem tất cả <ChevronRight class="w-4 h-4" />
                 </Link>
               </div>
@@ -252,7 +252,7 @@ const formatDate = (dateString) => {
                     </div>
                   </div>
                   <Link
-                    :href="'/admin/applications/' + app.id"
+                    :href="`/employer/applications/${app.id}`"
                     class="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition"
                   >
                     <ChevronRight class="w-5 h-5" />
@@ -275,7 +275,7 @@ const formatDate = (dateString) => {
               <h2 class="text-lg font-bold text-gray-900 mb-4">Truy cập nhanh</h2>
               <div class="space-y-3">
                 <Link
-                  :href="'/admin/postings/create'"
+                  href="/employer/posting/create"
                   class="flex items-center gap-3 p-3 rounded-xl hover:bg-blue-50 text-gray-700 hover:text-blue-700 transition group"
                 >
                   <div class="w-10 h-10 rounded-lg bg-blue-100 text-blue-600 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition">
@@ -285,7 +285,7 @@ const formatDate = (dateString) => {
                 </Link>
 
                 <Link
-                  href="/admin/applications"
+                  href="/employer/applications"
                   class="flex items-center gap-3 p-3 rounded-xl hover:bg-purple-50 text-gray-700 hover:text-purple-700 transition group"
                 >
                   <div class="w-10 h-10 rounded-lg bg-purple-100 text-purple-600 flex items-center justify-center group-hover:bg-purple-600 group-hover:text-white transition">
@@ -295,7 +295,7 @@ const formatDate = (dateString) => {
                 </Link>
 
                 <Link
-                  :href="'/admin/company/edit'"
+                  href="/employer/settings/company"
                   class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-100 text-gray-700 hover:text-gray-900 transition group"
                 >
                   <div class="w-10 h-10 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center group-hover:bg-gray-800 group-hover:text-white transition">
@@ -336,7 +336,7 @@ const formatDate = (dateString) => {
               </div>
 
               <Link
-                :href="'/admin/settings/company'"
+                href="/employer/settings/company"
                 class="mt-6 block w-full py-2.5 bg-white/10 hover:bg-white/20 text-center rounded-lg transition text-sm font-medium"
               >
                 Quản lý hồ sơ

@@ -156,7 +156,7 @@ const breadcrumbs = [
                     </Button>
 
                     <Button size="sm" variant="outline" @click="router.get(`/admin/users/${user.id}/activity-logs`)">
-                      Logs
+                      Lịch sử hoạt động
                     </Button>
                   </div>
                 </td>

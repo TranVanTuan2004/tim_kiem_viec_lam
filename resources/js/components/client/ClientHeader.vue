@@ -72,8 +72,27 @@ const isAdmin = computed(() => {
     return roles.includes('Admin');
 });
 
+const dashboardLink = computed(() => {
+    if (isCandidate.value) {
+        return '/candidate/dashboard';
+    } else if (isEmployer.value) {
+        return '/employer/dashboard';
+    } else if (isAdmin.value) {
+        return '/admin/dashboard';
+    }
+    return '/profile'; // Default to candidate
+});
 
-
+const profileLink = computed(() => {
+    if (isCandidate.value) {
+        return '/candidate/profile';
+    } else if (isEmployer.value) {
+        return '/employer/profile';
+    } else if (isAdmin.value) {
+        return '/admin/profile';
+    }
+    return '/profile'; // Default to candidate
+});
 
 // Get candidate profile avatar if available
 const candidateProfile = computed(() => {
@@ -99,14 +118,6 @@ const showAvatar = computed(() => {
 
 const { getInitials } = useInitials();
 const { currentLanguage, setLanguage, t } = useLanguage();
-
-// Determine dashboard link based on role
-const dashboardLink = computed(() => {
-    if (isEmployer.value || isAdmin.value) {
-        return '/admin/dashboard';
-    }
-    return '/dashboard'; // Default fallback
-});
 </script>
 
 <template>
