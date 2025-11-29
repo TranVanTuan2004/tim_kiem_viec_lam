@@ -32,6 +32,7 @@ use App\Http\Controllers\Employer\InterviewController;
 use App\Http\Controllers\Candidate\InterviewController as CandidateInterviewController;
 use App\Http\Controllers\Admin\ServicePackageController;
 use App\Http\Controllers\Admin\SubscriptionControllerV2;
+use App\Http\Controllers\Admin\ApplicationController as AdminApplicationController;
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -209,6 +210,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active'])->group(fu
     Route::post('subscriptions/test-vnpay', [SubscriptionController::class, 'testVNPay'])->name('subscriptions.test-vnpay');
     Route::post('subscriptions/simulate-vnpay-payment', [SubscriptionController::class, 'simulateVNPayPayment'])->name('subscriptions.simulate-vnpay-payment');
 });
+
+Route::prefix('admin')->name('admin.')->middleware(['auth','role:Admin'])->group(function() {
+    Route::get('applications', [AdminApplicationController::class,'index'])->name('applications.index');
+    Route::get('applications/{application}', [AdminApplicationController::class,'show'])->name('applications.show');
+});
+
 
 // SERVICE PACKAGE ROUTE
 // ----------------------
