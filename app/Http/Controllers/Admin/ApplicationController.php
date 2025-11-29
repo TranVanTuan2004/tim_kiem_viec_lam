@@ -100,33 +100,31 @@ class ApplicationController extends Controller
     /**
      * Display the specified application (admin view)
      */
-    public function show($id)
+    public function show(Application $application)
     {
-        $application = Application::with([
+        $application->load([
             'candidate.user',
             'candidate.skills',
             'candidate.workExperiences',
             'candidate.educations',
             'jobPosting.company'
-        ])->findOrFail($id);
+        ]);
 
-        return Inertia::render('admin/applications/Show', [
-            'application' => $application,
+        return Inertia::render('admin/applications/ApplicationShow', [
+            'application' => $this->transformApplicationDetail($application),
         ]);
     }
 
     /**
      * Update application status
      */
-    public function updateStatus(Request $request, $id)
+    public function updateStatus(Request $request, Application $application)
     {
         $request->validate([
-            'status' => 'required|in:pending,reviewing,interview,accepted,rejected',
+            'status' => 'required|in:pending,reviewing,interview,accepted,rejected,withdrawn',
             'notes' => 'nullable|string|max:1000',
             'interview_date' => 'nullable|date|after:now',
         ]);
-
-        $application = Application::findOrFail($id);
 
         $application->update([
             'status' => $request->status,
@@ -138,18 +136,13 @@ class ApplicationController extends Controller
     }
 
     /**
-     * Delete an application
+     * Xóa ứng tuyển
      */
-    public function destroy($id)
+    public function destroy(Application $application)
     {
-        $application = Application::findOrFail($id);
-        
-        // Log the deletion (optional - you can add activity logging here)
-        // ActivityLog::create([...]);
-        
         $application->delete();
 
-        return back()->with('success', 'Đã xóa đơn ứng tuyển thành công!');
+        return back()->with('success', 'Ứng tuyển đã được xóa.');
     }
 
     /**
@@ -197,6 +190,48 @@ class ApplicationController extends Controller
                 'company' => $application->jobPosting->company ? [
                     'id' => $application->jobPosting->company->id,
                     'company_name' => $application->jobPosting->company->company_name,
+                ] : null,
+            ] : null,
+        ];
+    }
+
+    /**
+     * Transform detailed application data for show page
+     */
+    private function transformApplicationDetail($application)
+    {
+        $candidate = $application->candidate;
+        $user = $candidate?->user;
+
+        return [
+            'id' => $application->id,
+            'status' => $application->status,
+            'notes' => $application->notes,
+            'created_at' => $application->created_at,
+            'candidate' => $candidate ? [
+                'id' => $candidate->id,
+                'name' => $user?->name ?? 'Chưa có user',
+                'email' => $user?->email ?? '-',
+                'avatar' => $candidate->avatar ?? $user?->avatar ?? null,
+                'skills' => $candidate->skills->map(fn($s) => ['name' => $s->name]),
+                'educations' => $candidate->educations->map(fn($e) => [
+                    'school' => $e->school,
+                    'degree' => $e->degree,
+                    'year' => $e->year,
+                ]),
+                'workExperiences' => $candidate->workExperiences->map(fn($w) => [
+                    'company' => $w->company,
+                    'position' => $w->position,
+                    'from' => $w->from,
+                    'to' => $w->to,
+                ]),
+            ] : null,
+            'jobPosting' => $application->jobPosting ? [
+                'id' => $application->jobPosting->id,
+                'title' => $application->jobPosting->title ?? 'Chưa cập nhật',
+                'company' => $application->jobPosting->company ? [
+                    'id' => $application->jobPosting->company->id,
+                    'company_name' => $application->jobPosting->company->company_name ?? 'Chưa cập nhật',
                 ] : null,
             ] : null,
         ];
