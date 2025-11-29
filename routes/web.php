@@ -119,6 +119,15 @@ Route::get('dashboard', function () {
 Route::prefix('employer')->name('employer.')->middleware(['auth', 'active', 'role:Employer'])->group(function () {
     // Dashboard
     Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
+    
+    // Subscriptions - Sử dụng controller và page của admin
+    Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions');
+    Route::post('subscriptions/subscribe', [SubscriptionController::class, 'subscribe'])->name('subscribe');
+    Route::post('subscriptions/vnpay_payment', [SubscriptionController::class, 'vnpayPayment'])->name('vnpay.payment');
+    Route::post('subscriptions/upgrade', [SubscriptionController::class, 'upgrade'])->name('upgrade');
+    Route::post('subscriptions/renew', [SubscriptionController::class, 'renew'])->name('renew');
+    Route::post('subscriptions/cancel', [SubscriptionController::class, 'cancel'])->name('cancel');
+    Route::get('subscriptions/{subscription}', [SubscriptionController::class, 'show'])->name('subscriptions.show');
 });
 // Admin Routes - Using Spatie Permission
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admin'])->group(function () {
@@ -187,7 +196,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admi
 });
 
 // Admin Routes - Subscription Management (for Employers)
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admin', 'permission:view subscriptions'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'active'])->group(function () {
     Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions');
     Route::post('subscriptions/subscribe', [SubscriptionController::class, 'subscribe'])->middleware('permission:manage subscriptions')->name('subscribe');
     Route::post('subscriptions/vnpay_payment', [SubscriptionController::class, 'vnpayPayment'])->name('vnpay.payment');
