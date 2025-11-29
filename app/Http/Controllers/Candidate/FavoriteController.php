@@ -53,7 +53,7 @@ class FavoriteController extends Controller
                 $isFavorited = $favorite->pivot->is_favorited;
                 $message = $isFavorited
                     ? 'Đã lưu tin tuyển dụng vào danh sách yêu thích.'
-                    : 'Đã xóa công việc khỏi danh sách yêu thích.';
+                    : 'Đã xóa tin tuyển dụng khỏi danh sách yêu thích.';
             } else {
                 $user->favorites()->attach($job->id, ['is_favorited' => true]);
                 $isFavorited = true;
@@ -131,11 +131,7 @@ class FavoriteController extends Controller
 
                     // Company
                     'company' => $job->company->company_name ?? null,
-                    'company_logo' => $job->company->logo
-                        ? (str_starts_with($job->company->logo, 'http')
-                            ? $job->company->logo
-                            : asset('storage/' . $job->company->logo))
-                        : null,
+                    'company_logo' => storage_url($job->company->logo),
 
                     // Job type
                     'type' => $job->job_type,

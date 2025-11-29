@@ -162,23 +162,15 @@ class Payment extends Model
     public function getPaymentMethodLabel(): string
     {
         return match ($this->payment_method) {
-            'credit_card' => 'Thẻ tín dụng',
-            'bank_transfer' => 'Chuyển khoản ngân hàng',
-            'momo' => 'Ví MoMo',
             'vnpay' => 'VNPay',
-            'zalopay' => 'ZaloPay',
-            'cash' => 'Tiền mặt',
+            'free' => 'Miễn phí',
             default => ucfirst($this->payment_method),
         };
     }
 
     // Payment method constants
-    public const METHOD_CREDIT_CARD = 'credit_card';
-    public const METHOD_BANK_TRANSFER = 'bank_transfer';
-    public const METHOD_MOMO = 'momo';
     public const METHOD_VNPAY = 'vnpay';
-    public const METHOD_ZALOPAY = 'zalopay';
-    public const METHOD_CASH = 'cash';
+    public const METHOD_FREE = 'free';
 
     // Status constants
     public const STATUS_PENDING = 'pending';

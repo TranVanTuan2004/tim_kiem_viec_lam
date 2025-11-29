@@ -6,6 +6,7 @@ use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 use Tighten\Ziggy\Ziggy;
+use App\Models\Notification;
 
 class HandleInertiaRequests extends Middleware
 {
@@ -56,10 +57,8 @@ class HandleInertiaRequests extends Middleware
                         }
                     }
 
-                    // Xử lý URL avatar (nếu không phải full URL thì thêm storage path)
-                    if ($avatar && !filter_var($avatar, FILTER_VALIDATE_URL)) {
-                        $avatar = asset('storage/' . $avatar);
-                    }
+                    // Xử lý URL avatar
+                    $avatar = storage_url($avatar);
 
                     return [
                         'id' => $user->id,
@@ -82,9 +81,7 @@ class HandleInertiaRequests extends Middleware
                 }
                 
                 return [
-                    'avatar_url' => $candidateProfile->avatar 
-                        ? asset('storage/' . $candidateProfile->avatar) 
-                        : null,
+                    'avatar_url' => storage_url($candidateProfile->avatar),
                 ];
             },
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
@@ -94,11 +91,46 @@ class HandleInertiaRequests extends Middleware
 		    'error'   => fn () => $request->session()->get('error'),
 		    'info'    => fn () => $request->session()->get('info'),
 		],
-            'ziggy' => function () use ($request) {
-                return array_merge((new \Tighten\Ziggy\Ziggy)->toArray(), [
-                    'location' => $request->url(),
-                ]);
+            'notifications' => function () use ($request) {
+                if (!$request->user() || !$request->user()->hasRole('Admin')) {
+                    return [
+                        'unread_count' => 0,
+                        'recent' => [],
+                    ];
+                }
+
+                $user = $request->user();
+                $unreadCount = Notification::where('user_id', $user->id)
+                    ->where('is_read', false)
+                    ->count();
+
+                $recentNotifications = Notification::where('user_id', $user->id)
+                    ->orderBy('created_at', 'desc')
+                    ->limit(5)
+                    ->get()
+                    ->map(function ($notification) {
+                        return [
+                            'id' => $notification->id,
+                            'type' => $notification->type,
+                            'title' => $notification->title,
+                            'message' => $notification->message,
+                            'data' => $notification->data,
+                            'is_read' => $notification->is_read,
+                            'created_at' => $notification->created_at->diffForHumans(),
+                            'created_at_full' => $notification->created_at->toDateTimeString(),
+                        ];
+                    });
+
+                return [
+                    'unread_count' => $unreadCount,
+                    'recent' => $recentNotifications,
+                ];
             },
+            // 'ziggy' => function () use ($request) {
+            //     return array_merge((new \Tighten\Ziggy\Ziggy)->toArray(), [
+            //         'location' => $request->url(),
+            //     ]);
+            // },
         ];
     }
 }

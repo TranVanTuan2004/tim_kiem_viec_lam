@@ -17,13 +17,14 @@ import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
     Activity,
+    AlertTriangle,
+    Bell,
     BookOpen,
     Bookmark,
     Briefcase,
     Calendar,
     CreditCard,
     FileText,
-    AlertTriangle,
     Folder,
     Home,
     Image,
@@ -93,15 +94,9 @@ const candidateNavItems: NavItem[] = [
         href: '/candidate/portfolios',
         icon: Briefcase,
     },
-
 ];
 
 const adminNavItems: NavItem[] = [
-    {
-        title: 'Home',
-        href: '/',
-        icon: Home,
-    },
     {
         title: 'Dashboard',
         href: dashboard(),
@@ -111,83 +106,60 @@ const adminNavItems: NavItem[] = [
         title: 'Quản lý người dùng',
         href: '/admin/users',
         icon: Users,
-        permission: 'view users',
     },
     {
         title: 'Quản lý báo cáo',
         href: '/admin/reports',
         icon: FileText,
-        permission: 'view reports',
     },
     {
         title: 'Quản lý ứng tuyển',
         href: '/admin/applications',
         icon: FileText,
-        permission: 'view applications',
     },
     {
         title: 'Quản lý tin tuyển dụng',
         href: '/admin/job-postings',
         icon: Briefcase,
-        permission: 'view users',
     },
-    {
-        title: 'Quản lý lịch phỏng vấn',
-        href: '/admin/interviews',
-        icon: Calendar,
-        permission: 'view users',
-    },
+    // {
+    //     title: 'Quản lý lịch phỏng vấn',
+    //     href: '/admin/interviews',
+    //     icon: Calendar,
+    // },
     {
         title: 'Quản lý Banner',
         href: '/admin/banners',
         icon: Image,
-        permission: 'view users',
     },
     {
         title: 'Nội dung Trang chủ',
         href: '/admin/homepage',
         icon: Layout,
-        permission: 'view users',
     },
     {
         title: 'Chat',
         href: '/admin/chat',
         icon: MessageSquare,
-        permission: 'view messages',
+    },
+    {
+        title: 'Thông báo',
+        href: '/admin/notifications',
+        icon: Bell,
     },
     {
         title: 'Activity Logs',
         href: '/admin/activity-logs',
         icon: Activity,
-        permission: 'view users',
     },
     {
         title: 'Quản lý gói dịch vụ',
         href: '/admin/service-packages',
         icon: CreditCard,
-        permission: 'view users',
     },
-    {
-        title: 'Gói Dịch Vụ',
-        href: '/admin/subscriptions',
-        icon: CreditCard,
-        permission: 'view subscriptions',
-    },
-    {
-        title: 'ZaloPay Demo',
-        href: '/admin/subscriptions/zalopay-demo',
-        icon: CreditCard,
-        permission: 'view subscriptions',
-    },
-    
 ];
 
 const employerNavItems: NavItem[] = [
-    {
-        title: 'Home',
-        href: '/',
-        icon: Home,
-    },
     {
         title: 'Dashboard',
         href: '/employer/dashboard',
@@ -218,6 +190,11 @@ const employerNavItems: NavItem[] = [
         href: '/employer/candidates/search',
         icon: Users,
     },
+    {
+        title: 'Gói Dịch Vụ',
+        href: '/employer/subscriptions',
+        icon: CreditCard,
+    },  
     {
         title: 'Cài đặt công ty',
         href: '/employer/settings/company',

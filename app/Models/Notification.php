@@ -71,6 +71,7 @@ class Notification extends Model
             'job_alert' => 'Cảnh báo việc làm',
             'message_received' => 'Tin nhắn mới',
             'system_notification' => 'Thông báo hệ thống',
+            'admin_notification' => 'Thông báo quản trị',
             default => 'Thông báo',
         };
     }

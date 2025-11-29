@@ -60,7 +60,7 @@ class SubscriptionController extends Controller
     {
         $request->validate([
             'package_id' => 'required|exists:service_packages,id',
-            'payment_method' => 'required|in:bank_transfer,credit_card,momo,vnpay,zalopay',
+            'payment_method' => 'required|in:vnpay',
             'auto_renew' => 'boolean',
         ]);
         
@@ -125,7 +125,7 @@ class SubscriptionController extends Controller
     {
         $request->validate([
             'package_id' => 'required|exists:service_packages,id',
-            'payment_method' => 'required|in:bank_transfer,credit_card,momo,vnpay,zalopay',
+            'payment_method' => 'required|in:vnpay',
         ]);
         
         $user = Auth::user();
@@ -203,7 +203,7 @@ class SubscriptionController extends Controller
     public function renew(Request $request): RedirectResponse
     {
         $request->validate([
-            'payment_method' => 'required|in:bank_transfer,credit_card,momo,vnpay,zalopay',
+            'payment_method' => 'required|in:vnpay',
             'auto_renew' => 'boolean',
         ]);
         

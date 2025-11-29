@@ -45,6 +45,7 @@ const toggleFavorite = async (job: Job) => {
     if (!job.is_favorited) {
       favorites.value = favorites.value.filter(f => f.id !== job.id);
     }
+    alert(res.data.message);
   } catch (err) {
     job.is_favorited = prev;
     alert('Thao tác thất bại, vui lòng thử lại.');
@@ -53,7 +54,7 @@ const toggleFavorite = async (job: Job) => {
 </script>
 
 <template>
-  <ClientLayout title="Danh sách việc làm yêu thích">
+  <ClientLayout title="Danh sách tin tuyển dụng yêu thích">
     <div class="container mx-auto p-4">
       <div v-if="favorites.length" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         <Link

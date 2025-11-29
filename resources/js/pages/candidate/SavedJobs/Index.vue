@@ -125,7 +125,7 @@
                                         <div class="flex items-center gap-3">
                                             <img
                                                 v-if="job.company.logo"
-                                                :src="job.company.logo"
+                                                :src="getCompanyLogoUrl(company.logo, company.company_name)"
                                                 :alt="job.company.name"
                                                 class="h-10 w-10 rounded-lg border border-gray-200 object-cover"
                                             />

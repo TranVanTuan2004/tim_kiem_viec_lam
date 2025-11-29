@@ -173,11 +173,7 @@
                 <div class="mb-4">
                     <label class="block text-sm font-medium mb-2">Phương thức thanh toán</label>
                     <select v-model="renewForm.payment_method" class="w-full border rounded-lg px-3 py-2">
-                        <option value="bank_transfer">Chuyển khoản ngân hàng</option>
-                        <option value="credit_card">Thẻ tín dụng</option>
-                        <option value="momo">Ví MoMo</option>
                         <option value="vnpay">VNPay</option>
-                        <option value="zalopay">ZaloPay</option>
                     </select>
                 </div>
                 
@@ -226,11 +222,7 @@
                 <div class="mb-4">
                     <label class="block text-sm font-medium mb-2">Phương thức thanh toán</label>
                     <select v-model="upgradeForm.payment_method" class="w-full border rounded-lg px-3 py-2">
-                        <option value="bank_transfer">Chuyển khoản ngân hàng</option>
-                        <option value="credit_card">Thẻ tín dụng</option>
-                        <option value="momo">Ví MoMo</option>
                         <option value="vnpay">VNPay</option>
-                        <option value="zalopay">ZaloPay</option>
                     </select>
                 </div>
                 
@@ -269,12 +261,12 @@ const showRenewModal = ref(false);
 const showUpgradeModal = ref(false);
 
 const renewForm = ref({
-    payment_method: 'bank_transfer',
+    payment_method: 'vnpay',
 });
 
 const upgradeForm = ref({
     package_id: null,
-    payment_method: 'bank_transfer',
+    payment_method: 'vnpay',
 });
 
 // Computed
@@ -287,7 +279,7 @@ const availableUpgrades = computed(() => {
 const subscribe = (packageItem) => {
     router.post('/employer/subscriptions/subscribe', {
         package_id: packageItem.id,
-        payment_method: 'bank_transfer',
+        payment_method: 'vnpay',
     });
 };
 
@@ -381,11 +373,8 @@ const getStatusClass = (status) => {
 
 const getPaymentMethodText = (method) => {
     const methodMap = {
-        'bank_transfer': 'Chuyển khoản',
-        'credit_card': 'Thẻ tín dụng',
-        'momo': 'MoMo',
         'vnpay': 'VNPay',
-        'zalopay': 'ZaloPay',
+        'free': 'Miễn phí',
     };
     return methodMap[method] || method;
 };

@@ -50,7 +50,8 @@ Route::middleware(['auth', 'active'])->group(function () {
 
 // Company Pages
 Route::get('/companies', [CompanyController::class, 'index'])->name('companies.index');
-Route::get('/companies/{company}', [CompanyController::class, 'show'])->name('companies.show');
+Route::get('/companies/{company:company_slug}', [CompanyController::class, 'show'])->name('companies.show');
+Route::get('/industries', [App\Http\Controllers\Client\IndustryController::class, 'index'])->name('industries.index');
 Route::get('/companies/{company}/jobs', [CompanyController::class, 'jobs'])->name('companies.jobs');
 
 // Company Reviews (require authentication)
@@ -118,6 +119,15 @@ Route::get('dashboard', function () {
 Route::prefix('employer')->name('employer.')->middleware(['auth', 'active', 'role:Employer'])->group(function () {
     // Dashboard
     Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
+    
+    // Subscriptions - Sử dụng controller và page của admin
+    Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions');
+    Route::post('subscriptions/subscribe', [SubscriptionController::class, 'subscribe'])->name('subscribe');
+    Route::post('subscriptions/vnpay_payment', [SubscriptionController::class, 'vnpayPayment'])->name('vnpay.payment');
+    Route::post('subscriptions/upgrade', [SubscriptionController::class, 'upgrade'])->name('upgrade');
+    Route::post('subscriptions/renew', [SubscriptionController::class, 'renew'])->name('renew');
+    Route::post('subscriptions/cancel', [SubscriptionController::class, 'cancel'])->name('cancel');
+    Route::get('subscriptions/{subscription}', [SubscriptionController::class, 'show'])->name('subscriptions.show');
 });
 // Admin Routes - Using Spatie Permission
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admin'])->group(function () {
@@ -172,19 +182,28 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admi
         ->name('interviews.destroy');
     Route::post('companies/{companyId}/toggle-interview-block', [\App\Http\Controllers\Admin\InterviewController::class, 'toggleBlock'])
         ->name('companies.toggle-interview-block');
+
+    // System Notifications Management
+    Route::get('notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('notifications/create', [\App\Http\Controllers\Admin\NotificationController::class, 'create'])->name('notifications.create');
+    Route::post('notifications', [\App\Http\Controllers\Admin\NotificationController::class, 'store'])->name('notifications.store');
+    Route::get('notifications/{id}', [\App\Http\Controllers\Admin\NotificationController::class, 'show'])->name('notifications.show');
+    Route::post('notifications/{id}/read', [\App\Http\Controllers\Admin\NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('notifications/read-all', [\App\Http\Controllers\Admin\NotificationController::class, 'markAllAsRead'])->name('notifications.read-all');
+    Route::delete('notifications/{id}', [\App\Http\Controllers\Admin\NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::post('notifications/destroy-multiple', [\App\Http\Controllers\Admin\NotificationController::class, 'destroyMultiple'])->name('notifications.destroy-multiple');
+    Route::get('notifications/stats', [\App\Http\Controllers\Admin\NotificationController::class, 'stats'])->name('notifications.stats');
 });
 
 // Admin Routes - Subscription Management (for Employers)
-Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admin', 'permission:view subscriptions'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'active'])->group(function () {
     Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions');
     Route::post('subscriptions/subscribe', [SubscriptionController::class, 'subscribe'])->middleware('permission:manage subscriptions')->name('subscribe');
+    Route::post('subscriptions/vnpay_payment', [SubscriptionController::class, 'vnpayPayment'])->name('vnpay.payment');
     Route::post('subscriptions/upgrade', [SubscriptionController::class, 'upgrade'])->middleware('permission:manage subscriptions')->name('upgrade');
     Route::post('subscriptions/renew', [SubscriptionController::class, 'renew'])->middleware('permission:manage subscriptions')->name('renew');
     Route::post('subscriptions/cancel', [SubscriptionController::class, 'cancel'])->middleware('permission:manage subscriptions')->name('cancel');
     Route::get('subscriptions/{subscription}', [SubscriptionController::class, 'show'])->name('subscriptions.show');
-    Route::get('subscriptions/qr/data', [SubscriptionController::class, 'getPaymentData'])->name('subscriptions.payment');
-    Route::get('subscriptions/zalopay-demo', [SubscriptionController::class, 'zaloPayDemo'])->name('subscriptions.zalopay-demo');
-    Route::post('subscriptions/test-zalopay', [SubscriptionController::class, 'testZaloPay'])->name('subscriptions.test-zalopay');
     Route::post('subscriptions/simulate-payment', [SubscriptionController::class, 'simulatePayment'])->name('subscriptions.simulate-payment');
     Route::get('subscriptions/vnpay-demo', [SubscriptionController::class, 'vnpayDemo'])->name('subscriptions.vnpay-demo');
     Route::post('subscriptions/test-vnpay', [SubscriptionController::class, 'testVNPay'])->name('subscriptions.test-vnpay');
@@ -217,14 +236,7 @@ Route::prefix('admin/subscriptions/vnpay')->group(function () {
     Route::get('return', [SubscriptionController::class, 'vnpayReturn'])->name('vnpay.return');
 });
 
-// Test route để kiểm tra
-Route::get('test-zalopay', function () {
-    return 'ZaloPay test route works!';
-});
 
-Route::get('test-vnpay', function () {
-    return 'VNPay test route works!';
-});
 
 // Support Chat Widget - Available for all authenticated users
 Route::middleware(['auth', 'active'])->group(function () {

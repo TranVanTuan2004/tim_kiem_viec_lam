@@ -28,6 +28,10 @@ class CompanyController extends Controller
     {
         $filters = [
             'has_jobs' => request('has_jobs') == '1',
+            'q' => request('q', ''),
+            'industry' => request('industry', ''),
+            'city' => request('city', ''),
+            'size' => request('size', ''),
         ];
 
         $companies = $this->companyService->getFilteredCompanies($filters, 12);
@@ -35,6 +39,9 @@ class CompanyController extends Controller
         return Inertia::render('client/CompaniesIndex', [
             'companies' => $companies,
             'hasJobsFilter' => $filters['has_jobs'],
+            'filters' => [
+                'q' => $filters['q'],
+            ],
         ]);
     }
 

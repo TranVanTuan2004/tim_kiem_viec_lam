@@ -79,9 +79,7 @@ class InterviewController extends Controller
                 'company' => [
                     'id' => $interview->application->jobPosting->company->id,
                     'name' => $interview->application->jobPosting->company->company_name,
-                    'logo' => $interview->application->jobPosting->company->logo 
-                        ? asset('storage/' . $interview->application->jobPosting->company->logo) 
-                        : null,
+                    'logo' => storage_url($interview->application->jobPosting->company->logo),
                 ],
                 'job_posting' => [
                     'id' => $interview->application->jobPosting->id,
@@ -218,9 +216,7 @@ class InterviewController extends Controller
             'location' => $interview->location,
             'company' => [
                 'name' => $interview->application->jobPosting->company->company_name,
-                'logo' => $interview->application->jobPosting->company->logo 
-                    ? asset('storage/' . $interview->application->jobPosting->company->logo) 
-                    : null,
+                'logo' => storage_url($interview->application->jobPosting->company->logo),
             ],
             'job_posting' => [
                 'title' => $interview->application->jobPosting->title,

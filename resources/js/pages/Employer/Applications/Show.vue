@@ -9,7 +9,7 @@
           <div class="flex items-center justify-between gap-4">
             <div class="flex items-center gap-4">
               <Link
-                :href="route('employer.applications.index')"
+                href="/employer/applications"
                 class="p-2 hover:bg-gray-100 rounded-full transition text-gray-500 hover:text-gray-700"
                 title="Quay lại danh sách"
               >
@@ -267,7 +267,7 @@
                   </button>
 
                   <Link
-                    :href="route('employer.interviews.create', { application_id: application.id })"
+                    :href="`/employer/interviews/create?application_id=${application.id}`"
                     class="w-full px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition shadow-sm hover:shadow-md flex items-center justify-center gap-2"
                   >
                     <Calendar class="w-5 h-5" />
@@ -488,13 +488,13 @@ const updateStatus = (newStatus) => {
 const confirmStatusChange = () => {
   // Special handling for interview status - redirect to interview creation
   if (pendingStatus.value === 'interview') {
-    router.visit(route('employer.interviews.create', { application_id: props.application.id}))
+    router.visit(`/employer/interviews/create?application_id=${props.application.id}`)
     return
   }
   
   // For other statuses, update via API
   router.patch(
-    route('employer.applications.update-status', props.application.id),
+    `/employer/applications/${props.application.id}/status`,
     { status: pendingStatus.value },
     {
       preserveScroll: true,
@@ -549,7 +549,7 @@ const getStatusModalContent = () => {
 
 const saveNotes = () => {
   notesForm.patch(
-    route('employer.applications.update-status', props.application.id),
+    `/employer/applications/${props.application.id}/status`,
     {
       preserveScroll: true,
       onSuccess: () => {

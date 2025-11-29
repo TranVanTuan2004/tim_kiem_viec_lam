@@ -42,8 +42,15 @@ class JobPostingService
             $query->filterByLocation($filters['location']);
         }
 
-        if (!empty($filters['industry_id'])) {
-            $query->byIndustry($filters['industry_id']);
+        if (!empty($filters['industry'])) {
+            if (is_numeric($filters['industry'])) {
+                $query->byIndustry($filters['industry']);
+            } else {
+                $industry = \App\Models\Industry::where('slug', $filters['industry'])->first();
+                if ($industry) {
+                    $query->byIndustry($industry->id);
+                }
+            }
         }
 
         if (!empty($filters['employment_type'])) {
@@ -293,8 +300,8 @@ class JobPostingService
             $validated['location'] = trim($filters['location']);
         }
 
-        if (isset($filters['industry_id']) && is_numeric($filters['industry_id'])) {
-            $validated['industry_id'] = (int) $filters['industry_id'];
+        if (isset($filters['industry']) && !empty($filters['industry'])) {
+            $validated['industry'] = $filters['industry'];
         }
 
         if (isset($filters['employment_type'])) {

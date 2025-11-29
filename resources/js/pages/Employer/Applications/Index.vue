@@ -385,7 +385,7 @@
                   </td>
                   <td class="px-6 py-4 text-right" data-label="Hành động">
                     <Link
-                      :href="route('employer.applications.show', app.id)"
+                      :href="`/employer/applications/${app.id}`"
                       class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition shadow-sm hover:shadow-md"
                     >
                       <svg
@@ -474,7 +474,7 @@ const filterForm = reactive({
 
 const applyFilters = () => {
   router.get(
-    route('employer.applications.index'),
+    '/employer/applications',
     {
       search: filterForm.search,
       status: filterForm.status,
