@@ -33,17 +33,30 @@ class ReportController extends Controller
             $query->where('reason', $request->reason);
         }
 
-        // Search by description
+        // Search by reason, user name, or reportable content
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
-                $q->where('description', 'like', "%{$search}%")
+                // Tìm kiếm trong lý do báo cáo
+                $q->where('reason', 'like', "%{$search}%")
+                    // Tìm kiếm theo tên người báo cáo
                     ->orWhereHas('user', function ($q2) use ($search) {
                         $q2->where('name', 'like', "%{$search}%");
                     })
-                    ->orWhereHas('reportable', function ($q3) use ($search) {
-                        $q3->where('title', 'like', "%{$search}%")
-                            ->orWhere('company_name', 'like', "%{$search}%");
+                    // Tìm kiếm trong CandidateProfile
+                    ->orWhere(function ($q3) use ($search) {
+                        $q3->where('reportable_type', 'App\Models\CandidateProfile')
+                            ->whereHasMorph('reportable', ['App\Models\CandidateProfile'], function ($q4) use ($search) {
+                                $q4->where('current_position', 'like', "%{$search}%")
+                                    ->orWhere('current_company', 'like', "%{$search}%");
+                            });
+                    })
+                    // Tìm kiếm trong JobPosting
+                    ->orWhere(function ($q5) use ($search) {
+                        $q5->where('reportable_type', 'App\Models\JobPosting')
+                            ->whereHasMorph('reportable', ['App\Models\JobPosting'], function ($q6) use ($search) {
+                                $q6->where('title', 'like', "%{$search}%");
+                            });
                     });
             });
         }
