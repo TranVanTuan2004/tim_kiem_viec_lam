@@ -17,6 +17,13 @@ class EmployerReportController extends Controller
     {
         $user = Auth::user();
 
+        // Validate status filter parameter
+        $validStatuses = ['all', 'pending', 'reviewing', 'resolved', 'dismissed'];
+        if ($request->has('status') && !in_array($request->status, $validStatuses)) {
+            return redirect()->route('employer.reports.index')
+                ->with('error', 'Danh mục không tồn tại.');
+        }
+
         $query = Report::where('reporter_id', $user->id)
             ->where('reportable_type', CandidateProfile::class) // EMPLOYER báo cáo ứng viên
             ->with('reportable')
@@ -24,6 +31,20 @@ class EmployerReportController extends Controller
 
         if ($request->status && $request->status !== 'all') {
             $query->where('status', $request->status);
+        }
+
+        // Search functionality
+        if ($request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('reason', 'like', "%{$search}%")
+                    ->orWhereHasMorph('reportable', [CandidateProfile::class], function ($q2) use ($search) {
+                        // reportable is CandidateProfile, which belongsTo User
+                        $q2->whereHas('user', function ($q3) use ($search) {
+                            $q3->where('name', 'like', "%{$search}%");
+                        });
+                    });
+            });
         }
 
         $reports = $query->paginate(15)->through(function ($report) {
@@ -44,6 +65,7 @@ class EmployerReportController extends Controller
             'reports' => $reports,
             'filters' => [
                 'status' => $request->status ?? 'all',
+                'search' => $request->search ?? '',
             ]
         ]);
     }
@@ -73,8 +95,13 @@ class EmployerReportController extends Controller
     {
         $validated = $request->validate([
             'candidate_id' => 'required|exists:candidate_profiles,id',
-            'type' => 'required|string',
+            'type' => 'required|in:spam,fraud,inappropriate,fake,other',
             'reason' => 'required|min:10|max:1000',
+        ], [
+            'type.in' => 'Danh mục không tồn tại.',
+            'reason.required' => 'Vui lòng nhập lý do báo cáo.',
+            'reason.min' => 'Lý do báo cáo phải có ít nhất 10 ký tự.',
+            'reason.max' => 'Lý do báo cáo không được vượt quá 1000 ký tự.',
         ]);
 
         $candidate = CandidateProfile::find($validated['candidate_id']);
@@ -110,9 +137,6 @@ class EmployerReportController extends Controller
         return back()->with('success', 'Báo cáo của bạn đã được gửi thành công. Chúng tôi sẽ xem xét trong thời gian sớm nhất.');
     }
 
-    public function user()
-    {
-        return $this->belongsTo(User::class);
-    }
+
 }
 

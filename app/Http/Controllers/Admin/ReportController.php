@@ -30,6 +30,13 @@ class ReportController extends Controller
                 ->with('error', 'Trang không tồn tại. Đã chuyển về trang đầu tiên.');
         }
 
+        // Validate status filter parameter
+        $validStatuses = ['all', 'pending', 'reviewing', 'resolved', 'dismissed'];
+        if ($request->has('status') && !in_array($request->status, $validStatuses)) {
+            return redirect()->route('admin.reports.index')
+                ->with('error', 'Danh mục không tồn tại.');
+        }
+
         $query = Report::with(['user', 'reportable', 'reviewer'])
             ->latest();
 

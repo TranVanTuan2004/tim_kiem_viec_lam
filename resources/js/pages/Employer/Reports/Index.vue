@@ -5,6 +5,29 @@
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 py-8">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
+        <!-- Toast Notification -->
+        <div v-if="toastMessage" 
+             :class="[
+               'fixed top-4 right-4 z-50 rounded-lg p-4 shadow-lg border flex items-center gap-3 animate-in slide-in-from-top-5',
+               toastType === 'success' ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'
+             ]">
+          <svg v-if="toastType === 'success'" class="h-5 w-5 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+          </svg>
+          <svg v-else class="h-5 w-5 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+          </svg>
+          <p :class="[
+            'text-sm font-medium',
+            toastType === 'success' ? 'text-green-800' : 'text-red-800'
+          ]">{{ toastMessage }}</p>
+          <button @click="toastMessage = ''" class="ml-4">
+            <svg class="h-4 w-4 text-gray-400 hover:text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+            </svg>
+          </button>
+        </div>
+
         <div class="mb-8 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 shadow-xl">
           <div class="relative px-8 py-10 sm:px-12 flex items-center justify-between">
             <div>
@@ -26,8 +49,8 @@
               <div>
                 <label class="mb-2 block text-sm font-medium text-gray-700">Trạng thái</label>
                 <select
-                  v-model="localFilters.status"
-                  @change="applyFilters"
+                  :value="localFilters.status"
+                  @change="(e) => { localFilters.status = e.target.value; applyFilters(false); }"
                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 >
                   <option value="all">Tất cả</option>
@@ -50,11 +73,6 @@
                     class="block w-full rounded-md border-gray-300 pl-10 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                   />
                 </div>
-              </div>
-
-              <div class="flex items-end gap-2">
-                <button @click="applyFilters" class="inline-flex items-center justify-center rounded-md bg-blue-600 px-4 py-2 text-white">Tìm</button>
-                <button @click="resetFilters" class="inline-flex items-center justify-center rounded-md border px-4 py-2">Xóa</button>
               </div>
             </div>
           </CardContent>
@@ -135,8 +153,8 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import Pagination from '@/Components/Pagination.vue'; // nếu bạn dùng component này
-import { Head, Link, router } from '@inertiajs/vue3';
-import { ref, reactive } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { ref, reactive, watch } from 'vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Search } from 'lucide-vue-next';
@@ -155,7 +173,12 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const page = usePage();
 const reports = props.reports || { data: [], links: [] };
+
+// Toast message state
+const toastMessage = ref('');
+const toastType = ref<'success' | 'error'>('success');
 
 // local reactive copy of filters
 const localFilters = reactive({ ...props.filters });
@@ -164,13 +187,13 @@ const localFilters = reactive({ ...props.filters });
 let searchTimeout: number | undefined = undefined;
 const debounceSearch = () => {
   if (searchTimeout) clearTimeout(searchTimeout);
-  searchTimeout = window.setTimeout(() => applyFilters(), 450);
+  searchTimeout = window.setTimeout(() => applyFilters(true), 450);
 };
 
-function applyFilters() {
-  // request to same route, keeps state/scroll
+function applyFilters(preserveState = false) {
+  // request to same route
   router.get('/employer/reports', localFilters, {
-    preserveState: true,
+    preserveState: preserveState,
     preserveScroll: true,
   });
 }
@@ -178,8 +201,26 @@ function applyFilters() {
 function resetFilters() {
   localFilters.status = 'all';
   localFilters.search = '';
-  applyFilters();
+  applyFilters(false);
 }
+
+// Define showToast BEFORE using it in watch
+const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+  toastMessage.value = message;
+  toastType.value = type;
+  setTimeout(() => {
+    toastMessage.value = '';
+  }, 5000);
+};
+
+// Watch for flash messages
+watch(() => page.props.flash, (flash: any) => {
+  if (flash?.success) {
+    showToast(flash.success, 'success');
+  } else if (flash?.error) {
+    showToast(flash.error, 'error');
+  }
+}, { deep: true, immediate: true });
 
 const formatDate = (date: string | null) => {
   if (!date) return '—';

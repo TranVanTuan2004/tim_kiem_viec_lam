@@ -82,18 +82,13 @@ const submitReport = () => {
         }, 3000);
         closeModal();
     },
-    onError: (err) => {
-        if (err && typeof err === "object" && "errors" in err && typeof err.errors === "object") {
-            const errorsObj = err.errors as Record<string, string>; // ép kiểu tạm
-            const filteredErrors: Record<string, string> = {};
-
-            for (const key in errorsObj) {
-                filteredErrors[key] = errorsObj[key];
-            }
-
-            form.value.errors = filteredErrors;
-        } else {
-            form.value.errors = { general: "Đã xảy ra lỗi. Vui lòng thử lại." };
+    onError: (errors) => {
+        // Inertia returns validation errors directly as an object: { field: 'message', ... }
+        form.value.errors = errors as Record<string, string>;
+        
+        // Nếu có lỗi không xác định (không phải validation error thông thường)
+        if (Object.keys(errors).length === 0) {
+             form.value.errors = { general: "Đã xảy ra lỗi. Vui lòng thử lại." };
         }
     },
     onFinish: () => form.value.isSubmitting = false,
@@ -123,9 +118,24 @@ const submitReport = () => {
       <div class="mt-4 space-y-4">
         <div>
           <Label>Loại báo cáo</Label>
-          <select v-model="form.type" class="w-full mt-1 p-2 border rounded-lg">
+          <select 
+            :value="form.type" 
+            @change="(e) => {
+              const val = e.target.value;
+              form.type = val;
+              // Client-side validation: Check if value is in allowed types
+              const validTypes = types.map(t => t.value);
+              if (!validTypes.includes(val)) {
+                form.errors.type = 'Danh mục không tồn tại.';
+              } else {
+                delete form.errors.type;
+              }
+            }" 
+            class="w-full mt-1 p-2 border rounded-lg"
+          >
             <option v-for="type in types" :key="type.value" :value="type.value">{{ type.label }}</option>
           </select>
+          <p v-if="form.errors.type" class="text-red-600 text-sm mt-1">{{ form.errors.type }}</p>
         </div>
 
         <div>

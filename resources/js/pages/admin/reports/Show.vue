@@ -327,7 +327,11 @@ const breadcrumbs = [
                 <!-- Status Select -->
                 <div>
                   <label class="text-sm font-semibold text-gray-700 mb-2 block">Trạng thái</label>
-                  <select v-model="form.status" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                  <select 
+                    :value="form.status" 
+                    @change="(e) => form.status = e.target.value" 
+                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
                     <option value="pending">⏳ Chờ xử lý</option>
                     <option value="reviewing">👀 Đang xem xét</option>
                     <option value="resolved">✅ Đã xử lý</option>
