@@ -83,7 +83,7 @@
             <CardTitle>Danh sách báo cáo</CardTitle>
           </CardHeader>
           <CardContent class="p-0">
-            <div v-if="reports.data.length === 0" class="p-12 text-center">
+            <div v-if="props.reports.data.length === 0" class="p-12 text-center">
               <FileText class="mx-auto h-12 w-12 text-gray-400" />
               <h3 class="mt-4 text-sm font-medium text-gray-900">Không tìm thấy báo cáo</h3>
               <p class="mt-2 text-sm text-gray-500">Bạn chưa gửi báo cáo nào hoặc bộ lọc không khớp.</p>
@@ -102,7 +102,7 @@
                 </thead>
                 <tbody>
                   <tr
-                    v-for="report in reports.data"
+                    v-for="report in props.reports.data"
                     :key="report.id"
                     class="bg-white border-b hover:bg-gray-50"
                   >
@@ -126,14 +126,14 @@
             </div>
           </CardContent>
 
-          <div v-if="reports.links && reports.links.length > 0" class="border-t border-gray-200 p-6">
+          <div v-if="props.reports.links && props.reports.links.length > 0" class="border-t border-gray-200 p-6">
             <div class="flex items-center justify-between">
               <div class="text-sm text-gray-700">
-                Hiển thị {{ reports.from }} đến {{ reports.to }} trong tổng số {{ reports.total }} báo cáo
+                Hiển thị {{ props.reports.from }} đến {{ props.reports.to }} trong tổng số {{ props.reports.total }} báo cáo
               </div>
               <div class="flex space-x-2">
                 <Link
-                  v-for="link in reports.links"
+                  v-for="link in props.reports.links"
                   :key="link.label"
                   :href="link.url || '#'"
                   v-html="link.label"
@@ -174,7 +174,6 @@ interface Props {
 
 const props = defineProps<Props>();
 const page = usePage();
-const reports = props.reports || { data: [], links: [] };
 
 // Toast message state
 const toastMessage = ref('');
@@ -187,7 +186,7 @@ const localFilters = reactive({ ...props.filters });
 let searchTimeout: number | undefined = undefined;
 const debounceSearch = () => {
   if (searchTimeout) clearTimeout(searchTimeout);
-  searchTimeout = window.setTimeout(() => applyFilters(true), 450);
+  searchTimeout = window.setTimeout(() => applyFilters(true), 450); // Changed back to true to keep focus
 };
 
 function applyFilters(preserveState = false) {

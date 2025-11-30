@@ -34,14 +34,15 @@ class EmployerReportController extends Controller
         }
 
         // Search functionality
-        if ($request->search) {
+        if ($request->has('search') && $request->search !== '') {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
+                // Search by reason
                 $q->where('reason', 'like', "%{$search}%")
-                    ->orWhereHasMorph('reportable', [CandidateProfile::class], function ($q2) use ($search) {
-                        // reportable is CandidateProfile, which belongsTo User
-                        $q2->whereHas('user', function ($q3) use ($search) {
-                            $q3->where('name', 'like', "%{$search}%");
+                    // Search by candidate name - use whereHasMorph to explicitly target CandidateProfile
+                    ->orWhereHasMorph('reportable', [CandidateProfile::class], function ($rpQuery) use ($search) {
+                        $rpQuery->whereHas('user', function ($userQuery) use ($search) {
+                            $userQuery->where('name', 'like', "%{$search}%");
                         });
                     });
             });
