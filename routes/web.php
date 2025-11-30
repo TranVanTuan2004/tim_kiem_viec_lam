@@ -224,11 +224,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
     Route::get('service-packages', [ServicePackageController::class, 'index'])->name('service-packages.index');
     Route::get('service-packages/create', [ServicePackageController::class, 'create'])->name('service-packages.create');
     Route::post('service-packages', [ServicePackageController::class, 'store'])->name('service-packages.store');
+    Route::get('service-packages/{package:slug}', [ServicePackageController::class, 'show'])->name('service-packages.show');
     Route::get('service-packages/{package:slug}/edit', [ServicePackageController::class, 'edit'])->name('service-packages.edit');
     Route::put('service-packages/{package:slug}', [ServicePackageController::class, 'update'])->name('service-packages.update');
     Route::delete('service-packages/{package:slug}', [ServicePackageController::class, 'destroy'])->name('service-packages.destroy');
     Route::post('service-packages/{package:slug}/toggle', [ServicePackageController::class, 'toggle'])->name('service-packages.toggle');
 });
+
 
 
 // Payment Callbacks (không cần auth)
