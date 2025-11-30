@@ -327,7 +327,11 @@ const breadcrumbs = [
           <div class="grid gap-4 md:grid-cols-4">
             <div>
               <label class="text-sm font-medium text-gray-700 mb-2 block">Trạng thái</label>
-              <select v-model="filters.status" @change="applyFilters" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+              <select 
+                :value="filters.status" 
+                @change="(e) => { filters.status = e.target.value; applyFilters(); }" 
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              >
                 <option value="all">Tất cả trạng thái</option>
                 <option value="pending">Chờ xử lý</option>
                 <option value="reviewing">Đang xem xét</option>

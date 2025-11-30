@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CandidateLayout from '@/layouts/CandidateLayout.vue';
-import { reactive } from 'vue';
-import { Link, router, Head } from '@inertiajs/vue3';
+import { reactive, ref, watch } from 'vue';
+import { Link, router, Head, usePage } from '@inertiajs/vue3';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { FileText, Search } from 'lucide-vue-next';
@@ -20,19 +20,44 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const reports = props.reports;
+const page = usePage();
+
+// Toast message state
+const toastMessage = ref('');
+const toastType = ref<'success' | 'error'>('success');
 
 const localFilters = reactive({ ...props.filters });
 let searchTimeout: number | null = null;
 
 const applyFilters = () => {
-  router.get('/candidate/reports', localFilters, { preserveState: true, preserveScroll: true });
+  router.get('/candidate/reports', localFilters, { 
+    preserveState: false,  // Changed to false so redirect works
+    preserveScroll: true 
+  });
 };
 
 const debounceSearch = () => {
   if (searchTimeout) clearTimeout(searchTimeout);
   searchTimeout = setTimeout(() => applyFilters(), 500);
 };
+
+// Define showToast BEFORE using it in watch
+const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+  toastMessage.value = message;
+  toastType.value = type;
+  setTimeout(() => {
+    toastMessage.value = '';
+  }, 5000);
+};
+
+// Watch for flash messages (now showToast is already defined)
+watch(() => page.props.flash, (flash: any) => {
+  if (flash?.success) {
+    showToast(flash.success, 'success');
+  } else if (flash?.error) {
+    showToast(flash.error, 'error');
+  }
+}, { deep: true, immediate: true });
 
 const formatDate = (date: string) => {
   if (!date) return 'N/A';
@@ -58,6 +83,25 @@ const getStatusVariant = (
     <div class="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50 py-8">
       <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
 
+        <!-- Toast Notification -->
+        <div
+          v-if="toastMessage"
+          :class="[
+            'fixed top-4 right-4 z-50 max-w-md rounded-lg p-4 shadow-lg transition-all',
+            toastType === 'error' ? 'bg-red-50 border border-red-200 text-red-800' : 'bg-green-50 border border-green-200 text-green-800'
+          ]"
+        >
+          <div class="flex items-center gap-2">
+            <svg v-if="toastType === 'error'" class="h-5 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+            </svg>
+            <svg v-else class="h-5 w-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
+            </svg>
+            <p class="font-medium">{{ toastMessage }}</p>
+          </div>
+        </div>
+
         <div class="mb-8 overflow-hidden rounded-2xl bg-gradient-to-r from-blue-600 via-blue-700 to-indigo-700 shadow-xl">
           <div class="relative px-8 py-10 sm:px-12 flex items-center justify-between">
             <div>
@@ -79,8 +123,8 @@ const getStatusVariant = (
               <div>
                 <label class="mb-2 block text-sm font-medium text-gray-700">Trạng thái</label>
                 <select
-                  v-model="localFilters.status"
-                  @change="applyFilters"
+                  :value="localFilters.status"
+                  @change="(e) => { localFilters.status = e.target.value; applyFilters(); }"
                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 >
                   <option value="all">Tất cả</option>
@@ -113,7 +157,7 @@ const getStatusVariant = (
             <CardTitle>Danh sách báo cáo</CardTitle>
           </CardHeader>
           <CardContent class="p-0">
-            <div v-if="reports.data.length === 0" class="p-12 text-center">
+            <div v-if="props.reports.data.length === 0" class="p-12 text-center">
               <FileText class="mx-auto h-12 w-12 text-gray-400" />
               <h3 class="mt-4 text-sm font-medium text-gray-900">Không tìm thấy báo cáo</h3>
               <p class="mt-2 text-sm text-gray-500">Bạn chưa gửi báo cáo nào.</p>
@@ -132,7 +176,7 @@ const getStatusVariant = (
                 </thead>
                 <tbody>
                   <tr
-                    v-for="report in reports.data"
+                    v-for="report in props.reports.data"
                     :key="report.id"
                     class="bg-white border-b hover:bg-gray-50"
                   >
@@ -156,14 +200,14 @@ const getStatusVariant = (
             </div>
           </CardContent>
 
-          <div v-if="reports.links.length > 0" class="border-t border-gray-200 p-6">
+          <div v-if="props.reports.links.length > 0" class="border-t border-gray-200 p-6">
             <div class="flex items-center justify-between">
               <div class="text-sm text-gray-700">
-                Hiển thị {{ reports.from }} đến {{ reports.to }} trong tổng số {{ reports.total }} báo cáo
+                Hiển thị {{ props.reports.from }} đến {{ props.reports.to }} trong tổng số {{ props.reports.total }} báo cáo
               </div>
               <div class="flex space-x-2">
                 <Link
-                  v-for="link in reports.links"
+                  v-for="link in props.reports.links"
                   :key="link.label"
                   :href="link.url || '#'"
                   v-html="link.label"
