@@ -449,7 +449,7 @@ const companyName = computed(
 );
 
 const openReportModal = (application) => {
-  candidateName.value = application.candidate.user.full_name;
+  candidateName.value = application.candidate.user.email;
   submitUrl.value = '/employer/reports';
   showReportModal.value = true;
 };
