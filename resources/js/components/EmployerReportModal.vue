@@ -63,7 +63,7 @@ const submitReport = () => {
   }
 
   if (form.value.reason.length > 1000) {
-    errors.value.reason = 'Mô tả không được vượt quá 1000 ký tự';
+    form.value.errors.reason = 'Mô tả không được vượt quá 1000 ký tự';
     return;
   }
 
@@ -101,9 +101,9 @@ const submitReport = () => {
   <Dialog v-model:open="localOpen">
     <DialogContent class="max-w-lg p-6">
       <DialogHeader>
-        <DialogTitle>Báo cáo vi phạm ứng viên</DialogTitle>
+        <DialogTitle>Báo cáo ứng viên vi phạm</DialogTitle>
         <DialogDescription>
-          Báo cáo ứng viên: <strong>{{ candidateName }}</strong>
+          Báo cáo ứng viên: <strong>{{ candidateName || 'Không xác định' }}</strong>
         </DialogDescription>
       </DialogHeader>
 
