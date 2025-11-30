@@ -138,6 +138,11 @@ const adminNavItems: NavItem[] = [
         icon: Layout,
     },
     {
+        title: 'Quản lý Blog',
+        href: '/admin/blogs',
+        icon: BookOpen,
+    },
+    {
         title: 'Chat',
         href: '/admin/chat',
         icon: MessageSquare,
