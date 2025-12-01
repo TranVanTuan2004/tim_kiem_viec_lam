@@ -65,7 +65,7 @@ const getIcon = (iconName: string) => {
                     <div class="absolute inset-0 bg-gradient-to-br from-red-50/0 via-red-50/50 to-orange-50/0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 dark:from-red-950/0 dark:via-red-950/50 dark:to-orange-950/0"></div>
                     
                     <!-- Shine Effect -->
-                    <div class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:translate-x-full transition-transform duration-1000"></div>
+                    <div class="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:translate-x-full transition-transform duration-1000"></div>
 
                     <!-- Content -->
                     <div class="relative flex items-start justify-between z-10">

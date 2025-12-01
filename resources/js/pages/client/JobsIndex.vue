@@ -430,26 +430,32 @@ onMounted(() => {
                     v-if="jobs.length > 0"
                     class="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3"
                 >
-                    <Link
+                    <div
                         v-for="(job, index) in jobs"
                         :key="job.id"
-                        :href="`/jobs/${job.slug}`"
                         class="group job-card animate-on-scroll"
                         :style="{ animationDelay: `${index * 0.1}s` }"
                     >
                         <Card
                             class="relative h-full cursor-pointer overflow-hidden border-2 bg-card transition-all duration-500 hover:-translate-y-2 hover:border-red-300 hover:shadow-2xl"
                         >
+                            <!-- Clickable Overlay for Navigation -->
+                            <Link 
+                                :href="`/jobs/${job.slug}`"
+                                class="absolute inset-0 z-10"
+                                aria-label="View job details"
+                            ></Link>
+
                             <!-- Shine Effect -->
                             <div
-                                class="absolute inset-0 z-20 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-full"
+                                class="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-1000 group-hover:translate-x-full"
                             ></div>
 
                             <!-- Gradient Border on Hover -->
                             <div
-                                class="absolute inset-0 rounded-xl border-2 border-transparent bg-gradient-to-r from-red-500 via-orange-500 to-red-500 [mask-composite:exclude] opacity-0 transition-opacity duration-500 [mask:linear-gradient(#fff_0_0)_padding-box,linear-gradient(#fff_0_0)] group-hover:opacity-100"
+                                class="pointer-events-none absolute inset-0 rounded-xl border-2 border-transparent bg-gradient-to-r from-red-500 via-orange-500 to-red-500 [mask-composite:exclude] opacity-0 transition-opacity duration-500 [mask:linear-gradient(#fff_0_0)_padding-box,linear-gradient(#fff_0_0)] group-hover:opacity-100"
                             ></div>
-                            <CardHeader class="pb-3">
+                            <CardHeader class="pb-3 relative z-20">
                                 <div class="flex items-start justify-between">
                                     <div class="flex flex-1 items-start gap-3">
                                         <div
@@ -493,13 +499,14 @@ onMounted(() => {
                                     <Button
                                         variant="ghost"
                                         size="icon"
+                                        class="relative z-30 flex-shrink-0 mt-8"
                                         :class="
                                             job?.favorited_by?.[0]?.pivot
                                                 ?.is_favorited
                                                 ? 'text-red-600'
                                                 : 'text-gray-400 hover:text-red-600'
                                         "
-                                        @click.prevent="toggleFavorite(job)"
+                                        @click.prevent.stop="toggleFavorite(job)"
                                     >
                                         <Heart
                                             :class="
@@ -514,7 +521,7 @@ onMounted(() => {
                                 </div>
                             </CardHeader>
 
-                            <CardContent class="space-y-2">
+                            <CardContent class="space-y-2 relative z-20">
                                 <div
                                     class="flex flex-wrap gap-2 text-xs text-gray-600"
                                 >
@@ -584,7 +591,7 @@ onMounted(() => {
                                 </Button>
                             </CardContent>
                         </Card>
-                    </Link>
+                    </div>
                 </div>
 
                 <!-- Pagination -->
