@@ -1,6 +1,8 @@
+```typescript
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { User, Role } from '@/types'; // Added User and Role types from '@/types'
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -8,22 +10,24 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft } from 'lucide-vue-next';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'; // Added RadioGroup and RadioGroupItem imports
 
-interface Role {
-    id: number;
-    name: string;
-    slug: string;
-}
+// Removed local interface definitions for Role and User as they are now imported from '@/types'
+// interface Role {
+//     id: number;
+//     name: string;
+//     slug: string;
+// }
 
-interface User {
-    id: number;
-    name: string;
-    email: string;
-    phone: string | null;
-    bio: string | null;
-    is_active: boolean;
-    roles: Role[];
-}
+// interface User {
+//     id: number;
+//     name: string;
+//     email: string;
+//     phone: string | null;
+//     bio: string | null;
+//     is_active: boolean;
+//     roles: Role[];
+// }
 
 interface Props {
     user: User;
@@ -39,12 +43,15 @@ const form = useForm({
     password_confirmation: '',
     phone: props.user.phone || '',
     bio: props.user.bio || '',
-    is_active: props.user.is_active,
-    roles: props.user.roles.map(r => r.id),
+    updated_at: props.user.updated_at, // Test Case 2: Optimistic locking
+    role_id: props.user.roles.length > 0 ? String(props.user.roles[0].id) : null as string | null,
 });
 
 const submit = () => {
-    form.put(`/admin/users/${props.user.id}`);
+    form.transform((data) => ({
+        ...data,
+        roles: data.role_id ? [parseInt(data.role_id)] : [],
+    })).put(`/admin/users/${props.user.id}`);
 };
 
 const breadcrumbs = [
@@ -55,7 +62,7 @@ const breadcrumbs = [
 </script>
 
 <template>
-    <Head :title="`Sửa User: ${user.name}`" />
+    <Head :title="`Sửa thông tin người dùng: ${user.name}`" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-col gap-4 p-4">
@@ -65,16 +72,23 @@ const breadcrumbs = [
                         <ArrowLeft class="h-4 w-4" />
                     </Button>
                 </Link>
-                <h1 class="text-2xl font-bold">Sửa User: {{ user.name }}</h1>
+                <h1 class="text-2xl font-bold">Sửa thông tin người dùng: {{ user.name }}</h1>
             </div>
 
-            <form @submit.prevent="submit">
+            <form @submit.prevent="submit" novalidate>
+                <!-- Test Case 2: Display concurrency update error -->
+                <div v-if="form.errors.concurrent_update" class="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                    <p class="text-red-800 font-medium">
+                        {{ form.errors.concurrent_update }}
+                    </p>
+                </div>
+
                 <div class="grid gap-6 md:grid-cols-2">
                     <!-- Thông tin cơ bản -->
                     <Card>
                         <CardHeader>
                             <CardTitle>Thông tin cơ bản</CardTitle>
-                            <CardDescription>Cập nhật thông tin user</CardDescription>
+                            <CardDescription>Cập nhật thông tin người dùng</CardDescription>
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <div class="space-y-2">
@@ -102,8 +116,8 @@ const breadcrumbs = [
                             </div>
 
                             <div class="space-y-2">
-                                <Label for="bio">Bio</Label>
-                                <Textarea id="bio" v-model="form.bio" rows="3" />
+                                <Label for="bio">Tiểu sử</Label>
+                                <Textarea id="bio" v-model="form.bio" :rows="3" />
                                 <span v-if="form.errors.bio" class="text-sm text-destructive">
                                     {{ form.errors.bio }}
                                 </span>
@@ -143,50 +157,33 @@ const breadcrumbs = [
                                 <CardTitle>Vai trò</CardTitle>
                             </CardHeader>
                             <CardContent class="space-y-4">
-                                <div class="space-y-3">
-                                    <div 
-                                        v-for="role in roles" 
+                                <RadioGroup v-model="form.role_id" class="space-y-3">
+                                    <div
+                                        v-for="role in roles"
                                         :key="role.id"
                                         class="flex items-center space-x-2"
                                     >
-                                        <Checkbox 
+                                        <RadioGroupItem
                                             :id="`role-${role.id}`"
-                                            :checked="form.roles.includes(role.id)"
-                                            @update:checked="(checked) => {
-                                                if (checked) {
-                                                    form.roles.push(role.id);
-                                                } else {
-                                                    form.roles = form.roles.filter(id => id !== role.id);
-                                                }
-                                            }"
+                                            :value="String(role.id)"
                                         />
-                                        <Label :for="`role-${role.id}`" class="cursor-pointer">
+                                        <Label
+                                            :for="`role-${role.id}`"
+                                            class="cursor-pointer"
+                                        >
                                             {{ role.name }}
                                         </Label>
                                     </div>
-                                </div>
-                                <span v-if="form.errors.roles" class="text-sm text-destructive">
+                                </RadioGroup>
+                                <span
+                                    v-if="form.errors.roles"
+                                    class="text-sm text-destructive"
+                                >
                                     {{ form.errors.roles }}
                                 </span>
                             </CardContent>
                         </Card>
 
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Trạng thái</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div class="flex items-center space-x-2">
-                                    <Checkbox 
-                                        id="is_active"
-                                        v-model:checked="form.is_active"
-                                    />
-                                    <Label for="is_active" class="cursor-pointer">
-                                        Active
-                                    </Label>
-                                </div>
-                            </CardContent>
-                        </Card>
                     </div>
                 </div>
 
@@ -196,7 +193,7 @@ const breadcrumbs = [
                         <Button type="button" variant="outline">Hủy</Button>
                     </Link>
                     <Button type="submit" :disabled="form.processing">
-                        {{ form.processing ? 'Đang lưu...' : 'Cập nhật User' }}
+                        {{ form.processing ? 'Đang lưu...' : 'Cập nhật' }}
                     </Button>
                 </div>
             </form>
