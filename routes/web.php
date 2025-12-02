@@ -32,7 +32,8 @@ use App\Http\Controllers\Employer\InterviewController;
 use App\Http\Controllers\Candidate\InterviewController as CandidateInterviewController;
 use App\Http\Controllers\Admin\ServicePackageController;
 use App\Http\Controllers\Admin\SubscriptionControllerV2;
-use App\Http\Controllers\Admin\ApplicationController as AdminApplicationController;
+use App\Http\Controllers\Client\BlogController;
+use App\Http\Controllers\Admin\BlogController as AdminBlogController;
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -83,6 +84,10 @@ Route::get('/terms', function () {
 Route::get('/privacy', function () {
     return Inertia::render('client/Privacy');
 })->name('privacy');
+
+// Blog Pages
+Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
 
 Route::get('dashboard', function () {
     $user = auth()->user();
@@ -178,6 +183,11 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admi
         ->name('homepage.toggle-active');
     Route::post('homepage/update-order', [\App\Http\Controllers\Admin\HomepageSectionController::class, 'updateOrder'])
         ->name('homepage.update-order');
+
+    // Blog Management
+    Route::resource('blogs', AdminBlogController::class);
+    Route::post('blogs/{blog}/toggle-featured', [AdminBlogController::class, 'toggleFeatured'])
+        ->name('blogs.toggle-featured');
 
     // Interview Management
     Route::get('interviews', [\App\Http\Controllers\Admin\InterviewController::class, 'index'])

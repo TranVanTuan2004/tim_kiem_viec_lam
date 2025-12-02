@@ -2,9 +2,10 @@
 
 namespace Database\Seeders;
 
+use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use Illuminate\Database\Seeder;
 use App\Models\Blog;
 use App\Models\User;
-use Illuminate\Database\Seeder;
 use Illuminate\Support\Str;
 
 class BlogSeeder extends Seeder
@@ -14,149 +15,92 @@ class BlogSeeder extends Seeder
      */
     public function run(): void
     {
-        // Ensure we have an admin user to be the author
-        $author = User::role('Admin')->first();
-        
-        if (!$author) {
-            $author = User::first();
-        }
-
-        if (!$author) {
-            $this->command->info('No users found. Please run UserSeeder first.');
+        $author = User::where('email', 'admin@example.com')->first() ?? User::first();
+        if (! $author) {
             return;
         }
 
         $blogs = [
             [
-                'title' => 'Top 10 Ngôn Ngữ Lập Trình Nên Học Năm 2025',
-                'category' => 'Tech News',
-                'tags' => ['programming', 'career', 'technology'],
-                'featured_image' => 'https://via.placeholder.com/800x400/4F46E5/FFFFFF?text=Programming+Languages+2025',
-                'excerpt' => 'Khám phá những ngôn ngữ lập trình đang dẫn đầu xu hướng và mang lại cơ hội việc làm tốt nhất trong năm 2025.',
-                'content' => '
-                    <p>Năm 2025 đánh dấu sự bùng nổ của AI và Machine Learning, kéo theo sự thay đổi trong nhu cầu tuyển dụng lập trình viên. Dưới đây là danh sách các ngôn ngữ lập trình bạn nên cân nhắc học tập:</p>
-                    <h3>1. Python</h3>
-                    <p>Không ngạc nhiên khi Python vẫn đứng đầu bảng xếp hạng. Với sự phát triển của AI, Data Science và Automation, Python trở thành ngôn ngữ không thể thiếu.</p>
-                    <h3>2. JavaScript / TypeScript</h3>
-                    <p>Web development vẫn là mảng lớn nhất. TypeScript đang dần thay thế JavaScript thuần trong các dự án lớn nhờ khả năng quản lý type an toàn.</p>
-                    <h3>3. Rust</h3>
-                    <p>Rust đang được ưa chuộng nhờ hiệu năng cao và an toàn bộ nhớ. Nhiều ông lớn công nghệ đang chuyển dần các module quan trọng sang Rust.</p>
-                    <h3>4. Go (Golang)</h3>
-                    <p>Với sự phổ biến của Microservices và Cloud Native, Go là lựa chọn hàng đầu cho backend development.</p>
-                    <p>Hãy chọn ngôn ngữ phù hợp với định hướng nghề nghiệp của bạn và bắt đầu học ngay hôm nay!</p>
-                ',
+                'title' => 'Kinh nghiệm phỏng vấn vị trí Developer',
+                'excerpt' => 'Các mẹo thực tế giúp bạn tự tin trong buổi phỏng vấn.',
+                'content' => 'Tổng hợp câu hỏi thường gặp, cách trình bày kinh nghiệm và mẹo xử lý tình huống trong phỏng vấn vị trí Developer. Chuẩn bị portfolio, nắm rõ dự án đã làm và luyện tập thuật toán cơ bản.',
+                'featured_image' => 'https://images.unsplash.com/photo-1517433456452-f9633a875f6f?auto=format&fit=crop&w=1200&q=80',
             ],
             [
-                'title' => 'Bí Quyết Viết CV IT "Chuẩn Chỉnh" Chinh Phục Nhà Tuyển Dụng',
-                'category' => 'Career Advice',
-                'tags' => ['cv', 'interview', 'job-search'],
-                'featured_image' => 'https://via.placeholder.com/800x400/10B981/FFFFFF?text=CV+Writing+Tips',
-                'excerpt' => 'CV là vũ khí đầu tiên giúp bạn gây ấn tượng. Tìm hiểu cách tối ưu hóa CV để vượt qua vòng lọc hồ sơ một cách dễ dàng.',
-                'content' => '
-                    <p>Một chiếc CV ấn tượng không chỉ liệt kê kỹ năng mà còn phải kể được câu chuyện về năng lực của bạn. Dưới đây là các tips quan trọng:</p>
-                    <h3>1. Tập trung vào kết quả (Impact)</h3>
-                    <p>Thay vì viết "Đã làm việc với ReactJS", hãy viết "Xây dựng module X bằng ReactJS giúp tăng trải nghiệm người dùng và giảm 30% thời gian tải trang".</p>
-                    <h3>2. Sử dụng từ khóa (Keywords)</h3>
-                    <p>Hệ thống ATS (Applicant Tracking System) sẽ quét CV của bạn. Hãy đảm bảo CV chứa các từ khóa có trong mô tả công việc (JD).</p>
-                    <h3>3. Project thực tế</h3>
-                    <p>Đối với Fresher/Junior, project cá nhân là minh chứng rõ nhất cho năng lực. Hãy để link GitHub và demo sản phẩm.</p>
-                    <p>Đừng quên kiểm tra lỗi chính tả và format CV thật chuyên nghiệp nhé!</p>
-                ',
+                'title' => 'Hướng dẫn tối ưu CV IT',
+                'excerpt' => 'Cấu trúc CV rõ ràng, nổi bật kỹ năng và dự án.',
+                'content' => 'Cách viết CV IT hiệu quả: tóm tắt mục tiêu nghề nghiệp, liệt kê kỹ năng chính, dự án tiêu biểu, đóng góp mã nguồn và chứng chỉ liên quan. Tối ưu từ khóa ATS.',
+                'featured_image' => 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?auto=format&fit=crop&w=1200&q=80',
             ],
             [
-                'title' => 'Lộ Trình Trở Thành DevOps Engineer Từ Con Số 0',
-                'category' => 'DevOps',
-                'tags' => ['devops', 'cloud', 'career-path'],
-                'featured_image' => 'https://via.placeholder.com/800x400/F59E0B/FFFFFF?text=DevOps+Career+Path',
-                'excerpt' => 'DevOps đang là vị trí được săn đón với mức lương hấp dẫn. Bài viết này sẽ vạch ra lộ trình học tập chi tiết cho bạn.',
-                'content' => '
-                    <p>DevOps là cầu nối giữa Development và Operations. Để trở thành DevOps Engineer, bạn cần trang bị kiến thức đa dạng:</p>
-                    <h3>Giai đoạn 1: Nền tảng</h3>
-                    <ul>
-                        <li>Linux & Scripting (Bash, Python)</li>
-                        <li>Networking cơ bản (DNS, HTTP, SSL)</li>
-                        <li>Git & Version Control</li>
-                    </ul>
-                    <h3>Giai đoạn 2: CI/CD & Containerization</h3>
-                    <ul>
-                        <li>Docker & Kubernetes</li>
-                        <li>Jenkins, GitLab CI, GitHub Actions</li>
-                    </ul>
-                    <h3>Giai đoạn 3: Cloud & IaC</h3>
-                    <ul>
-                        <li>AWS / Azure / GCP</li>
-                        <li>Terraform, Ansible</li>
-                    </ul>
-                    <p>Hành trình này không dễ dàng nhưng phần thưởng là vô cùng xứng đáng!</p>
-                ',
+                'title' => 'Tổng hợp kỹ năng cần có cho Backend',
+                'excerpt' => 'Database, API, caching, bảo mật và quan sát.',
+                'content' => 'Những kỹ năng cốt lõi cho Backend: thiết kế REST/GraphQL, tối ưu truy vấn, dùng cache (Redis), bảo mật JWT/OAuth, logging, tracing và scaling microservices.',
+                'featured_image' => 'https://images.unsplash.com/photo-1556157382-97eda2d62296?auto=format&fit=crop&w=1200&q=80',
             ],
             [
-                'title' => 'Phỏng Vấn System Design: Những Điều Cần Biết',
-                'category' => 'Interview Tips',
-                'tags' => ['system-design', 'interview', 'architecture'],
-                'featured_image' => 'https://via.placeholder.com/800x400/EF4444/FFFFFF?text=System+Design+Interview',
-                'excerpt' => 'System Design là vòng phỏng vấn khó nhằn đối với các vị trí Senior. Cùng tìm hiểu cách tiếp cận và giải quyết bài toán thiết kế hệ thống.',
-                'content' => '
-                    <p>Phỏng vấn System Design không có đáp án đúng sai tuyệt đối, mà đánh giá tư duy giải quyết vấn đề của bạn.</p>
-                    <h3>Quy trình 4 bước:</h3>
-                    <ol>
-                        <li><strong>Làm rõ yêu cầu (Clarify Requirements):</strong> Đặt câu hỏi để hiểu rõ phạm vi (scope), lượng người dùng, tính năng chính.</li>
-                        <li><strong>Thiết kế tổng quan (High-level Design):</strong> Vẽ sơ đồ các component chính (Load Balancer, Web Server, Database, Cache).</li>
-                        <li><strong>Đi sâu vào chi tiết (Deep Dive):</strong> Chọn một vài component quan trọng để thiết kế chi tiết (Database Schema, API Design).</li>
-                        <li><strong>Xử lý các vấn đề mở rộng (Scalability & Bottlenecks):</strong> Bàn về Sharding, Replication, Caching strategy, Failure handling.</li>
-                    </ol>
-                    <p>Luyện tập thường xuyên với các bài toán như: Thiết kế Twitter, TinyURL, Chat System...</p>
-                ',
+                'title' => 'Lộ trình học Frontend hiện đại',
+                'excerpt' => 'HTML/CSS, JS, framework, state, performance và testing.',
+                'content' => 'Lộ trình từ cơ bản tới nâng cao: nắm chắc HTML/CSS/JS, chọn framework (Vue/React), quản lý state, tối ưu hiệu năng, accessibility và viết test E2E.',
+                'featured_image' => 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?auto=format&fit=crop&w=1200&q=80',
             ],
             [
-                'title' => 'Làm Việc Remote Hiệu Quả: Kinh Nghiệm Cho Developer',
-                'category' => 'Work Life',
-                'tags' => ['remote-work', 'productivity', 'soft-skills'],
-                'featured_image' => 'https://via.placeholder.com/800x400/8B5CF6/FFFFFF?text=Remote+Work+Tips',
-                'excerpt' => 'Làm việc từ xa mang lại sự tự do nhưng cũng đầy thách thức. Làm sao để duy trì năng suất và cân bằng cuộc sống?',
-                'content' => '
-                    <p>Remote work đã trở thành xu hướng bình thường mới. Tuy nhiên, nhiều dev gặp khó khăn trong việc quản lý thời gian và giao tiếp.</p>
-                    <h3>1. Thiết lập không gian làm việc riêng</h3>
-                    <p>Đừng làm việc trên giường. Hãy có một góc làm việc nghiêm túc để não bộ nhận biết "đây là giờ làm việc".</p>
-                    <h3>2. Giao tiếp chủ động (Over-communication)</h3>
-                    <p>Khi không gặp mặt trực tiếp, hãy cập nhật tiến độ thường xuyên, rõ ràng. Đừng để đồng nghiệp phải đoán bạn đang làm gì.</p>
-                    <h3>3. Kỷ luật thời gian</h3>
-                    <p>Sử dụng Pomodoro hoặc Time Blocking để tập trung. Đặt giờ bắt đầu và kết thúc rõ ràng để tránh burnout.</p>
-                ',
+                'title' => 'DevOps là gì? Bắt đầu từ đâu',
+                'excerpt' => 'Tự động hóa CI/CD, container và observability.',
+                'content' => 'Giới thiệu DevOps: pipeline CI/CD, Docker/Kubernetes, infrastructure as code (Terraform), giám sát với Prometheus/Grafana, và chiến lược triển khai an toàn.',
+                'featured_image' => 'https://images.unsplash.com/photo-1510915228340-29c85a43dcfe?auto=format&fit=crop&w=1200&q=80',
             ],
             [
-                'title' => 'Xu Hướng Frontend 2025: Server Components & AI',
-                'category' => 'Tech News',
-                'tags' => ['frontend', 'react', 'ai'],
-                'featured_image' => 'https://via.placeholder.com/800x400/3B82F6/FFFFFF?text=Frontend+Trends+2025',
-                'excerpt' => 'Frontend development đang thay đổi chóng mặt. Cùng điểm qua những xu hướng công nghệ sẽ thống trị trong năm tới.',
-                'content' => '
-                    <p>Thế giới Frontend không bao giờ đứng yên. Năm 2025 dự kiến sẽ là năm của sự tối ưu hóa và tích hợp AI.</p>
-                    <h3>React Server Components (RSC)</h3>
-                    <p>RSC đang thay đổi cách chúng ta build ứng dụng React, giúp giảm bundle size phía client và cải thiện performance đáng kể.</p>
-                    <h3>AI-Driven Development</h3>
-                    <p>Các công cụ như GitHub Copilot, V0.dev đang giúp frontend dev code nhanh hơn. Kỹ năng prompt engineering sẽ trở nên quan trọng.</p>
-                    <h3>Micro-frontends</h3>
-                    <p>Với các ứng dụng quy mô lớn, Micro-frontends giúp chia nhỏ team và deploy độc lập, tăng tốc độ phát triển.</p>
-                ',
+                'title' => 'Bí quyết xin việc tại công ty lớn',
+                'excerpt' => 'Networking, portfolio mạnh và chuẩn bị phỏng vấn nhiều vòng.',
+                'content' => 'Cách tiếp cận công ty lớn: xây dựng thương hiệu cá nhân, đóng góp OSS, portfolio chuyên nghiệp, luyện assesment và phỏng vấn hệ thống/bảo mật.',
+                'featured_image' => 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=1200&q=80',
+            ],
+            [
+                'title' => 'Clean Code trong dự án thực tế',
+                'excerpt' => 'Đặt tên rõ ràng, tách trách nhiệm và viết test.',
+                'content' => 'Nguyên tắc Clean Code: SOLID, DRY, small functions, dependency injection, refactor thường xuyên và đảm bảo test suite đáng tin cậy.',
+                'featured_image' => 'https://images.unsplash.com/photo-1487017159836-4e23ece2e4cf?auto=format&fit=crop&w=1200&q=80',
+            ],
+            [
+                'title' => 'Bảo mật ứng dụng web: các bước cơ bản',
+                'excerpt' => 'XSS, CSRF, SQLi, auth và log/audit.',
+                'content' => 'Checklist bảo mật: validate input, sanitize output, chống CSRF, quản lý session an toàn, kiểm soát quyền truy cập và giám sát hoạt động bất thường.',
+                'featured_image' => 'https://images.unsplash.com/photo-1556157382-5d16c1ea9e84?auto=format&fit=crop&w=1200&q=80',
+            ],
+            [
+                'title' => 'Phỏng vấn thuật toán: mẹo và chiến lược',
+                'excerpt' => 'Luyện tập pattern, phân tích độ phức tạp và trình bày rõ ràng.',
+                'content' => 'Các mẹo giải thuật: two pointers, sliding window, divide and conquer, greedy, DP. Trình bày giải pháp, test edge cases và cải tiến tối ưu.',
+                'featured_image' => 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=1200&q=80',
+            ],
+            [
+                'title' => 'Học Docker và Kubernetes cho người mới',
+                'excerpt' => 'Đóng gói, triển khai và mở rộng ứng dụng dễ dàng.',
+                'content' => 'Khái niệm container, tạo Dockerfile chuẩn, compose services, Kubernetes cơ bản (pod, deployment, service) và chiến lược scaling/rolling update.',
+                'featured_image' => 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1200&q=80',
             ],
         ];
 
-        foreach ($blogs as $blogData) {
-            Blog::create([
-                'title' => $blogData['title'],
-                'slug' => Str::slug($blogData['title']),
-                'excerpt' => $blogData['excerpt'],
-                'content' => $blogData['content'],
-                'author_id' => $author->id,
-                'category' => $blogData['category'],
-                'tags' => $blogData['tags'],
-                'featured_image' => $blogData['featured_image'],
-                'is_published' => true,
-                'is_featured' => rand(0, 1) == 1,
-                'views_count' => rand(100, 5000),
-                'published_at' => now()->subDays(rand(1, 30)),
-            ]);
+        foreach ($blogs as $item) {
+            $slug = Str::slug($item['title']);
+            Blog::updateOrCreate(
+                ['slug' => $slug],
+                [
+                    'author_id' => $author->id,
+                    'title' => $item['title'],
+                    'excerpt' => $item['excerpt'],
+                    'content' => $item['content'],
+                    'featured_image' => $item['featured_image'],
+                    'status' => 'published',
+                    'published_at' => now()->subDays(rand(0, 30))->setTime(rand(8, 20), rand(0, 59)),
+                    'views' => rand(50, 500),
+                    'is_featured' => (bool) rand(0, 1),
+                    'meta_title' => $item['title'],
+                    'meta_description' => 'Chia sẻ kiến thức IT, kinh nghiệm phỏng vấn và lộ trình học.',
+                ]
+            );
         }
     }
 }

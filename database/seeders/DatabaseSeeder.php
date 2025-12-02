@@ -73,6 +73,7 @@ class DatabaseSeeder extends Seeder
             BannerSeeder::class,
             NotificationSeeder::class,
             TestUsersSeeder::class,
+            BlogSeeder::class,
         ]);
     }
 }
