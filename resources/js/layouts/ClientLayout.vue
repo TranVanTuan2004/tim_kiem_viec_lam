@@ -2,6 +2,7 @@
 import ChatWidget from '@/components/ChatWidget.vue';
 import ClientFooter from '@/components/client/ClientFooter.vue';
 import ClientHeader from '@/components/client/ClientHeader.vue';
+import ClientToast from '@/components/client/ClientToast.vue';
 import FlashMessage from '@/components/FlashMessage.vue';
 import { Head } from '@inertiajs/vue3';
 
@@ -33,5 +34,8 @@ const props = withDefaults(defineProps<Props>(), {
 
         <!-- Flash Messages -->
         <FlashMessage />
+        
+        <!-- Global Toast Notifications -->
+        <ClientToast />
     </div>
 </template>

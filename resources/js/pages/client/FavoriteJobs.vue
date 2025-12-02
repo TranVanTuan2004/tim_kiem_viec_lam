@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Heart, Building2, MapPin, DollarSign, Clock } from 'lucide-vue-next';
+import { useClientToast } from '@/composables/useClientToast';
 
 interface Job {
   id: number;
@@ -33,6 +34,8 @@ const page = usePage<FavoritePageProps>();
 const favorites = ref(page.props.favorites || []);
 const auth = computed(() => page.props.auth);
 
+const { showToast } = useClientToast();
+
 const toggleFavorite = async (job: Job) => {
   const prev = job.is_favorited;
   job.is_favorited = !job.is_favorited;
@@ -45,10 +48,15 @@ const toggleFavorite = async (job: Job) => {
     if (!job.is_favorited) {
       favorites.value = favorites.value.filter(f => f.id !== job.id);
     }
-    alert(res.data.message);
+    
+    showToast(
+      'success',
+      res.data.is_favorited ? 'Đã lưu' : 'Đã xóa',
+      res.data.message
+    );
   } catch (err) {
     job.is_favorited = prev;
-    alert('Thao tác thất bại, vui lòng thử lại.');
+    showToast('error', 'Lỗi', 'Thao tác thất bại, vui lòng thử lại.');
   }
 };
 </script>

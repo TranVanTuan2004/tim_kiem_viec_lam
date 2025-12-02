@@ -26,6 +26,7 @@ import {
 } from 'lucide-vue-next';
 import { computed, defineProps, ref } from 'vue';
 import ReportModal from '@/components/ReportModal.vue';
+import { useClientToast } from '@/composables/useClientToast';
 
 const props = defineProps({
     job: {
@@ -41,6 +42,8 @@ const auth = computed(() => page.props.auth);
 const isFavorite = ref(false);
 const isSharing = ref(false);
 const showReportModal = ref(false);
+
+const { showToast } = useClientToast();
 
 // Computed safe accessors with fallbacks
 const jobData = computed(() => props.job || {});
@@ -112,7 +115,12 @@ const toggleFavoriteJob = async () => {
     try {
         const response = await axios.post(`/candidate/favorites/toggle/${jobData.value.id}`);
         isFavorite.value = response.data.is_favorited;
-        alert(response.data.message);
+        
+        showToast(
+            'success',
+            response.data.is_favorited ? 'Đã lưu' : 'Đã xóa',
+            response.data.message
+        );
     } catch (error: unknown) {
         isFavorite.value = previousState;
 
@@ -121,7 +129,7 @@ const toggleFavoriteJob = async () => {
             msg = error.response.data?.message || msg;
         }
 
-        alert(msg);
+        showToast('error', 'Lỗi', msg);
     }
 };
 
@@ -143,7 +151,7 @@ const shareJob = () => {
     } else {
         // Fallback: Copy to clipboard
         navigator.clipboard.writeText(window.location.href);
-        alert('Link copied to clipboard!');
+        showToast('success', 'Đã sao chép', 'Link đã được sao chép vào clipboard!');
     }
 };
 </script>

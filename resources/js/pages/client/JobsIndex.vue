@@ -26,6 +26,7 @@ import {
     X,
 } from 'lucide-vue-next';
 import { computed, defineProps, nextTick, onMounted, ref } from 'vue';
+import { useClientToast } from '@/composables/useClientToast';
 
 const props = defineProps({
     jobs: {
@@ -41,6 +42,8 @@ const props = defineProps({
         }),
     },
 });
+
+const { showToast } = useClientToast();
 const toggleFavorite = async (job: any) => {
     // Kiểm tra và khởi tạo favorited_by nếu không tồn tại hoặc rỗng
     if (!job.favorited_by || job.favorited_by.length === 0) {
@@ -58,7 +61,12 @@ const toggleFavorite = async (job: any) => {
             `/candidate/favorites/toggle/${job.id}`,
         );
         job.favorited_by[0].pivot.is_favorited = response.data.is_favorited;
-        alert(response.data.message);
+        
+        showToast(
+            'success',
+            response.data.is_favorited ? 'Đã lưu' : 'Đã xóa',
+            response.data.message
+        );
     } catch (error: unknown) {
         job.favorited_by[0].pivot.is_favorited = previousState;
 
@@ -66,7 +74,8 @@ const toggleFavorite = async (job: any) => {
         if (axios.isAxiosError(error) && error.response) {
             msg = error.response.data?.message || msg;
         }
-        alert(msg);
+        
+        showToast('error', 'Lỗi', msg);
     }
 };
 const formatDate = (dateStr: string) => {

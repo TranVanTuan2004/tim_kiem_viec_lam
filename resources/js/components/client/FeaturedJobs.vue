@@ -14,6 +14,9 @@ import { Link } from '@inertiajs/vue3';
 import { Building2, Clock, DollarSign, Heart, MapPin } from 'lucide-vue-next';
 
 import { getCompanyLogoUrl } from '@/utils/storage';
+import { useClientToast } from '@/composables/useClientToast';
+
+const { showToast } = useClientToast();
 
 const toggleFavorite = async (job: any) => {
 //   const previousState = job.is_favorited;
@@ -45,7 +48,11 @@ const toggleFavorite = async (job: any) => {
 
         job.is_favorited = response.data.is_favorited;
 
-        alert(response.data.message);
+        showToast(
+            'success',
+            response.data.is_favorited ? 'Đã lưu' : 'Đã xóa',
+            response.data.message
+        );
     } catch (error: unknown) {
         job.is_favorited = previousState;
 
@@ -53,7 +60,7 @@ const toggleFavorite = async (job: any) => {
         if (axios.isAxiosError(error) && error.response) {
         msg = error.response.data?.message || msg;
         }
-        alert(msg);
+        showToast('error', 'Lỗi', msg);
     }
 };
 

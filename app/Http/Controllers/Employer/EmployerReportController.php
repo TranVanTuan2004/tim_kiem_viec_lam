@@ -17,6 +17,12 @@ class EmployerReportController extends Controller
     {
         $user = Auth::user();
 
+        // Test Case 10: Validate page parameter
+        if ($request->has('page') && (!is_numeric($request->page) || $request->page < 1)) {
+            return redirect()->route('employer.reports.index', ['page' => 1])
+                ->with('error', 'Trang không tồn tại. Đã chuyển về trang đầu tiên.');
+        }
+
         // Validate status filter parameter
         $validStatuses = ['all', 'pending', 'reviewing', 'resolved', 'dismissed'];
         if ($request->has('status') && !in_array($request->status, $validStatuses)) {
@@ -71,9 +77,23 @@ class EmployerReportController extends Controller
         ]);
     }
 
-    public function show(Report $report)
+    public function show($id)
     {
-        abort_if($report->reporter_id !== Auth::id(), 403);
+        // Test Case 3: Validate ID is numeric
+        if (!is_numeric($id)) {
+            return redirect()->route('employer.reports.index')
+                ->with('error', 'Không tìm thấy trang.');
+        }
+
+        try {
+            $report = Report::findOrFail($id);
+
+            // Check authorization
+            abort_if($report->reporter_id !== Auth::id(), 403);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return redirect()->route('employer.reports.index')
+                ->with('error', 'Không tìm thấy trang.');
+        }
 
         return Inertia::render('Employer/Reports/Show', [
             'report' => [
