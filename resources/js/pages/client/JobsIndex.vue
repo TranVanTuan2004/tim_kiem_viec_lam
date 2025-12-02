@@ -66,7 +66,7 @@ const formatDate = (dateStr: string) => {
     return new Intl.DateTimeFormat('vi-VN').format(new Date(dateStr));
 };
 const showFilters = ref(false);
-const jobs = ref<any[]>(props?.jobs?.data?.data ?? []);
+const jobs = ref<any[]>(props?.jobs?.data ?? []);
 const pageTitle = computed(() => {
     return props.filters.featured ? 'Việc làm nổi bật' : 'Tất cả việc làm IT';
 });
