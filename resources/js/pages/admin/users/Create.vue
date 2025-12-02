@@ -78,7 +78,7 @@ const breadcrumbs = [
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <div class="space-y-2">
-                                <Label for="name">Họ tên *</Label>
+                                <Label for="name">Họ và tên *</Label>
                                 <Input id="name" v-model="form.name" required />
                                 <span
                                     v-if="form.errors.name"
