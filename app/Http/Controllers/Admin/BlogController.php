@@ -32,11 +32,17 @@ class BlogController extends Controller
             'author_id' => $request->get('author_id', ''),
         ];
 
-        $blogs = $this->blogService->getAllBlogs($filters, 15);
+        $perPage = (int) $request->get('per_page', 15);
+        if ($perPage <= 0) {
+            $perPage = 15;
+        }
+        $blogs = $this->blogService->getAllBlogs($filters, $perPage);
 
         return Inertia::render('admin/blogs/Index', [
             'blogs' => $blogs,
-            'filters' => $filters,
+            'filters' => array_merge($filters, [
+                'per_page' => $perPage,
+            ]),
         ]);
     }
 

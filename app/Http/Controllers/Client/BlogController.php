@@ -26,7 +26,12 @@ class BlogController extends Controller
             'featured' => request('featured') == '1',
         ];
 
-        $blogs = $this->blogService->getPublishedBlogs($filters, 12)
+        $perPage = (int) request('per_page', 6);
+        if ($perPage <= 0) {
+            $perPage = 6;
+        }
+
+        $blogs = $this->blogService->getPublishedBlogs($filters, $perPage)
             ->through(fn($blog) => $this->blogService->transformForList($blog));
 
         // Get featured blogs for sidebar
@@ -39,6 +44,7 @@ class BlogController extends Controller
             'filters' => [
                 'q' => $filters['q'],
                 'featured' => $filters['featured'],
+                'per_page' => $perPage,
             ],
         ]);
     }

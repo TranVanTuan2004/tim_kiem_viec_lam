@@ -61,6 +61,7 @@ interface Props {
         status?: string;
         is_featured?: string;
         author_id?: string;
+        per_page?: number;
     };
 }
 
@@ -69,6 +70,7 @@ const props = defineProps<Props>();
 const search = ref(props.filters.q || '');
 const status = ref(props.filters.status || '');
 const is_featured = ref(props.filters.is_featured || '');
+const per_page = ref(props.filters.per_page || props.blogs.per_page || 15);
 const isDeleteDialogOpen = ref(false);
 const blogToDelete = ref<Blog | null>(null);
 
@@ -109,6 +111,7 @@ function applyFilters() {
             q: search.value || undefined,
             status: status.value || undefined,
             is_featured: is_featured.value || undefined,
+            per_page: per_page.value || undefined,
         },
         { preserveState: false }
     );
@@ -118,6 +121,7 @@ function clearFilters() {
     search.value = '';
     status.value = '';
     is_featured.value = '';
+    per_page.value = 15;
     applyFilters();
 }
 
@@ -267,7 +271,7 @@ const breadcrumbs = [
                     <CardTitle>Bộ lọc</CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                         <div class="relative">
                             <Search
                                 class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"
@@ -296,6 +300,16 @@ const breadcrumbs = [
                             <option value="">Tất cả</option>
                             <option value="1">Nổi bật</option>
                             <option value="0">Không nổi bật</option>
+                        </select>
+                        <select
+                            v-model.number="per_page"
+                            @change="applyFilters"
+                            class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                            <option :value="10">10 / trang</option>
+                            <option :value="15">15 / trang</option>
+                            <option :value="20">20 / trang</option>
+                            <option :value="30">30 / trang</option>
                         </select>
                         <div class="flex gap-2">
                             <Button @click="applyFilters" class="flex-1">
@@ -427,7 +441,7 @@ const breadcrumbs = [
                         <!-- Pagination -->
                         <div
                             v-if="blogs.links && blogs.links.length > 3"
-                            class="flex justify-center gap-2 mt-6"
+                            class="flex flex-wrap items-center justify-center gap-2 mt-6"
                         >
                             <template
                                 v-for="(link, index) in blogs.links"
@@ -441,6 +455,7 @@ const breadcrumbs = [
                                         link.url &&
                                             router.visit(link.url, {
                                                 preserveState: true,
+                                                preserveScroll: true,
                                             })
                                     "
                                     v-html="link.label"
@@ -451,6 +466,9 @@ const breadcrumbs = [
                                     v-html="link.label"
                                 />
                             </template>
+                            <span class="text-sm text-muted-foreground px-2">
+                                Trang {{ blogs.current_page }} / {{ blogs.last_page }}
+                            </span>
                         </div>
                     </div>
                     <div v-else class="text-center py-12">
