@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Search, Briefcase, CheckCircle, XCircle, Trash2, AlertCircle } from 'lucide-vue-next';
+import { Textarea } from '@/components/ui/textarea';
+import { Search, Briefcase, CheckCircle, XCircle, Trash2, AlertCircle, Eye } from 'lucide-vue-next';
 import {
   Dialog,
   DialogContent,
@@ -20,6 +21,20 @@ import {
 interface JobPosting {
   id: number;
   title: string;
+  slug: string;
+  description: string;
+  requirements: string;
+  benefits?: string;
+  location: string;
+  city: string;
+  province: string;
+  employment_type: string;
+  experience_level: string;
+  min_salary?: number;
+  max_salary?: number;
+  salary_type: string;
+  application_deadline?: string;
+  quantity: number;
   company: {
     id: number;
     company_name: string;
@@ -51,7 +66,12 @@ const status = ref(props.filters.status || 'all');
 
 // Modal state
 const showApproveModal = ref(false);
+const showRejectModal = ref(false);
+const showDeleteModal = ref(false);
+const showViewModal = ref(false);
 const selectedJobId = ref<number | null>(null);
+const selectedJob = ref<JobPosting | null>(null);
+const rejectionReason = ref('');
 const isProcessing = ref(false);
 
 function applyFilters() {
@@ -72,6 +92,11 @@ function approveJob(id: number) {
   showApproveModal.value = true;
 }
 
+function viewJob(job: JobPosting) {
+  selectedJob.value = job;
+  showViewModal.value = true;
+}
+
 function confirmApprove() {
   if (!selectedJobId.value) return;
   
@@ -90,15 +115,51 @@ function confirmApprove() {
 }
 
 function rejectJob(id: number) {
-  if (confirm('Bạn có chắc chắn muốn từ chối tin tuyển dụng này?')) {
-    router.post(`/admin/job-postings/${id}/reject`, {}, { preserveScroll: true });
-  }
+  selectedJobId.value = id;
+  rejectionReason.value = '';
+  showRejectModal.value = true;
+}
+
+function confirmReject() {
+  if (!selectedJobId.value) return;
+  
+  isProcessing.value = true;
+  router.post(`/admin/job-postings/${selectedJobId.value}/reject`, {
+    reason: rejectionReason.value
+  }, { 
+    preserveScroll: true,
+    onSuccess: () => {
+      showRejectModal.value = false;
+      selectedJobId.value = null;
+      rejectionReason.value = '';
+      isProcessing.value = false;
+    },
+    onError: () => {
+      isProcessing.value = false;
+    }
+  });
 }
 
 function deleteJob(id: number) {
-  if (confirm('Bạn có chắc chắn muốn xóa tin tuyển dụng này? Hành động này không thể hoàn tác.')) {
-    router.delete(`/admin/job-postings/${id}`, { preserveScroll: true });
-  }
+  selectedJobId.value = id;
+  showDeleteModal.value = true;
+}
+
+function confirmDelete() {
+  if (!selectedJobId.value) return;
+  
+  isProcessing.value = true;
+  router.delete(`/admin/job-postings/${selectedJobId.value}`, { 
+    preserveScroll: true,
+    onSuccess: () => {
+      showDeleteModal.value = false;
+      selectedJobId.value = null;
+      isProcessing.value = false;
+    },
+    onError: () => {
+      isProcessing.value = false;
+    }
+  });
 }
 
 const breadcrumbs = [
@@ -213,6 +274,16 @@ function getStatusBadge(status: string) {
                 <td class="px-4 py-3 text-right" data-label="Hành động">
                   <div class="flex items-center justify-end gap-2 flex-wrap">
                     <Button 
+                        size="sm" 
+                        variant="outline"
+                        class="text-blue-600 hover:text-blue-700 hover:bg-blue-50 border-blue-200"
+                        @click="viewJob(job)"
+                        title="Xem chi tiết"
+                    >
+                      <Eye class="w-4 h-4 mr-1" /> Xem
+                    </Button>
+
+                    <Button 
                         v-if="job.status === 'pending'"
                         size="sm" 
                         class="bg-green-600 hover:bg-green-700 text-white"
@@ -298,6 +369,157 @@ function getStatusBadge(status: string) {
           <Button class="bg-green-600 hover:bg-green-700" @click="confirmApprove" :disabled="isProcessing">
             <span v-if="isProcessing">Đang xử lý...</span>
             <span v-else>Xác nhận duyệt</span>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Reject Confirmation Modal -->
+    <Dialog :open="showRejectModal" @update:open="showRejectModal = $event">
+      <DialogContent class="sm:max-w-[500px]">
+        <DialogHeader>
+          <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+            <XCircle class="h-6 w-6 text-red-600" />
+          </div>
+          <DialogTitle class="text-center text-xl">Từ chối tin tuyển dụng</DialogTitle>
+          <DialogDescription class="text-center">
+            Vui lòng nhập lý do từ chối tin tuyển dụng này. Nhà tuyển dụng sẽ nhận được thông báo kèm lý do.
+          </DialogDescription>
+        </DialogHeader>
+        <div class="py-4">
+          <Textarea
+            v-model="rejectionReason"
+            placeholder="Nhập lý do từ chối (ví dụ: Nội dung vi phạm chính sách, thông tin không rõ ràng...)"
+            :rows="4"
+            class="resize-none"
+          />
+        </div>
+        <DialogFooter class="sm:justify-center gap-2">
+          <Button variant="outline" @click="showRejectModal = false" :disabled="isProcessing">
+            Hủy bỏ
+          </Button>
+          <Button 
+            variant="destructive" 
+            @click="confirmReject" 
+            :disabled="isProcessing || !rejectionReason.trim()"
+          >
+            <span v-if="isProcessing">Đang xử lý...</span>
+            <span v-else>Xác nhận từ chối</span>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Delete Confirmation Modal -->
+    <Dialog :open="showDeleteModal" @update:open="showDeleteModal = $event">
+      <DialogContent class="sm:max-w-[425px]">
+        <DialogHeader>
+          <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+            <AlertCircle class="h-6 w-6 text-red-600" />
+          </div>
+          <DialogTitle class="text-center text-xl">Xác nhận xóa tin</DialogTitle>
+          <DialogDescription class="text-center">
+            Bạn có chắc chắn muốn xóa tin tuyển dụng này? 
+            <span class="block mt-2 font-semibold text-red-600">Hành động này không thể hoàn tác!</span>
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter class="sm:justify-center gap-2 mt-4">
+          <Button variant="outline" @click="showDeleteModal = false" :disabled="isProcessing">
+            Hủy bỏ
+          </Button>
+          <Button 
+            variant="destructive" 
+            class="bg-red-600 hover:bg-red-700" 
+            @click="confirmDelete" 
+            :disabled="isProcessing"
+          >
+            <Trash2 class="w-4 h-4 mr-1" />
+            <span v-if="isProcessing">Đang xóa...</span>
+            <span v-else>Xác nhận xóa</span>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <!-- View Job Details Modal -->
+    <Dialog :open="showViewModal" @update:open="showViewModal = $event">
+      <DialogContent class="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle class="text-2xl font-bold">Chi tiết tin tuyển dụng</DialogTitle>
+        </DialogHeader>
+        
+        <div v-if="selectedJob" class="space-y-6 py-4">
+          <!-- Job Title & Company -->
+          <div class="border-b pb-4">
+            <h2 class="text-xl font-bold text-gray-900 mb-2">{{ selectedJob.title }}</h2>
+            <p class="text-gray-600">{{ selectedJob.company?.company_name }}</p>
+          </div>
+
+          <!-- Job Info Grid -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <h3 class="text-sm font-semibold text-gray-500 mb-1">Địa điểm</h3>
+              <p class="text-gray-900">{{ selectedJob.city }}, {{ selectedJob.province }}</p>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-gray-500 mb-1">Loại hình</h3>
+              <p class="text-gray-900">{{ selectedJob.employment_type }}</p>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-gray-500 mb-1">Kinh nghiệm</h3>
+              <p class="text-gray-900">{{ selectedJob.experience_level }}</p>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-gray-500 mb-1">Số lượng</h3>
+              <p class="text-gray-900">{{ selectedJob.quantity }} người</p>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-gray-500 mb-1">Mức lương</h3>
+              <p class="text-gray-900">
+                <template v-if="selectedJob.min_salary && selectedJob.max_salary">
+                  {{ selectedJob.min_salary.toLocaleString() }} - {{ selectedJob.max_salary.toLocaleString() }} VNĐ
+                </template>
+                <template v-else>Thỏa thuận</template>
+              </p>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-gray-500 mb-1">Hạn nộp</h3>
+              <p class="text-gray-900">
+                {{ selectedJob.application_deadline ? new Date(selectedJob.application_deadline).toLocaleDateString('vi-VN') : 'Không giới hạn' }}
+              </p>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Mô tả công việc</h3>
+            <div class="prose prose-sm max-w-none text-gray-700" v-html="selectedJob.description"></div>
+          </div>
+
+          <!-- Requirements -->
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Yêu cầu công việc</h3>
+            <div class="prose prose-sm max-w-none text-gray-700" v-html="selectedJob.requirements"></div>
+          </div>
+
+          <!-- Benefits -->
+          <div v-if="selectedJob.benefits">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Quyền lợi</h3>
+            <div class="prose prose-sm max-w-none text-gray-700" v-html="selectedJob.benefits"></div>
+          </div>
+
+          <!-- Status Badge -->
+          <div class="flex items-center gap-2 pt-4 border-t">
+            <span class="text-sm font-semibold text-gray-500">Trạng thái:</span>
+            <Badge :class="getStatusBadge(selectedJob.status).class">
+              {{ getStatusBadge(selectedJob.status).label }}
+            </Badge>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" @click="showViewModal = false">
+            Đóng
           </Button>
         </DialogFooter>
       </DialogContent>

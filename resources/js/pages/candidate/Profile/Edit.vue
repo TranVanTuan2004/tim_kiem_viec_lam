@@ -256,6 +256,9 @@
                                             <option value="">
                                                 Select Experience Level
                                             </option>
+                                            <option value="intern">
+                                                Intern
+                                            </option>
                                             <option value="fresher">
                                                 Fresher
                                             </option>

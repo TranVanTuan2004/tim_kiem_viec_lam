@@ -449,14 +449,14 @@ const companyName = computed(
 );
 
 const openReportModal = (application) => {
-  candidateName.value = application.candidate.user.full_name;
+  candidateName.value = application.candidate.user.email;
   submitUrl.value = '/employer/reports';
   showReportModal.value = true;
 };
 
 const formatCurrency = (value) => {
   if (!value) return 'Thỏa thuận'
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value)
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)
 }
 
 const formatLocation = (candidate) => {

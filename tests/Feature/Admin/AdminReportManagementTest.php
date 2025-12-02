@@ -231,6 +231,37 @@ class AdminReportManagementTest extends TestCase
     }
 
     /**
+     * Test Case 8.1: Invalid filter status value (modified via F12) in Index page
+     * Verify "Danh mục không tồn tại" error message
+     */
+    public function test_filter_invalid_status_returns_error()
+    {
+        $response = $this->actingAs($this->admin)
+            ->get('/admin/reports?status=invalid_status_from_f12');
+
+        $response->assertRedirect('/admin/reports');
+        $response->assertSessionHas('error', 'Danh mục không tồn tại.');
+    }
+
+    /**
+     * Test Case 8.2: Invalid status value in update form (modified via F12) in Show page
+     * Verify validation error when updating with invalid status
+     */
+    public function test_update_with_invalid_status_from_f12()
+    {
+        $report = Report::factory()->create();
+
+        $response = $this->actingAs($this->admin)
+            ->patch("/admin/reports/{$report->id}", [
+                'status' => 'invalid_status_hacked',
+                'admin_notes' => 'Test notes',
+                'updated_at' => $report->updated_at->format('Y-m-d H:i:s'),
+            ]);
+
+        $response->assertSessionHasErrors('status');
+    }
+
+    /**
      * Test successful report update
      */
     public function test_successful_report_update()

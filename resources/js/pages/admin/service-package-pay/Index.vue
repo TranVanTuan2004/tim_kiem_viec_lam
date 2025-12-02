@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import AppLayout from '@/layouts/AppLayout.vue';
-import { Head, Link, router } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { Head, Link, router, usePage } from '@inertiajs/vue3';
+import { ref, watch } from 'vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Trash2, Edit, Eye, EyeOff, Plus } from 'lucide-vue-next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { toast } from 'vue3-toastify';
 
 interface ServicePackage {
   id: number;
@@ -33,6 +34,18 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const page = usePage<any>();
+
+// Flash toast
+watch(
+  () => page.props.flash,
+  (flash) => {
+    if (!flash) return;
+    if (flash.success) toast.success(flash.success);
+    if (flash.error) toast.error(flash.error);
+  },
+  { immediate: true }
+);
 
 const search = ref(props.filters.search || '');
 const status = ref(props.filters.status || '');
@@ -64,6 +77,7 @@ function confirmToggle() {
   
   router.post(`/admin/service-packages/${packageToToggle.value.slug}/toggle`, {}, { 
     preserveScroll: true,
+    preserveState: false, // <--- tránh lặp flash
     onSuccess: () => {
       isToggleDialogOpen.value = false;
       packageToToggle.value = null;
@@ -81,6 +95,7 @@ function confirmDelete() {
   
   router.delete(`/admin/service-packages/${packageToDelete.value.slug}`, { 
     preserveScroll: true,
+    preserveState: false, // <--- tránh lặp flash
     onSuccess: () => {
       isDeleteDialogOpen.value = false;
       packageToDelete.value = null;
@@ -98,14 +113,12 @@ const breadcrumbs = [
   <Head title="Quản lý gói dịch vụ" />
   <AppLayout :breadcrumbs="breadcrumbs">
     <div class="space-y-6 m-5">
-
       <!-- Page Header -->
       <div class="flex justify-between items-center">
         <h1 class="text-3xl font-bold">Quản lý gói dịch vụ</h1>
         <Link href="/admin/service-packages/create">
           <Button class="flex items-center gap-2">
-            <Plus class="h-4 w-4" />
-            Tạo gói mới
+            <Plus class="h-4 w-4" /> Tạo gói mới
           </Button>
         </Link>
       </div>
@@ -116,13 +129,7 @@ const breadcrumbs = [
           <CardTitle>Bộ lọc</CardTitle>
         </CardHeader>
         <CardContent class="grid md:grid-cols-3 gap-4">
-          <input 
-            v-model="search"
-            type="text"
-            placeholder="Tìm theo tên gói"
-            class="border rounded px-2 py-1"
-            @keyup.enter="applyFilters"
-          />
+          <input v-model="search" type="text" placeholder="Tìm theo tên gói" class="border rounded px-2 py-1" @keyup.enter="applyFilters"/>
           <select v-model="status" class="border rounded px-2 py-1">
             <option value="">Tất cả</option>
             <option value="active">Đang hoạt động</option>
@@ -158,6 +165,11 @@ const breadcrumbs = [
                 </Badge>
               </td>
               <td class="px-4 py-2 text-right flex justify-end gap-2">
+                <Link :href="`/admin/service-packages/${pkg.slug}`">
+                  <Button size="sm" variant="outline">
+                    <Eye class="h-4 w-4" /> Xem
+                  </Button>
+                </Link>
                 <Link :href="`/admin/service-packages/${pkg.slug}/edit`">
                   <Button size="sm" variant="outline">
                     <Edit class="h-4 w-4" /> Sửa
@@ -170,6 +182,7 @@ const breadcrumbs = [
                 <Button size="sm" variant="destructive" @click="openDeleteDialog(pkg)">
                   <Trash2 class="h-4 w-4" /> Xóa
                 </Button>
+                
               </td>
             </tr>
           </tbody>
@@ -212,7 +225,6 @@ const breadcrumbs = [
           </div>
         </DialogContent>
       </Dialog>
-
     </div>
   </AppLayout>
 </template>

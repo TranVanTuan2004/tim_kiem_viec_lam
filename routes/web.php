@@ -42,6 +42,10 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/jobs', [JobPostingController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job_posting}', [JobPostingController::class, 'show'])->name('jobs.show');
 
+// Blog listing & detail
+Route::get('/blog', [\App\Http\Controllers\Client\BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{slug}', [\App\Http\Controllers\Client\BlogController::class, 'show'])->name('blog.show');
+
 
 
 // Job Application Routes (require authentication)
@@ -125,7 +129,7 @@ Route::get('dashboard', function () {
 Route::prefix('employer')->name('employer.')->middleware(['auth', 'active', 'role:Employer'])->group(function () {
     // Dashboard
     Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
-    
+
     // Subscriptions - Sử dụng controller và page của admin
     Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions');
     Route::post('subscriptions/subscribe', [SubscriptionController::class, 'subscribe'])->name('subscribe');
@@ -141,7 +145,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admi
     Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     // User Management - Only admin
-    Route::resource('users', UserController::class)->middleware('permission:view users');
+    Route::resource('users', UserController::class)
+        ->middleware('permission:view users');
 
     // Chat routes - All authenticated users
     Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
@@ -221,6 +226,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active'])->group(fu
     Route::post('subscriptions/simulate-vnpay-payment', [SubscriptionController::class, 'simulateVNPayPayment'])->name('subscriptions.simulate-vnpay-payment');
 });
 
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->group(function () {
+    Route::get('applications', [AdminApplicationController::class, 'index'])->name('applications.index');
+    Route::get('applications/{application}', [AdminApplicationController::class, 'show'])->name('applications.show');
+});
+
+
 // SERVICE PACKAGE ROUTE
 // ----------------------
 
@@ -228,11 +239,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->grou
     Route::get('service-packages', [ServicePackageController::class, 'index'])->name('service-packages.index');
     Route::get('service-packages/create', [ServicePackageController::class, 'create'])->name('service-packages.create');
     Route::post('service-packages', [ServicePackageController::class, 'store'])->name('service-packages.store');
+    Route::get('service-packages/{package:slug}', [ServicePackageController::class, 'show'])->name('service-packages.show');
     Route::get('service-packages/{package:slug}/edit', [ServicePackageController::class, 'edit'])->name('service-packages.edit');
     Route::put('service-packages/{package:slug}', [ServicePackageController::class, 'update'])->name('service-packages.update');
     Route::delete('service-packages/{package:slug}', [ServicePackageController::class, 'destroy'])->name('service-packages.destroy');
     Route::post('service-packages/{package:slug}/toggle', [ServicePackageController::class, 'toggle'])->name('service-packages.toggle');
 });
+
 
 
 // Payment Callbacks (không cần auth)
@@ -399,9 +412,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'verified'
 
     // Application Management (Admin)
     Route::get('/applications', [\App\Http\Controllers\Admin\ApplicationController::class, 'index'])->name('applications.index');
-    Route::get('/applications/{id}', [\App\Http\Controllers\Admin\ApplicationController::class, 'show'])->name('applications.show');
-    Route::delete('/applications/{id}', [\App\Http\Controllers\Admin\ApplicationController::class, 'destroy'])->name('applications.destroy');
-    Route::patch('/applications/{id}/status', [\App\Http\Controllers\Admin\ApplicationController::class, 'updateStatus'])->name('applications.update-status');
+    Route::get('/applications/{application}', [\App\Http\Controllers\Admin\ApplicationController::class, 'show'])->name('applications.show');
+    Route::delete('/applications/{application}', [\App\Http\Controllers\Admin\ApplicationController::class, 'destroy'])->name('applications.destroy');
+    Route::patch('/applications/{application}/status', [\App\Http\Controllers\Admin\ApplicationController::class, 'updateStatus'])->name('applications.update-status');
 
     // Company Reviews Management
     Route::get('company-reviews', [\App\Http\Controllers\Admin\CompanyReviewController::class, 'index'])->name('company-reviews.index');

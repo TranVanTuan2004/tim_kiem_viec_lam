@@ -107,21 +107,27 @@ const { t } = useLanguage();
 
             <!-- Enhanced Jobs Grid -->
             <div class="mb-12 grid grid-cols-1 gap-6 md:grid-cols-2">
-                <Link
+                <div
                     v-for="(job, index) in props.featuredJobs"
                     :key="job.id"
-                    :href="`/jobs/${job.slug}`"
                     class="job-card animate-fade-in-up"
                     :style="{ animationDelay: `${index * 0.1}s` }"
                 >
                     <Card
                         class="group relative h-full cursor-pointer overflow-hidden border-2 bg-card transition-all duration-500 hover:-translate-y-2 hover:shadow-2xl dark:border-gray-800"
                     >
+                        <!-- Clickable Overlay for Navigation -->
+                        <Link 
+                            :href="`/jobs/${job.slug}`"
+                            class="absolute inset-0 z-10"
+                            aria-label="View job details"
+                        ></Link>
+
                         <!-- Animated Gradient Border -->
-                        <div class="absolute inset-0 rounded-xl border-2 border-transparent bg-gradient-to-r from-red-500 via-orange-500 to-red-500 opacity-0 transition-opacity duration-500 group-hover:opacity-100 [mask:linear-gradient(#fff_0_0)_padding-box,linear-gradient(#fff_0_0)] [mask-composite:exclude]"></div>
+                        <div class="pointer-events-none absolute inset-0 rounded-xl border-2 border-transparent bg-gradient-to-r from-red-500 via-orange-500 to-red-500 opacity-0 transition-opacity duration-500 group-hover:opacity-100 [mask:linear-gradient(#fff_0_0)_padding-box,linear-gradient(#fff_0_0)] [mask-composite:exclude]"></div>
                         
                         <!-- Shine Effect -->
-                        <div class="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover:translate-x-full transition-transform duration-1000"></div>
+                        <div class="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/30 to-transparent group-hover:translate-x-full transition-transform duration-1000"></div>
                         
                         <!-- Enhanced Featured Badge -->
                         <div class="absolute top-0 right-0 z-20">
@@ -134,7 +140,7 @@ const { t } = useLanguage();
                             </div>
                         </div>
 
-                        <CardHeader>
+                        <CardHeader class="relative z-20">
                             <div class="flex items-start justify-between gap-4">
                                 <div class="flex flex-1 items-start gap-4">
                                     <!-- Enhanced Company Logo -->
@@ -179,8 +185,9 @@ const { t } = useLanguage();
                                 <Button
                                     variant="ghost"
                                     size="icon"
+                                    class="relative z-30 flex-shrink-0 mt-8"
                                     :class="job?.is_favorited == 1 ? 'text-red-600' : 'text-gray-400 hover:text-red-600'"
-                                    @click.prevent="toggleFavorite(job)"
+                                    @click.prevent.stop="toggleFavorite(job)"
                                 >
                                     <Heart
                                             :class="job.is_favorited ? 'fill-red-600 text-red-600' : 'text-gray-400'"
@@ -191,7 +198,7 @@ const { t } = useLanguage();
                             </div>
                         </CardHeader>
 
-                        <CardContent>
+                        <CardContent class="relative z-20">
                             <div class="space-y-4">
                                 <!-- Job Info -->
                                 <div
@@ -238,8 +245,9 @@ const { t } = useLanguage();
 
                                 <!-- Enhanced Apply Button -->
                                 <Button
-                                    class="group/btn relative w-full bg-gradient-to-r from-red-600 via-orange-600 to-red-600 font-bold text-white shadow-lg transition-all duration-500 hover:from-red-700 hover:via-orange-700 hover:to-red-700 hover:shadow-xl hover:scale-105 overflow-hidden"
+                                    class="group/btn relative z-30 w-full bg-gradient-to-r from-red-600 via-orange-600 to-red-600 font-bold text-white shadow-lg transition-all duration-500 hover:from-red-700 hover:via-orange-700 hover:to-red-700 hover:shadow-xl hover:scale-105 overflow-hidden"
                                     size="lg"
+                                    @click.prevent.stop="$inertia.visit(`/jobs/${job.slug}/apply`)"
                                 >
                                     <span class="relative z-10 flex items-center justify-center">
                                         Ứng tuyển ngay
@@ -251,7 +259,7 @@ const { t } = useLanguage();
                             </div>
                         </CardContent>
                     </Card>
-                </Link>
+                </div>
             </div>
 
             <!-- Enhanced View All Button -->
