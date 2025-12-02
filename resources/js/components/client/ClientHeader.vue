@@ -28,6 +28,7 @@ import {
     Search,
     User,
     User as UserIcon,
+    Bot,
 } from 'lucide-vue-next';
 import { computed } from 'vue';
 
@@ -166,6 +167,15 @@ const { currentLanguage, setLanguage, t } = useLanguage();
                     <div class="flex items-center space-x-2">
                         <FileText class="h-4 w-4" />
                         <span>{{ t.blog }}</span>
+                    </div>
+                </Link>
+                <Link
+                    href="/ai"
+                    class="text-sm font-medium transition-colors hover:text-primary"
+                >
+                    <div class="flex items-center space-x-2">
+                        <Bot class="h-4 w-4" />
+                        <span>Chat AI</span>
                     </div>
                 </Link>
             </nav>
