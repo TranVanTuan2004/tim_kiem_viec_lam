@@ -245,8 +245,9 @@ const { t } = useLanguage();
 
                                 <!-- Enhanced Apply Button -->
                                 <Button
-                                    class="group/btn relative w-full bg-gradient-to-r from-red-600 via-orange-600 to-red-600 font-bold text-white shadow-lg transition-all duration-500 hover:from-red-700 hover:via-orange-700 hover:to-red-700 hover:shadow-xl hover:scale-105 overflow-hidden"
+                                    class="group/btn relative z-30 w-full bg-gradient-to-r from-red-600 via-orange-600 to-red-600 font-bold text-white shadow-lg transition-all duration-500 hover:from-red-700 hover:via-orange-700 hover:to-red-700 hover:shadow-xl hover:scale-105 overflow-hidden"
                                     size="lg"
+                                    @click.prevent.stop="$inertia.visit(`/jobs/${job.slug}/apply`)"
                                 >
                                     <span class="relative z-10 flex items-center justify-center">
                                         Ứng tuyển ngay

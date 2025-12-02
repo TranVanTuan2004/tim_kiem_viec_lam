@@ -71,7 +71,7 @@ const handleFileChange = (event: Event) => {
 };
 
 const submitUpload = () => {
-    form.post(route('candidate.cvs.store'), {
+    form.post('/candidate/cvs', {
         onSuccess: () => {
             isUploadOpen.value = false;
             form.reset();
@@ -82,13 +82,13 @@ const submitUpload = () => {
 const deleteForm = useForm({});
 const deleteCV = (id: number) => {
     if (confirm('Bạn có chắc chắn muốn xóa CV này không?')) {
-        deleteForm.delete(route('candidate.cvs.destroy', id));
+        deleteForm.delete(`/candidate/cvs/${id}`);
     }
 };
 
 const defaultForm = useForm({});
 const setDefault = (id: number) => {
-    defaultForm.post(route('candidate.cvs.default', id));
+    defaultForm.post(`/candidate/cvs/${id}/default`);
 };
 </script>
 
