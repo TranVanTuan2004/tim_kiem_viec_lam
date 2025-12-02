@@ -181,6 +181,7 @@ class ApplicationService
         }
 
         return [
+            'avatar_url' => storage_url($user->candidateProfile->avatar),
             'cv_file' => $user->candidateProfile->cv_file,
             'cvs' => $user->candidateProfile->cvs()->orderBy('created_at', 'desc')->get()->map(function ($cv) {
                 return [

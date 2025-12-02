@@ -1,16 +1,16 @@
 <template>
     <CandidateLayout>
-        <Head title="Create Profile" />
+        <Head title="Tạo Hồ Sơ" />
 
         <div class="py-12">
             <div class="mx-auto max-w-4xl sm:px-6 lg:px-8">
                 <div class="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                     <div class="border-b border-gray-200 p-6">
                         <h1 class="text-2xl font-bold text-gray-900">
-                            Create Your Profile
+                            Tạo Hồ Sơ Của Bạn
                         </h1>
                         <p class="mt-2 text-gray-600">
-                            Complete your profile to access all features
+                            Hoàn thiện hồ sơ để truy cập đầy đủ tính năng
                         </p>
                     </div>
 
@@ -20,7 +20,7 @@
                             <h2
                                 class="mb-4 text-lg font-semibold text-gray-900"
                             >
-                                Profile Picture
+                                Ảnh Đại Diện
                             </h2>
                             <div class="flex items-center space-x-6">
                                 <div v-if="avatarPreview" class="flex-shrink-0">
@@ -41,7 +41,7 @@
                                     <label
                                         class="block text-sm font-medium text-gray-700 mb-2"
                                     >
-                                        Upload Avatar (JPG, PNG, GIF - Max 2MB)
+                                        Tải Lên Ảnh Đại Diện (JPG, PNG, GIF - Tối đa 2MB)
                                     </label>
                                     <input
                                         @change="handleAvatarUpload"
@@ -53,10 +53,11 @@
                                         v-if="form.errors.avatar"
                                         class="mt-1 text-sm text-red-600"
                                     >
+                                        <!-- @ts-ignore -->
                                         {{ form.errors.avatar }}
                                     </p>
                                     <p class="mt-1 text-xs text-gray-500">
-                                        Recommended size: 400x400 pixels
+                                        Kích thước đề xuất: 400x400 pixels
                                     </p>
                                 </div>
                             </div>
@@ -67,18 +68,18 @@
                             <h2
                                 class="mb-4 text-lg font-semibold text-gray-900"
                             >
-                                Personal Information
+                                Thông Tin Cá Nhân
                             </h2>
                             <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                                 <div>
                                     <label
                                         class="block text-sm font-medium text-gray-700"
-                                        >Birth Date</label
+                                        >Ngày Sinh</label
                                     >
                                     <input
                                         v-model="form.birth_date"
                                         type="date"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     />
                                     <p
                                         v-if="form.errors.birth_date"
@@ -91,14 +92,17 @@
                                 <div>
                                     <label
                                         class="block text-sm font-medium text-gray-700"
-                                        >Phone Number <span class="text-red-500">*</span></label
+                                        >Số điện thoại <span class="text-red-500">*</span></label
                                     >
                                     <input
                                         v-model="form.phone"
+                                        @input="validatePhoneInput"
                                         type="tel"
                                         required
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        placeholder="Enter your phone number"
+                                        maxlength="15"
+                                        pattern="[0-9]{1,15}"
+                                        class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="Nhập số điện thoại"
                                     />
                                     <p
                                         v-if="form.errors.phone"
@@ -111,29 +115,31 @@
                                 <div>
                                     <label
                                         class="block text-sm font-medium text-gray-700"
-                                        >Gender</label
+                                        >Giới Tính</label
                                     >
                                     <select
                                         v-model="form.gender"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     >
-                                        <option value="">Select Gender</option>
-                                        <option value="male">Male</option>
-                                        <option value="female">Female</option>
-                                        <option value="other">Other</option>
+                                        <option value="">Chọn Giới Tính</option>
+                                        <option value="male">Nam</option>
+                                        <option value="female">Nữ</option>
+                                        <option value="other">Khác</option>
                                     </select>
                                 </div>
 
                                 <div>
                                     <label
                                         class="block text-sm font-medium text-gray-700"
-                                        >City <span class="text-red-500">*</span></label
+                                        >Thành phố <span class="text-red-500">*</span></label
                                     >
                                     <input
                                         v-model="form.city"
                                         type="text"
                                         required
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        maxlength="100"
+                                        class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="Nhập tên thành phố"
                                     />
                                     <p
                                         v-if="form.errors.city"
@@ -146,13 +152,15 @@
                                 <div>
                                     <label
                                         class="block text-sm font-medium text-gray-700"
-                                        >Province <span class="text-red-500">*</span></label
+                                        >Tỉnh <span class="text-red-500">*</span></label
                                     >
                                     <input
                                         v-model="form.province"
                                         type="text"
                                         required
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        maxlength="100"
+                                        class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="Nhập tên tỉnh"
                                     />
                                     <p
                                         v-if="form.errors.province"
@@ -165,12 +173,14 @@
                                 <div class="md:col-span-2">
                                     <label
                                         class="block text-sm font-medium text-gray-700"
-                                        >Address</label
+                                        >Địa chỉ</label
                                     >
                                     <input
                                         v-model="form.address"
                                         type="text"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        maxlength="500"
+                                        class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="Nhập địa chỉ chi tiết"
                                     />
                                 </div>
                             </div>
@@ -181,19 +191,19 @@
                             <h2
                                 class="mb-4 text-lg font-semibold text-gray-900"
                             >
-                                Professional Information
+                                Thông Tin Nghề Nghiệp
                             </h2>
                             <div class="space-y-4">
                                 <div>
                                     <label
                                         class="block text-sm font-medium text-gray-700"
-                                        >Professional Summary</label
+                                        >Tóm Tắt Nghề Nghiệp</label
                                     >
                                     <textarea
                                         v-model="form.summary"
                                         rows="4"
-                                        class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-                                        placeholder="Brief description of your professional background and career goals"
+                                        class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        placeholder="Mô tả ngắn gọn về kinh nghiệm và mục tiêu nghề nghiệp của bạn"
                                     ></textarea>
                                 </div>
 
@@ -203,24 +213,28 @@
                                     <div>
                                         <label
                                             class="block text-sm font-medium text-gray-700"
-                                            >Current Position</label
+                                            >Vị trí hiện tại</label
                                         >
                                         <input
                                             v-model="form.current_position"
                                             type="text"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            maxlength="255"
+                                            class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            placeholder="Ví dụ: Senior Developer"
                                         />
                                     </div>
 
                                     <div>
                                         <label
                                             class="block text-sm font-medium text-gray-700"
-                                            >Current Company</label
+                                            >Công ty hiện tại</label
                                         >
                                         <input
                                             v-model="form.current_company"
                                             type="text"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            maxlength="255"
+                                            class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            placeholder="Ví dụ: ABC Technology Co."
                                         />
                                         <p
                                             v-if="form.errors.current_company"
@@ -233,14 +247,14 @@
                                     <div>
                                         <label
                                             class="block text-sm font-medium text-gray-700"
-                                            >Experience Level</label
+                                            >Cấp Độ Kinh Nghiệm</label
                                         >
                                         <select
                                             v-model="form.experience_level"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                         >
                                             <option value="">
-                                                Select Experience Level
+                                                Chọn Cấp Độ Kinh Nghiệm
                                             </option>
                                             <option value="intern">
                                                 Intern
@@ -252,7 +266,7 @@
                                                 Junior
                                             </option>
                                             <option value="middle">
-                                                Middle Level
+                                                Middle
                                             </option>
                                             <option value="senior">
                                                 Senior
@@ -264,7 +278,7 @@
                                     <div>
                                         <label
                                             class="block text-sm font-medium text-gray-700"
-                                            >Expected Salary (USD)</label
+                                            >Mức Lương Mong Muốn (USD)</label
                                         >
                                         <input
                                             v-model.number="
@@ -272,7 +286,7 @@
                                             "
                                             type="number"
                                             min="0"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                         />
                                     </div>
                                 </div>
@@ -280,7 +294,7 @@
                                 <div>
                                     <label
                                         class="block text-sm font-medium text-gray-700"
-                                        >CV/Resume (PDF, DOC, DOCX - Max
+                                        >CV/Hồ Sơ (PDF, DOC, DOCX - Tối đa
                                         5MB)</label
                                     >
                                     <input
@@ -297,17 +311,30 @@
                                     </p>
                                 </div>
 
-                                <div class="flex items-center">
-                                    <input
-                                        v-model="form.is_available"
-                                        type="checkbox"
-                                        class="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                    />
-                                    <label
-                                        class="ml-2 block text-sm text-gray-700"
+                                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                    <div>
+                                        <label class="block text-sm font-medium text-gray-700">
+                                            Trạng thái tìm việc
+                                        </label>
+                                        <p class="text-xs text-gray-500 mt-1">
+                                            Cho phép nhà tuyển dụng biết bạn đang tìm việc
+                                        </p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        @click="form.is_available = !form.is_available"
+                                        :class="[
+                                            'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2',
+                                            form.is_available ? 'bg-blue-600' : 'bg-gray-200'
+                                        ]"
                                     >
-                                        I am available for work opportunities
-                                    </label>
+                                        <span
+                                            :class="[
+                                                'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                                                form.is_available ? 'translate-x-5' : 'translate-x-0'
+                                            ]"
+                                        ></span>
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -330,7 +357,7 @@
                                         v-model="skill.name"
                                         type="text"
                                         placeholder="Nhập tên kỹ năng (ví dụ: JavaScript, Python, React...)"
-                                        class="flex-1 rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                        class="flex-1 rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                     />
                                     <button
                                         type="button"
@@ -396,7 +423,8 @@
                                             <input
                                                 v-model="exp.company_name"
                                                 type="text"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                maxlength="255"
+                                                class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                                 placeholder="Tên công ty"
                                             />
                                         </div>
@@ -408,7 +436,8 @@
                                             <input
                                                 v-model="exp.position"
                                                 type="text"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                maxlength="255"
+                                                class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                                 placeholder="Vị trí công việc"
                                             />
                                         </div>
@@ -420,7 +449,7 @@
                                             <input
                                                 v-model="exp.start_date"
                                                 type="date"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                             />
                                         </div>
                                         <div>
@@ -432,7 +461,7 @@
                                                 v-model="exp.end_date"
                                                 type="date"
                                                 :disabled="exp.is_current"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100"
+                                                class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100"
                                             />
                                         </div>
                                     </div>
@@ -456,7 +485,7 @@
                                         <textarea
                                             v-model="exp.description"
                                             rows="3"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                             placeholder="Mô tả về công việc và thành tích của bạn"
                                         ></textarea>
                                     </div>
@@ -500,7 +529,8 @@
                                             <input
                                                 v-model="edu.institution"
                                                 type="text"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                maxlength="255"
+                                                class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                                 placeholder="Tên trường học"
                                             />
                                         </div>
@@ -512,7 +542,8 @@
                                             <input
                                                 v-model="edu.degree"
                                                 type="text"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                maxlength="255"
+                                                class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                                 placeholder="Ví dụ: Cử nhân, Thạc sĩ..."
                                             />
                                         </div>
@@ -524,7 +555,8 @@
                                             <input
                                                 v-model="edu.field_of_study"
                                                 type="text"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                maxlength="255"
+                                                class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                                 placeholder="Chuyên ngành học"
                                             />
                                         </div>
@@ -539,7 +571,7 @@
                                                 step="0.01"
                                                 min="0"
                                                 max="4"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                                 placeholder="0.00 - 4.00"
                                             />
                                         </div>
@@ -551,7 +583,7 @@
                                             <input
                                                 v-model="edu.start_date"
                                                 type="date"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                                class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                             />
                                         </div>
                                         <div>
@@ -563,7 +595,7 @@
                                                 v-model="edu.end_date"
                                                 type="date"
                                                 :disabled="edu.is_current"
-                                                class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100"
+                                                class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 disabled:bg-gray-100"
                                             />
                                         </div>
                                     </div>
@@ -587,7 +619,7 @@
                                         <textarea
                                             v-model="edu.description"
                                             rows="3"
-                                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                                            class="mt-1 block w-full rounded-md border-2 border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                                             placeholder="Mô tả về quá trình học tập, thành tích..."
                                         ></textarea>
                                     </div>
@@ -617,7 +649,7 @@
                                 :href="home.url()"
                                 class="rounded-md border border-gray-300 px-4 py-2 text-gray-700 hover:bg-gray-50"
                             >
-                                Cancel
+                                Hủy
                             </Link>
                             <button
                                 type="submit"
@@ -626,8 +658,8 @@
                             >
                                 {{
                                     form.processing
-                                        ? 'Creating...'
-                                        : 'Create Profile'
+                                        ? 'Đang tạo...'
+                                        : 'Tạo Hồ Sơ'
                                 }}
                             </button>
                         </div>
@@ -712,6 +744,15 @@ const handleFileUpload = (event: Event) => {
     if (target.files && target.files[0]) {
         form.cv_file = target.files[0];
     }
+};
+
+// Validate phone input - only allow numbers, max 15 digits
+const validatePhoneInput = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    // Remove all non-numeric characters
+    const cleaned = target.value.replace(/[^0-9]/g, '');
+    // Limit to 15 digits
+    form.phone = cleaned.substring(0, 15);
 };
 
 const addSkill = () => {
