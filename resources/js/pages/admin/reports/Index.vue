@@ -5,6 +5,14 @@ import { ref, onMounted, watch } from 'vue';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 
 import Echo from 'laravel-echo';
 import Pusher from 'pusher-js';
@@ -115,12 +123,29 @@ onMounted(() => {
 
 const filters = ref({ ...props.filters });
 
+// Delete confirmation dialog
+const showDeleteDialog = ref(false);
+const reportToDelete = ref<number | null>(null);
+
+function openDeleteDialog(id: number) {
+  reportToDelete.value = id;
+  showDeleteDialog.value = true;
+}
+
+function closeDeleteDialog() {
+  showDeleteDialog.value = false;
+  reportToDelete.value = null;
+}
+
 function applyFilters() {
   router.get('/admin/reports', filters.value, { preserveState: false });
 }
 
-function deleteReport(id: number) {
-  if (!confirm('Bạn có chắc chắn muốn xóa báo cáo này?')) return;
+function deleteReport() {
+  if (!reportToDelete.value) return;
+  
+  const id = reportToDelete.value;
+  closeDeleteDialog();
   
   // Gửi DELETE request
   fetch(`/admin/reports/${id}`, {
@@ -424,7 +449,7 @@ const breadcrumbs = [
                         </svg>
                         Xem
                       </Button>
-                      <Button size="sm" variant="destructive" @click="deleteReport(report.id)">
+                      <Button size="sm" variant="destructive" @click="openDeleteDialog(report.id)">
                         <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
                         </svg>
@@ -484,5 +509,26 @@ const breadcrumbs = [
       </div>
 
     </div>
+    
+    <!-- Delete Confirmation Dialog -->
+    <Dialog :open="showDeleteDialog" @update:open="showDeleteDialog = $event">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Xác nhận xóa báo cáo</DialogTitle>
+          <DialogDescription>
+            Bạn có chắc chắn muốn xóa báo cáo này? Hành động này không thể hoàn tác.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter class="gap-2">
+          <Button variant="outline" @click="closeDeleteDialog">Hủy</Button>
+          <Button 
+            variant="destructive"
+            @click="deleteReport"
+          >
+            Xóa
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   </AppLayout>
 </template>
