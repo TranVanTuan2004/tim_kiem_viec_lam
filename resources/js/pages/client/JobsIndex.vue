@@ -42,7 +42,14 @@ const props = defineProps({
     },
 });
 const toggleFavorite = async (job: any) => {
-    const previousState = job?.favorited_by[0]?.pivot.is_favorited;
+    // Kiểm tra và khởi tạo favorited_by nếu không tồn tại hoặc rỗng
+    if (!job.favorited_by || job.favorited_by.length === 0) {
+        job.favorited_by = [{
+            pivot: { is_favorited: false }
+        }];
+    }
+
+    const previousState = job.favorited_by[0].pivot.is_favorited;
 
     job.favorited_by[0].pivot.is_favorited = !previousState;
 
