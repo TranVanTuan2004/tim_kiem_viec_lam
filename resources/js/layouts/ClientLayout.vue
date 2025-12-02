@@ -7,10 +7,12 @@ import { Head } from '@inertiajs/vue3';
 
 interface Props {
     title?: string;
+    fullscreen?: boolean;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
     title: 'ITviec - Tìm việc IT',
+    fullscreen: false,
 });
 </script>
 
@@ -18,16 +20,16 @@ withDefaults(defineProps<Props>(), {
     <Head :title="title" />
 
     <div class="flex min-h-screen flex-col bg-background">
-        <ClientHeader />
+        <ClientHeader v-if="!props.fullscreen" />
 
         <main class="flex-1">
             <slot />
         </main>
 
-        <ClientFooter />
+        <ClientFooter v-if="!props.fullscreen" />
 
         <!-- Floating Support Chat Widget -->
-        <ChatWidget />
+        <ChatWidget v-if="!props.fullscreen" />
 
         <!-- Flash Messages -->
         <FlashMessage />

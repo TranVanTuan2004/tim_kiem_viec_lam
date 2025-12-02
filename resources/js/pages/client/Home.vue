@@ -53,6 +53,7 @@ onMounted(() => {
         sections.forEach((section) => observer.observe(section));
     });
 });
+
 </script>
 
 <template>
@@ -106,6 +107,8 @@ onMounted(() => {
                     />
                 </div>
             </template>
+
+            
         </div>
     </ClientLayout>
 </template>
@@ -142,4 +145,5 @@ onMounted(() => {
     position: relative;
     z-index: 1;
 }
+
 </style>

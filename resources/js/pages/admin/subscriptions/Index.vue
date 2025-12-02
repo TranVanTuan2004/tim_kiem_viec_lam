@@ -619,7 +619,7 @@ const subscribe = (packageItem) => {
         // Nếu không có trong meta tag, thử lấy từ cookie
         if (!csrfToken) {
             const cookies = document.cookie.split(';');
-            for (let cookie of cookies) {
+            for (const cookie of cookies) {
                 const [name, value] = cookie.trim().split('=');
                 if (name === 'XSRF-TOKEN') {
                     csrfToken = decodeURIComponent(value);

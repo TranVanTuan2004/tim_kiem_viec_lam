@@ -34,17 +34,21 @@ use App\Http\Controllers\Admin\ServicePackageController;
 use App\Http\Controllers\Admin\SubscriptionControllerV2;
 use App\Http\Controllers\Client\BlogController;
 use App\Http\Controllers\Admin\BlogController as AdminBlogController;
+use App\Http\Controllers\AIChatController;
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/ai', function () { return Inertia::render('client/AIChat'); });
+
+Route::post('/ai/chat', [AIChatController::class, 'chat']);
 
 // Jobs listing & detail
 Route::get('/jobs', [JobPostingController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job_posting}', [JobPostingController::class, 'show'])->name('jobs.show');
 
 // Blog listing & detail
-Route::get('/blog', [\App\Http\Controllers\Client\BlogController::class, 'index'])->name('blog.index');
-Route::get('/blog/{slug}', [\App\Http\Controllers\Client\BlogController::class, 'show'])->name('blog.show');
+Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');
 
 
 
