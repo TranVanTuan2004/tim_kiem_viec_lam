@@ -124,7 +124,7 @@ Route::get('dashboard', function () {
 Route::prefix('employer')->name('employer.')->middleware(['auth', 'active', 'role:Employer'])->group(function () {
     // Dashboard
     Route::get('dashboard', [EmployerDashboardController::class, 'index'])->name('dashboard');
-    
+
     // Subscriptions - Sử dụng controller và page của admin
     Route::get('subscriptions', [SubscriptionController::class, 'index'])->name('subscriptions');
     Route::post('subscriptions/subscribe', [SubscriptionController::class, 'subscribe'])->name('subscribe');
@@ -140,7 +140,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admi
     Route::get('dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     // User Management - Only admin
-    Route::resource('users', UserController::class)->middleware('permission:view users');
+    Route::resource('users', UserController::class)
+        ->middleware('permission:view users');
 
     // Chat routes - All authenticated users
     Route::get('chat', [ChatController::class, 'index'])->name('chat.index');
@@ -215,9 +216,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active'])->group(fu
     Route::post('subscriptions/simulate-vnpay-payment', [SubscriptionController::class, 'simulateVNPayPayment'])->name('subscriptions.simulate-vnpay-payment');
 });
 
-Route::prefix('admin')->name('admin.')->middleware(['auth','role:Admin'])->group(function() {
-    Route::get('applications', [AdminApplicationController::class,'index'])->name('applications.index');
-    Route::get('applications/{application}', [AdminApplicationController::class,'show'])->name('applications.show');
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:Admin'])->group(function () {
+    Route::get('applications', [AdminApplicationController::class, 'index'])->name('applications.index');
+    Route::get('applications/{application}', [AdminApplicationController::class, 'show'])->name('applications.show');
 });
 
 
