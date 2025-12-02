@@ -62,9 +62,14 @@ class JobPostingController extends Controller
 
     public function reject(Request $request, JobPosting $jobPosting)
     {
+        $request->validate([
+            'reason' => 'nullable|string|max:500',
+        ]);
+
         $jobPosting->update([
             'status' => 'rejected',
             'is_active' => false,
+            'rejection_reason' => $request->reason,
         ]);
 
         return back()->with('success', 'Tin tuyển dụng đã bị từ chối.');

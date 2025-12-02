@@ -100,7 +100,7 @@ class JobMatchingService
      */
     private function calculateExperienceMatch(CandidateProfile $candidate, JobPosting $jobPosting): int
     {
-        $experienceLevels = ['fresher', 'junior', 'middle', 'senior', 'lead'];
+        $experienceLevels = ['intern', 'fresher', 'junior', 'middle', 'senior', 'lead'];
         
         $candidateLevel = array_search($candidate->experience_level, $experienceLevels);
         $jobLevel = array_search($jobPosting->experience_level, $experienceLevels);

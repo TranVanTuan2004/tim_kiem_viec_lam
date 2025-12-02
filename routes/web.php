@@ -41,6 +41,10 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/jobs', [JobPostingController::class, 'index'])->name('jobs.index');
 Route::get('/jobs/{job_posting}', [JobPostingController::class, 'show'])->name('jobs.show');
 
+// Blog listing & detail
+Route::get('/blog', [\App\Http\Controllers\Client\BlogController::class, 'index'])->name('blog.index');
+Route::get('/blog/{slug}', [\App\Http\Controllers\Client\BlogController::class, 'show'])->name('blog.show');
+
 
 
 // Job Application Routes (require authentication)
