@@ -68,22 +68,47 @@ class ProfileController extends Controller
         $user = Auth::user();
 
         $validated = $request->validate([
-            'current_position' => 'nullable|string|max:255',
+            'current_position' => 'nullable|string|max:255|regex:/^[\p{L}\p{N}\s\-\/\(\)]+$/u',
+            'current_company' => 'nullable|string|max:255|regex:/^[\p{L}\p{N}\s\-\.\&]+$/u',
             'summary' => 'nullable|string',
             'experience_level' => 'nullable|string|max:100',
             'expected_salary' => 'nullable|numeric|min:0',
             'address' => 'nullable|string|max:500',
-            'city' => 'required|string|max:100',
-            'province' => 'required|string|max:100',
+            'city' => 'required|string|max:100|regex:/^[\p{L}\s\-]+$/u',
+            'province' => 'required|string|max:100|regex:/^[\p{L}\s\-]+$/u',
             'gender' => 'nullable|in:male,female,other',
-            'birth_date' => 'nullable|date',
-            'phone' => 'required|string|max:20',
+            'birth_date' => 'nullable|date|before:today',
+            'phone' => 'required|regex:/^[0-9]{1,15}$/|max:15',
             'avatar' => 'nullable|image|max:2048',
             'cv_file' => 'nullable|mimes:pdf,doc,docx|max:5120',
             'skills' => 'required|array|min:1',
             'skills.*.name' => 'required|string|max:255',
             'work_experiences' => 'nullable|array',
+            'work_experiences.*.company_name' => 'required_with:work_experiences|string|max:255|regex:/^[\p{L}\p{N}\s\-\.\&]+$/u',
+            'work_experiences.*.position' => 'required_with:work_experiences|string|max:255|regex:/^[\p{L}\p{N}\s\-\/\(\)]+$/u',
+            'work_experiences.*.description' => 'nullable|string',
+            'work_experiences.*.start_date' => 'required_with:work_experiences|date',
+            'work_experiences.*.end_date' => 'nullable|date|after:work_experiences.*.start_date',
             'educations' => 'nullable|array',
+            'educations.*.institution' => 'required_with:educations|string|max:255|regex:/^[\p{L}\p{N}\s\-\.\&]+$/u',
+            'educations.*.degree' => 'required_with:educations|string|max:255|regex:/^[\p{L}\p{N}\s\-\.]+$/u',
+            'educations.*.field_of_study' => 'required_with:educations|string|max:255|regex:/^[\p{L}\p{N}\s\-\/\(\)]+$/u',
+            'educations.*.start_date' => 'required_with:educations|date',
+            'educations.*.end_date' => 'nullable|date|after:educations.*.start_date',
+            'educations.*.gpa' => 'nullable|numeric|min:0|max:4',
+        ], [
+            'phone.regex' => 'Số điện thoại chỉ được chứa số và tối đa 15 ký tự.',
+            'phone.max' => 'Số điện thoại không được vượt quá 15 ký tự.',
+            'city.regex' => 'Tên thành phố chỉ được chứa chữ cái, khoảng trắng và dấu gạch ngang.',
+            'province.regex' => 'Tên tỉnh chỉ được chứa chữ cái, khoảng trắng và dấu gạch ngang.',
+            'current_position.regex' => 'Vị trí hiện tại chỉ được chứa chữ cái, số và các ký tự: - / ( )',
+            'current_company.regex' => 'Tên công ty chỉ được chứa chữ cái, số và các ký tự: - . &',
+            'birth_date.before' => 'Ngày sinh phải trước ngày hôm nay.',
+            'work_experiences.*.company_name.regex' => 'Tên công ty chỉ được chứa chữ cái, số và các ký tự: - . &',
+            'work_experiences.*.position.regex' => 'Vị trí công việc chỉ được chứa chữ cái, số và các ký tự: - / ( )',
+            'educations.*.institution.regex' => 'Tên trường học chỉ được chứa chữ cái, số và các ký tự: - . &',
+            'educations.*.degree.regex' => 'Bằng cấp chỉ được chứa chữ cái, số và các ký tự: - .',
+            'educations.*.field_of_study.regex' => 'Chuyên ngành chỉ được chứa chữ cái, số và các ký tự: - / ( )',
         ]);
 
         DB::transaction(function () use ($user, $request, $validated) {
@@ -197,31 +222,47 @@ class ProfileController extends Controller
         }
 
         $validated = $request->validate([
-            'current_position' => 'nullable|string|max:255',
-            'current_company' => 'nullable|string|max:255',
+            'current_position' => 'nullable|string|max:255|regex:/^[\p{L}\p{N}\s\-\/\(\)]+$/u',
+            'current_company' => 'nullable|string|max:255|regex:/^[\p{L}\p{N}\s\-\.\&]+$/u',
             'summary' => 'nullable|string',
             'experience_level' => 'nullable|string|max:100',
             'expected_salary' => 'nullable|numeric|min:0',
             'address' => 'nullable|string|max:500',
-            'city' => 'nullable|string|max:100',
-            'province' => 'nullable|string|max:100',
+            'city' => 'nullable|string|max:100|regex:/^[\p{L}\s\-]+$/u',
+            'province' => 'nullable|string|max:100|regex:/^[\p{L}\s\-]+$/u',
             'gender' => 'nullable|in:male,female,other',
-            'birth_date' => 'nullable|date',
-            'phone' => 'nullable|string|max:20',
+            'birth_date' => 'nullable|date|before:today',
+            'phone' => 'nullable|regex:/^[0-9]{1,15}$/|max:15',
             'avatar' => 'nullable|image|max:2048',
             'skills' => 'nullable|array',
             'skills.*.name' => 'nullable|string|max:255',
             'cv_file' => 'nullable|mimes:pdf,doc,docx|max:5120',
             'work_experiences' => 'nullable|array',
-            'work_experiences.*.company_name' => 'nullable|string|max:255',
-            'work_experiences.*.position' => 'nullable|string|max:255',
+            'work_experiences.*.company_name' => 'nullable|string|max:255|regex:/^[\p{L}\p{N}\s\-\.\&]+$/u',
+            'work_experiences.*.position' => 'nullable|string|max:255|regex:/^[\p{L}\p{N}\s\-\/\(\)]+$/u',
+            'work_experiences.*.description' => 'nullable|string',
             'work_experiences.*.start_date' => 'nullable|date',
-            'work_experiences.*.end_date' => 'nullable|date',
+            'work_experiences.*.end_date' => 'nullable|date|after:work_experiences.*.start_date',
             'educations' => 'nullable|array',
-            'educations.*.institution' => 'nullable|string|max:255',
-            'educations.*.degree' => 'nullable|string|max:255',
+            'educations.*.institution' => 'nullable|string|max:255|regex:/^[\p{L}\p{N}\s\-\.\&]+$/u',
+            'educations.*.degree' => 'nullable|string|max:255|regex:/^[\p{L}\p{N}\s\-\.]+$/u',
+            'educations.*.field_of_study' => 'nullable|string|max:255|regex:/^[\p{L}\p{N}\s\-\/\(\)]+$/u',
             'educations.*.start_date' => 'nullable|date',
-            'educations.*.end_date' => 'nullable|date',
+            'educations.*.end_date' => 'nullable|date|after:educations.*.start_date',
+            'educations.*.gpa' => 'nullable|numeric|min:0|max:4',
+        ], [
+            'phone.regex' => 'Số điện thoại chỉ được chứa số và tối đa 15 ký tự.',
+            'phone.max' => 'Số điện thoại không được vượt quá 15 ký tự.',
+            'city.regex' => 'Tên thành phố chỉ được chứa chữ cái, khoảng trắng và dấu gạch ngang.',
+            'province.regex' => 'Tên tỉnh chỉ được chứa chữ cái, khoảng trắng và dấu gạch ngang.',
+            'current_position.regex' => 'Vị trí hiện tại chỉ được chứa chữ cái, số và các ký tự: - / ( )',
+            'current_company.regex' => 'Tên công ty chỉ được chứa chữ cái, số và các ký tự: - . &',
+            'birth_date.before' => 'Ngày sinh phải trước ngày hôm nay.',
+            'work_experiences.*.company_name.regex' => 'Tên công ty chỉ được chứa chữ cái, số và các ký tự: - . &',
+            'work_experiences.*.position.regex' => 'Vị trí công việc chỉ được chứa chữ cái, số và các ký tự: - / ( )',
+            'educations.*.institution.regex' => 'Tên trường học chỉ được chứa chữ cái, số và các ký tự: - . &',
+            'educations.*.degree.regex' => 'Bằng cấp chỉ được chứa chữ cái, số và các ký tự: - .',
+            'educations.*.field_of_study.regex' => 'Chuyên ngành chỉ được chứa chữ cái, số và các ký tự: - / ( )',
         ]);
 
         // Handle avatar upload
@@ -327,5 +368,27 @@ class ProfileController extends Controller
 
         return redirect()->route('candidate.profile.index')
             ->with('success', 'Cập nhật hồ sơ thành công!');
+    }
+
+    /**
+     * Toggle candidate availability status.
+     */
+    public function toggleAvailability()
+    {
+        $user = Auth::user();
+        $candidate = $user->candidateProfile;
+
+        if (!$candidate) {
+            return back()->with('error', 'Hồ sơ không tồn tại!');
+        }
+
+        // Toggle the is_available status
+        $candidate->update([
+            'is_available' => !$candidate->is_available
+        ]);
+
+        return back()->with('success', $candidate->is_available 
+            ? 'Đã bật trạng thái tìm việc!' 
+            : 'Đã tắt trạng thái tìm việc!');
     }
 }

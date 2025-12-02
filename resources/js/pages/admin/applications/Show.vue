@@ -457,7 +457,7 @@ const interviewForm = useForm({
 const updateStatus = (newStatus) => {
   if (confirm('Bạn có chắc muốn cập nhật trạng thái hồ sơ này?')) {
     router.patch(
-      route('employer.applications.update-status', props.application.id),
+      `/employer/applications/${props.application.id}/status`,
       { status: newStatus },
       {
         preserveScroll: true,
@@ -474,7 +474,7 @@ const updateStatus = (newStatus) => {
 
 const saveNotes = () => {
   notesForm.patch(
-    route('employer.applications.update-status', props.application.id),
+    `/employer/applications/${props.application.id}/status`,
     {
       preserveScroll: true,
       onSuccess: () => {
@@ -491,7 +491,7 @@ const scheduleInterview = () => {
       interview_date: data.interview_date,
       notes: data.notes,
     }))
-    .patch(route('employer.applications.update-status', props.application.id), {
+    .patch(`/employer/applications/${props.application.id}/status`, {
       preserveScroll: true,
       onSuccess: () => {
         showInterviewModal.value = false

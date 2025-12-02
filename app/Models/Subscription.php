@@ -13,6 +13,7 @@ class Subscription extends Model
     use HasFactory, LogsActivity;
 
     protected $fillable = [
+        'user_id',
         'company_id',
         'package_id',
         'status',
@@ -29,6 +30,11 @@ class Subscription extends Model
     }
 
     // Relationships
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'user_id');
+    }
+
     public function company(): BelongsTo
     {
         return $this->belongsTo(Company::class, 'company_id');

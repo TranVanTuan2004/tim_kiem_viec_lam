@@ -4,11 +4,19 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\JobPosting;
+use App\Services\JobMatchingService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class JobPostingController extends Controller
 {
+    private JobMatchingService $jobMatchingService;
+
+    public function __construct(JobMatchingService $jobMatchingService)
+    {
+        $this->jobMatchingService = $jobMatchingService;
+    }
+
     public function index(Request $request)
     {
         $query = JobPosting::with(['company']);
@@ -44,14 +52,24 @@ class JobPostingController extends Controller
             'is_active' => true,
         ]);
 
-        return back()->with('success', 'Tin tuyển dụng đã được duyệt thành công.');
+        // Tìm ứng viên phù hợp và gửi thông báo
+        $jobPosting->load(['company', 'skills']);
+        $matches = $this->jobMatchingService->findMatchingCandidates($jobPosting, 50);
+        $notificationCount = $this->jobMatchingService->sendJobMatchNotifications($jobPosting, $matches);
+
+        return back()->with('success', "Tin tuyển dụng đã được duyệt thành công. Đã gửi thông báo cho {$notificationCount} ứng viên phù hợp.");
     }
 
     public function reject(Request $request, JobPosting $jobPosting)
     {
+        $request->validate([
+            'reason' => 'nullable|string|max:500',
+        ]);
+
         $jobPosting->update([
             'status' => 'rejected',
             'is_active' => false,
+            'rejection_reason' => $request->reason,
         ]);
 
         return back()->with('success', 'Tin tuyển dụng đã bị từ chối.');

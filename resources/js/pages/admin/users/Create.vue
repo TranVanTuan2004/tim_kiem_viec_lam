@@ -8,6 +8,7 @@ import {
     CardTitle,
 } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -34,12 +35,14 @@ const form = useForm({
     password_confirmation: '',
     phone: '',
     bio: '',
-    is_active: true,
-    roles: [] as number[],
+    role_id: null as string | null,
 });
 
 const submit = () => {
-    form.post('/admin/users');
+    form.transform((data) => ({
+        ...data,
+        roles: data.role_id ? [parseInt(data.role_id)] : [],
+    })).post('/admin/users');
 };
 
 const breadcrumbs = [
@@ -50,7 +53,7 @@ const breadcrumbs = [
 </script>
 
 <template>
-    <Head title="Thêm User mới" />
+    <Head title="Thêm người dùng mới" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-col gap-4 p-4">
@@ -60,17 +63,17 @@ const breadcrumbs = [
                         <ArrowLeft class="h-4 w-4" />
                     </Button>
                 </Link>
-                <h1 class="text-2xl font-bold">Thêm User mới</h1>
+                <h1 class="text-2xl font-bold">Thêm người dùng mới</h1>
             </div>
 
-            <form @submit.prevent="submit">
+            <form @submit.prevent="submit" novalidate>
                 <div class="grid gap-6 md:grid-cols-2">
                     <!-- Thông tin cơ bản -->
                     <Card>
                         <CardHeader>
                             <CardTitle>Thông tin cơ bản</CardTitle>
                             <CardDescription
-                                >Nhập thông tin user</CardDescription
+                                >Nhập thông tin người dùng</CardDescription
                             >
                         </CardHeader>
                         <CardContent class="space-y-4">
@@ -117,7 +120,7 @@ const breadcrumbs = [
                                 <Textarea
                                     id="bio"
                                     v-model="form.bio"
-                                    rows="3"
+                                    :rows="3"
                                 />
                                 <span
                                     v-if="form.errors.bio"
@@ -171,16 +174,15 @@ const breadcrumbs = [
                                 <CardTitle>Vai trò</CardTitle>
                             </CardHeader>
                             <CardContent class="space-y-4">
-                                <div class="space-y-3">
+                                <RadioGroup v-model="form.role_id" class="space-y-3">
                                     <div
                                         v-for="role in roles"
                                         :key="role.id"
                                         class="flex items-center space-x-2"
                                     >
-                                        <Checkbox
+                                        <RadioGroupItem
                                             :id="`role-${role.id}`"
-                                            :value="role.id"
-                                            v-model:checked="form.roles"
+                                            :value="String(role.id)"
                                         />
                                         <Label
                                             :for="`role-${role.id}`"
@@ -189,33 +191,13 @@ const breadcrumbs = [
                                             {{ role.name }}
                                         </Label>
                                     </div>
-                                </div>
+                                </RadioGroup>
                                 <span
                                     v-if="form.errors.roles"
                                     class="text-sm text-destructive"
                                 >
                                     {{ form.errors.roles }}
                                 </span>
-                            </CardContent>
-                        </Card>
-
-                        <Card>
-                            <CardHeader>
-                                <CardTitle>Trạng thái</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <div class="flex items-center space-x-2">
-                                    <Checkbox
-                                        id="is_active"
-                                        v-model:checked="form.is_active"
-                                    />
-                                    <Label
-                                        for="is_active"
-                                        class="cursor-pointer"
-                                    >
-                                        Active
-                                    </Label>
-                                </div>
                             </CardContent>
                         </Card>
                     </div>
@@ -227,7 +209,7 @@ const breadcrumbs = [
                         <Button type="button" variant="outline">Hủy</Button>
                     </Link>
                     <Button type="submit" :disabled="form.processing">
-                        {{ form.processing ? 'Đang lưu...' : 'Lưu User' }}
+                        {{ form.processing ? 'Đang lưu...' : 'Lưu' }}
                     </Button>
                 </div>
             </form>

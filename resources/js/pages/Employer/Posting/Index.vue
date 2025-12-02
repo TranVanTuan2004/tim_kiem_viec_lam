@@ -4,8 +4,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Head, Link, useForm, router } from '@inertiajs/vue3';
 import { throttle } from 'lodash'; // THÊM: throttle (Cần cài đặt)
-import { Eye, Plus, Users } from 'lucide-vue-next';
+import { Eye, Plus, Users, AlertCircle } from 'lucide-vue-next';
 import { ref, watch } from 'vue'; // THÊM: ref, watch
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 // defineProps<{
 //     jobs: {
 //         data: any[];
@@ -35,6 +43,15 @@ const statusFilters = [
     { label: 'Chờ duyệt', value: 'pending' },
     { label: 'Đã duyệt', value: 'approved' },
 ];
+
+// Modal state for rejection reason
+const showRejectionModal = ref(false);
+const selectedRejectedJob = ref<any>(null);
+
+function showRejectionReason(job: any) {
+    selectedRejectedJob.value = job;
+    showRejectionModal.value = true;
+}
 
 // === 2. LOGIC LỌC (WATCH + THROTTLE) ===
 watch(
@@ -141,10 +158,13 @@ const toggleJob = (job: any) => {
                                         :class="{
                                             'bg-green-100 text-green-600': job.status === 'approved',
                                             'bg-yellow-100 text-yellow-600': job.status === 'pending',
-                                            'bg-red-100 text-red-600': job.status === 'rejected',
+                                            'bg-red-100 text-red-600 cursor-pointer hover:bg-red-200': job.status === 'rejected',
                                         }"
-                                        class="rounded-full px-3 py-1 text-xs font-semibold"
+                                        class="rounded-full px-3 py-1 text-xs font-semibold inline-flex items-center gap-1"
+                                        @click="job.status === 'rejected' ? showRejectionReason(job) : null"
+                                        :title="job.status === 'rejected' ? 'Click để xem lý do từ chối' : ''"
                                     >
+                                        <AlertCircle v-if="job.status === 'rejected'" class="h-3 w-3" />
                                         {{
                                             job.status === 'approved'
                                                 ? 'Đã duyệt'
@@ -234,5 +254,69 @@ const toggleJob = (job: any) => {
                 </nav>
             </div>
         </div>
+
+        <!-- Rejection Reason Modal -->
+        <Dialog :open="showRejectionModal" @update:open="showRejectionModal = $event">
+            <DialogContent class="sm:max-w-[600px]">
+                <DialogHeader>
+                    <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+                        <AlertCircle class="h-6 w-6 text-red-600" />
+                    </div>
+                    <DialogTitle class="text-center text-xl text-red-600">Tin tuyển dụng bị từ chối</DialogTitle>
+                    <DialogDescription class="text-center">
+                        Tin tuyển dụng của bạn đã bị từ chối bởi quản trị viên. Vui lòng xem lý do và chỉnh sửa lại.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div v-if="selectedRejectedJob" class="space-y-4 py-4">
+                    <!-- Job Title -->
+                    <div class="border-b pb-3">
+                        <h3 class="font-semibold text-gray-900">{{ selectedRejectedJob.title }}</h3>
+                    </div>
+
+                    <!-- Rejection Reason -->
+                    <div class="bg-red-50 border-l-4 border-red-500 p-4 rounded">
+                        <h4 class="font-semibold text-red-800 mb-2 flex items-center gap-2">
+                            <AlertCircle class="h-4 w-4" />
+                            Lý do từ chối:
+                        </h4>
+                        <p class="text-red-700 text-sm">
+                            {{ selectedRejectedJob.rejection_reason || 'Không có lý do cụ thể được cung cấp.' }}
+                        </p>
+                    </div>
+
+                    <!-- Rejection Time -->
+                    <div class="text-sm text-gray-600">
+                        <span class="font-semibold">Thời gian từ chối:</span>
+                        {{ selectedRejectedJob.updated_at ? new Date(selectedRejectedJob.updated_at).toLocaleString('vi-VN') : 'N/A' }}
+                    </div>
+
+                    <!-- Edit Suggestions -->
+                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded">
+                        <h4 class="font-semibold text-blue-800 mb-2">💡 Gợi ý chỉnh sửa:</h4>
+                        <ul class="text-sm text-blue-700 space-y-1 list-disc list-inside">
+                            <li>Đọc kỹ lý do từ chối và chỉnh sửa nội dung phù hợp</li>
+                            <li>Đảm bảo thông tin chính xác, rõ ràng và không vi phạm chính sách</li>
+                            <li>Kiểm tra lại yêu cầu công việc và mức lương hợp lý</li>
+                            <li>Sau khi chỉnh sửa, tin sẽ được gửi lại để duyệt</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <DialogFooter class="sm:justify-center gap-2">
+                    <Button variant="outline" @click="showRejectionModal = false">
+                        Đóng
+                    </Button>
+                    <Link 
+                        v-if="selectedRejectedJob" 
+                        :href="`/employer/posting/${selectedRejectedJob.id}/edit`"
+                    >
+                        <Button class="bg-blue-600 hover:bg-blue-700">
+                            Chỉnh sửa ngay
+                        </Button>
+                    </Link>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AppLayout>
 </template>

@@ -47,23 +47,11 @@ class JobPostingController extends Controller
         $filters = $this->jobPostingService->validateFilters([
             'featured' => request('featured', false),
             'q' => request('q', ''),
-            'q' => request('q', ''),
             'location' => request('location', ''),
             'industry' => request('industry', ''),
         ]);
 
-        $user = auth()->user();
-
-        $paginatedJobs = $this->jobPostingService->getFilteredJobs($filters, 12);
-
-        $jobs = [
-            'data' => $paginatedJobs,
-            'total' => $paginatedJobs->total(),
-            'from' => $paginatedJobs->firstItem(),
-            'to' => $paginatedJobs->lastItem(),
-            'last_page' => $paginatedJobs->lastPage(),
-            'links' => $paginatedJobs->links(),
-        ];
+        $jobs = $this->jobPostingService->getFilteredJobs($filters, 12);
 
         
 

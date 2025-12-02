@@ -52,7 +52,7 @@ const durations = [
 ];
 
 const submit = () => {
-    form.post(route('employer.interviews.store'), {
+    form.post('/employer/interviews', {
         onSuccess: () => {
             // Redirect handled by controller
         },
@@ -202,7 +202,7 @@ const submit = () => {
                                     <Button
                                         type="button"
                                         variant="outline"
-                                        @click="router.visit(route('employer.interviews.index'))"
+                                        @click="router.visit('/employer/interviews')"
                                     >
                                         Hủy
                                     </Button>

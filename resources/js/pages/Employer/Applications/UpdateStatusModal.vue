@@ -120,7 +120,7 @@ watch(
 const submit = () => {
   if (!props.application) return
 
-  form.patch(route('employer.applications.update-status', props.application.id), {
+  form.patch(`/employer/applications/${props.application.id}/status`, {
     onSuccess: () => {
       emit('update:open', false)
       emit('success')
