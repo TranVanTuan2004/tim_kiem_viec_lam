@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { type BreadcrumbItem } from '@/types';
 
+// Dữ liệu và Refs
 const breadcrumbItems: BreadcrumbItem[] = [
     {
         title: 'Password settings',
@@ -29,92 +30,103 @@ const currentPasswordInput = ref<HTMLInputElement | null>(null);
         <Head title="Password settings" />
 
         <SettingsLayout>
-            <div class="space-y-6">
-                <HeadingSmall
-                    title="Update password"
-                    description="Ensure your account is using a long, random password to stay secure"
-                />
+            <div class="mx-auto max-w-3xl"> 
+                
+                <div class="bg-white dark:bg-gray-900 shadow-lg rounded-xl p-8 md:p-10">
 
-                <Form
-                    v-bind="PasswordController.update.form()"
-                    :options="{
-                        preserveScroll: true,
-                    }"
-                    reset-on-success
-                    :reset-on-error="[
-                        'password',
-                        'password_confirmation',
-                        'current_password',
-                    ]"
-                    class="space-y-6"
-                    v-slot="{ errors, processing, recentlySuccessful }"
-                >
-                    <div class="grid gap-2">
-                        <Label for="current_password">Current password</Label>
-                        <Input
-                            id="current_password"
-                            ref="currentPasswordInput"
-                            name="current_password"
-                            type="password"
-                            class="mt-1 block w-full"
-                            autocomplete="current-password"
-                            placeholder="Current password"
+                    <div class="pb-6 mb-6 border-b border-gray-100 dark:border-gray-800">
+                        <HeadingSmall
+                            title="Update password"
+                            description="Ensure your account is using a long, random password to stay secure."
                         />
-                        <InputError :message="errors.current_password" />
                     </div>
 
-                    <div class="grid gap-2">
-                        <Label for="password">New password</Label>
-                        <Input
-                            id="password"
-                            ref="passwordInput"
-                            name="password"
-                            type="password"
-                            class="mt-1 block w-full"
-                            autocomplete="new-password"
-                            placeholder="New password"
-                        />
-                        <InputError :message="errors.password" />
-                    </div>
+                    <Form
+                        v-bind="PasswordController.update.form()"
+                        :options="{
+                            preserveScroll: true,
+                        }"
+                        reset-on-success
+                        :reset-on-error="[
+                            'password',
+                            'password_confirmation',
+                            'current_password',
+                        ]"
+                        class="space-y-6"
+                        v-slot="{ errors, processing, recentlySuccessful }"
+                    >
+                        <div class="grid gap-2">
+                            <Label for="current_password">Current password</Label>
+                            <Input
+                                id="current_password"
+                                ref="currentPasswordInput"
+                                name="current_password"
+                                type="password"
+                                class="block w-full max-w-md"
+                                autocomplete="current-password"
+                                placeholder="Current password"
+                                :aria-invalid="!!errors.current_password"
+                            />
+                            <InputError :message="errors.current_password" />
+                        </div>
+                        
+                        <div class="grid gap-2">
+                            <Label for="password">New password</Label>
+                            <Input
+                                id="password"
+                                ref="passwordInput"
+                                name="password"
+                                type="password"
+                                class="block w-full max-w-md"
+                                autocomplete="new-password"
+                                placeholder="New password"
+                                :aria-invalid="!!errors.password"
+                            />
+                            <InputError :message="errors.password" />
+                        </div>
 
-                    <div class="grid gap-2">
-                        <Label for="password_confirmation"
-                            >Confirm password</Label
-                        >
-                        <Input
-                            id="password_confirmation"
-                            name="password_confirmation"
-                            type="password"
-                            class="mt-1 block w-full"
-                            autocomplete="new-password"
-                            placeholder="Confirm password"
-                        />
-                        <InputError :message="errors.password_confirmation" />
-                    </div>
+                        <div class="grid gap-2">
+                            <Label for="password_confirmation">Confirm password</Label>
+                            <Input
+                                id="password_confirmation"
+                                name="password_confirmation"
+                                type="password"
+                                class="block w-full max-w-md"
+                                autocomplete="new-password"
+                                placeholder="Confirm password"
+                                :aria-invalid="!!errors.password_confirmation"
+                            />
+                            <InputError :message="errors.password_confirmation" />
+                        </div>
 
-                    <div class="flex items-center gap-4">
-                        <Button
-                            :disabled="processing"
-                            data-test="update-password-button"
-                            >Save password</Button
-                        >
-
-                        <Transition
-                            enter-active-class="transition ease-in-out"
-                            enter-from-class="opacity-0"
-                            leave-active-class="transition ease-in-out"
-                            leave-to-class="opacity-0"
-                        >
-                            <p
-                                v-show="recentlySuccessful"
-                                class="text-sm text-neutral-600"
+                        <div class="flex items-center gap-4 pt-4">
+                            <Button
+                                :disabled="processing"
+                                data-test="update-password-button"
+                                size="lg"
+                                class="min-w-28 transition-colors duration-200"
                             >
-                                Saved.
-                            </p>
-                        </Transition>
-                    </div>
-                </Form>
-            </div>
+                                <span v-if="processing">Updating...</span>
+                                <span v-else>Save password</span>
+                            </Button>
+
+                            <Transition
+                                enter-active-class="transition ease-in-out duration-300"
+                                enter-from-class="opacity-0 translate-x-1"
+                                leave-active-class="transition ease-in-out duration-300"
+                                leave-to-class="opacity-0"
+                            >
+                                <p
+                                    v-show="recentlySuccessful"
+                                    class="text-sm text-green-600 dark:text-green-400 font-semibold"
+                                >
+                                    Saved successfully.
+                                </p>
+                            </Transition>
+                        </div>
+                    </Form>
+                </div>
+                </div>
         </SettingsLayout>
     </AppLayout>
 </template>
