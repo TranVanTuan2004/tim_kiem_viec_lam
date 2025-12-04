@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use App\Models\JobPosting;
 use App\Models\Company;
+use OpenAI;
 
 class AIChatController extends Controller
 {
@@ -34,6 +35,7 @@ class AIChatController extends Controller
             }
         }
 
+
         $preferredLocations = $candidate?->preferred_locations;
         if (is_string($preferredLocations)) {
             // Some databases may store JSON strings
@@ -51,10 +53,10 @@ class AIChatController extends Controller
         ]);
 
         $systemPrompt = trim(implode(' ', [
-            'Bạn là Trợ lý tuyển dụng cho cổng việc làm IT. Nhiệm vụ: tư vấn nghề nghiệp, CV, phỏng vấn và gợi ý việc làm phù hợp.',
-            $contextParts ? ('Thông tin ứng viên: ' . implode(' | ', $contextParts) . '.') : 'Chưa có thông tin ứng viên. Hãy hỏi làm rõ trước khi gợi ý.',
-            'Chỉ sử dụng dữ liệu từ database được cung cấp, không bịa thêm công ty hay việc.',
-            'Khi người dùng hỏi gợi ý việc, đề xuất 3-5 vị trí cụ thể (kèm thành phố nếu có), nêu lý do phù hợp dựa trên kỹ năng/kinh nghiệm, liệt kê kỹ năng nên bổ sung, và đưa ra bước tiếp theo (xem JD, cập nhật CV, luyện phỏng vấn). Trả lời ngắn gọn, rõ ràng, có tính hành động.',
+            "You're a Recruiting Assistant for an IT job portal. Tasks: career advising, CV/resume review, interview coaching, and recommending suitable jobs.",
+            $contextParts ? ('Candidate info: ' . implode(' | ', $contextParts) . '.') : 'No candidate info. Ask clarifying questions before recommending.',
+            'Use only the provided database data; do not fabricate companies or jobs.',
+            'When the user asks for job suggestions, propose 3-5 specific roles (include city when available), explain the fit based on skills/experience, list skills to improve, and suggest next steps (view JD, update CV, practice interview). Keep answers concise, clear, and actionable.',
         ]));
 
         $skillIds = $candidate ? $candidate->skills->pluck('id')->all() : [];
@@ -153,10 +155,38 @@ class AIChatController extends Controller
             'model' => config('services.openai.model'),
             'messages' => array_merge([
                 ['role' => 'system', 'content' => $systemPrompt],
-                ['role' => 'system', 'content' => 'Dữ liệu từ database (JSON). Chỉ sử dụng dữ liệu này để trả lời: ' . json_encode($dbContext, JSON_UNESCAPED_UNICODE)],
+                ['role' => 'system', 'content' => 'Database data (JSON). Only use this data to answer: ' . json_encode($dbContext, JSON_UNESCAPED_UNICODE)],
             ], $incoming),
             'temperature' => 0.7,
         ];
+
+        if ($request->boolean('stream')) {
+            try {
+                $client = \OpenAI::client($apiKey);
+                $stream = $client->chat()->createStreamed($payload);
+
+                return response()->stream(function () use ($stream) {
+                    echo "event: open\ndata: {}\n\n";
+                    foreach ($stream as $response) {
+                        $delta = data_get($response->choices[0]->delta, 'content');
+                        if ($delta) {
+                            echo 'data: ' . json_encode(['content' => $delta], JSON_UNESCAPED_UNICODE) . "\n\n";
+                            @ob_flush(); @flush();
+                        }
+                    }
+                    echo "event: done\ndata: {}\n\n";
+                }, 200, [
+                    'Content-Type' => 'text/event-stream',
+                    'Cache-Control' => 'no-cache',
+                    'X-Accel-Buffering' => 'no',
+                ]);
+            } catch (\Throwable $e) {
+                return response()->json([
+                    'error' => 'OpenAI stream failed',
+                    'details' => $e->getMessage(),
+                ], 500);
+            }
+        }
 
         $response = Http::withToken($apiKey)
             ->acceptJson()
