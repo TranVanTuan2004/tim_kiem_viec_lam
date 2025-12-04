@@ -6,8 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Bot, Send, Home } from 'lucide-vue-next';
 import { Link } from '@inertiajs/vue3';
 import { nextTick, ref } from 'vue';
+import MarkdownIt from 'markdown-it';
+import DOMPurify from 'dompurify';
 
-type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string; createdAt?: string };
+type ChatMessage = { role: 'system' | 'user' | 'assistant'; content: string; createdAt?: string; formatted?: boolean };
 
 const time = () => new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
 
@@ -29,6 +31,18 @@ const csrfToken = () => {
   return el ? el.getAttribute('content') || '' : '';
 };
 
+const md = new MarkdownIt({ html: true, linkify: true, breaks: true });
+const renderMarkdown = (s: string, _progressive = false) => DOMPurify.sanitize(md.render(s));
+
+
+const typewrite = async (full: string, onUpdate: (partial: string) => void, speed = 20) => {
+  for (let i = 1; i <= full.length; i+=3) {
+    onUpdate(full.slice(0, i));
+    await nextTick();
+    await new Promise((r) => setTimeout(r, speed));
+  }
+};
+
 
 const send = async () => {
   const t = text.value.trim();
@@ -36,9 +50,7 @@ const send = async () => {
   messages.value.push({ role: 'user', content: t, createdAt: time() });
   text.value = '';
   sending.value = true;
-  const payload = {
-    messages: [...messages.value],
-  };
+  const payload = { messages: [...messages.value] };
   try {
     const res = await fetch('/ai/chat', {
       method: 'POST',
@@ -49,14 +61,19 @@ const send = async () => {
       body: JSON.stringify(payload),
     });
     const data = await res.json();
-    messages.value.push({ role: 'assistant', content: data.reply || 'Xin lỗi, AI hiện không phản hồi.', createdAt: time() });
-  } catch {
-    messages.value.push({ role: 'assistant', content: 'Có lỗi xảy ra. Vui lòng thử lại.', createdAt: time() });
-  } finally {
     sending.value = false;
+    const replyText = String(data.reply || 'Xin lỗi, AI hiện không phản hồi.');
+    const idx = messages.value.push({ role: 'assistant', content: '', createdAt: time() }) - 1;
     await nextTick();
     const box = document.querySelector('.ai-chat-page-messages') as HTMLElement | null;
-    if (box) box.scrollTop = box.scrollHeight;
+    await typewrite(replyText, (partial) => {
+      messages.value[idx] = { ...messages.value[idx], content: partial };
+      if (box) box.scrollTop = box.scrollHeight;
+    });
+    messages.value[idx] = { ...messages.value[idx], content: renderMarkdown(replyText), formatted: true };
+  } catch {
+    sending.value = false;
+    messages.value.push({ role: 'assistant', content: 'Có lỗi xảy ra. Vui lòng thử lại.', createdAt: time() });
   }
 };
 
@@ -103,9 +120,17 @@ const choosePrompt = async (p: string) => {
               <span>{{ m.createdAt }}</span>
             </div>
             <div :class="[
+              'rounded-2xl px-4 py-2.5 text-sm shadow-sm leading-relaxed',
+              m.role === 'user' ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-br-md' : 'border border-border bg-white rounded-bl-md',
+            ]" v-if="m.role === 'assistant' && m.formatted" v-html="m.content"></div>
+            <div :class="[
+              'rounded-2xl px-4 py-2.5 text-sm shadow-sm leading-relaxed',
+              m.role === 'user' ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-br-md' : 'border border-border bg-white rounded-bl-md',
+            ]" v-else-if="m.role === 'assistant'" v-html="renderMarkdown(m.content, true)"></div>
+            <div :class="[
               'rounded-2xl px-4 py-2.5 text-sm shadow-sm',
               m.role === 'user' ? 'bg-gradient-to-br from-primary to-primary/80 text-primary-foreground rounded-br-md' : 'border border-border bg-white rounded-bl-md',
-            ]">
+            ]" v-else>
               {{ m.content }}
             </div>
           </div>
