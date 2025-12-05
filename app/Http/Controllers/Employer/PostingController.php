@@ -88,12 +88,13 @@ class PostingController extends Controller
                 'benefits' => 'required|string',
                 'industry_id' => 'required',
                 'employment_type' => 'required|string',
-                'experience_level' => 'required|string',
+                'experience_level' => 'required|in:intern,fresher,junior,middle,senior,lead',
                 'city' => 'required|string|max:100',
                 'province' => 'required|string|max:100',
                 'location' => 'required|string|max:255',
-                'min_salary' => 'required|numeric|min:0',
-                'max_salary' => 'required|numeric|min:0',
+                'min_salary' => 'required|numeric|min:0|max:999999999',
+                'max_salary' => 'required|numeric|min:0|max:999999999|gte:min_salary',
+
             ],
             [
                 'title.required' => 'Vui lòng nhập tiêu đề cho tin tuyển dụng.',
@@ -109,7 +110,12 @@ class PostingController extends Controller
                 'location.required' => 'Nhập địa điểm cụ thể của công việc.',
                 'min_salary.required' => 'Nhập mức lương tối thiểu.',
                 'max_salary.required' => 'Nhập mức lương tối đa.',
-                'max_salary.gte' => 'Mức lương tối đa phải lớn hơn hoặc bằng mức lương tối thiểu.',
+                'max_salary.numeric' => 'Lương phải là số.',
+                'min_salary.numeric' => 'Lương phải là số.',
+                'min_salary.max' => 'Lương tối thiểu quá lớn, vui lòng nhập số hợp lệ (tối đa 9 số).',
+                'max_salary.max' => 'Lương tối đa quá lớn, vui lòng nhập số hợp lệ (tối đa 9 số).',
+                'max_salary.gte' => 'Lương tối đa phải lớn hơn hoặc bằng lương tối thiểu.',
+
             ]
         );
 
@@ -126,7 +132,7 @@ class PostingController extends Controller
                 $matchingService = new JobMatchingService();
                 $matches = $matchingService->findMatchingCandidates($job);
                 $notificationCount = $matchingService->sendJobMatchNotifications($job, $matches);
-                
+
                 \Log::info("Job matching completed for job #{$job->id}: {$notificationCount} notifications sent");
             } catch (\Exception $e) {
                 \Log::error("Job matching failed for job #{$job->id}: " . $e->getMessage());
@@ -141,17 +147,17 @@ class PostingController extends Controller
      * Hiển thị chi tiết tin tuyển dụng.
      */
     public function show($id)
-    {
-        $job = JobPosting::findOrFail($id);
+{
+    $job = JobPosting::with([
+        'company:id,company_name,logo,address,city,province,industry,size,is_verified',
+        'industry:id,name',
+    ])->findOrFail($id);
 
-        // if ($job->company_id !== Auth::user()->company_id) {
-        //     abort(403, 'Bạn không có quyền xem tin này.');
-        // }
+    return inertia('Employer/Posting/Show', [
+        'job' => $job,
+    ]);
+}
 
-        return inertia('Employer/Posting/Show', [
-            'job' => $job,
-        ]);
-    }
 
 
     public function destroy($id)
@@ -187,8 +193,9 @@ class PostingController extends Controller
                 'city' => 'required|string|max:100',
                 'province' => 'required|string|max:100',
                 'location' => 'required|string|max:255',
-                'min_salary' => 'required|numeric|min:0',
-                'max_salary' => 'required|numeric|min:0|gte:min_salary',
+                'min_salary' => 'required|numeric|min:0|max:999999999',
+                'max_salary' => 'required|numeric|min:0|max:999999999|gte:min_salary',
+
             ],
             [
                 'title.required' => 'Vui lòng nhập tiêu đề cho tin tuyển dụng.',
@@ -204,7 +211,12 @@ class PostingController extends Controller
                 'location.required' => 'Nhập địa điểm cụ thể của công việc.',
                 'min_salary.required' => 'Nhập mức lương tối thiểu.',
                 'max_salary.required' => 'Nhập mức lương tối đa.',
-                'max_salary.gte' => 'Mức lương tối đa phải lớn hơn hoặc bằng mức lương tối thiểu.',
+                'max_salary.numeric' => 'Lương phải là số.',
+                'min_salary.numeric' => 'Lương phải là số.',
+                'min_salary.max' => 'Lương tối thiểu quá lớn, vui lòng nhập số hợp lệ( tối đa 9 số).',
+                'max_salary.max' => 'Lương tối đa quá lớn, vui lòng nhập số hợp lệ (tối đa 9 số).',
+                'max_salary.gte' => 'Lương tối đa phải lớn hơn hoặc bằng lương tối thiểu.',
+
             ]
         );
 
