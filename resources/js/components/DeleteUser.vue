@@ -26,22 +26,22 @@ const passwordInput = ref<InstanceType<typeof Input> | null>(null);
 <template>
     <div class="space-y-6">
         <HeadingSmall
-            title="Delete account"
-            description="Delete your account and all of its resources"
+            title="Xóa tài khoản"
+            description="Xóa tài khoản của bạn và tất cả các tài nguyên liên quan"
         />
         <div
             class="space-y-4 rounded-lg border border-red-100 bg-red-50 p-4 dark:border-red-200/10 dark:bg-red-700/10"
         >
             <div class="relative space-y-0.5 text-red-600 dark:text-red-100">
-                <p class="font-medium">Warning</p>
+                <p class="font-medium">Cảnh báo</p>
                 <p class="text-sm">
-                    Please proceed with caution, this cannot be undone.
+                    Vui lòng cẩn thận, hành động này không thể hoàn tác.
                 </p>
             </div>
             <Dialog>
                 <DialogTrigger as-child>
                     <Button variant="destructive" data-test="delete-user-button"
-                        >Delete account</Button
+                        >Xóa tài khoản</Button
                     >
                 </DialogTrigger>
                 <DialogContent>
@@ -57,15 +57,13 @@ const passwordInput = ref<InstanceType<typeof Input> | null>(null);
                     >
                         <DialogHeader class="space-y-3">
                             <DialogTitle
-                                >Are you sure you want to delete your
-                                account?</DialogTitle
+                                >Bạn có chắc chắn muốn xóa tài khoản của mình?</DialogTitle
                             >
                             <DialogDescription>
-                                Once your account is deleted, all of its
-                                resources and data will also be permanently
-                                deleted. Please enter your password to confirm
-                                you would like to permanently delete your
-                                account.
+                                Khi tài khoản của bạn bị xóa, tất cả các
+                                tài nguyên và dữ liệu liên quan cũng sẽ bị
+                                xóa vĩnh viễn. Vui lòng nhập mật khẩu của bạn để xác nhận
+                                bạn muốn xóa tài khoản của mình vĩnh viễn.
                             </DialogDescription>
                         </DialogHeader>
 
@@ -94,7 +92,7 @@ const passwordInput = ref<InstanceType<typeof Input> | null>(null);
                                         }
                                     "
                                 >
-                                    Cancel
+                                    Hủy
                                 </Button>
                             </DialogClose>
 
@@ -104,7 +102,7 @@ const passwordInput = ref<InstanceType<typeof Input> | null>(null);
                                 :disabled="processing"
                                 data-test="confirm-delete-user-button"
                             >
-                                Delete account
+                                Xóa tài khoản
                             </Button>
                         </DialogFooter>
                     </Form>
