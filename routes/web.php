@@ -91,6 +91,14 @@ Route::get('/privacy', function () {
     return Inertia::render('client/Privacy');
 })->name('privacy');
 
+Route::get('/corporate-culture', function () {
+    return Inertia::render('client/Culture');
+})->name('corporate-culture');
+
+Route::get('/corporate-culture', function () {
+    return Inertia::render('client/Culture');
+})->name('corporate-culture');
+
 // Blog Pages
 Route::get('/blog', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/blog/{slug}', [BlogController::class, 'show'])->name('blog.show');

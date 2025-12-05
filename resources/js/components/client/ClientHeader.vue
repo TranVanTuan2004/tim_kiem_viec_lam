@@ -170,6 +170,15 @@ const { currentLanguage, setLanguage, t } = useLanguage();
                     </div>
                 </Link>
                 <Link
+                    href="/corporate-culture"
+                    class="text-sm font-medium transition-colors hover:text-primary"
+                >
+                    <div class="flex items-center space-x-2">
+                        <Bot class="h-4 w-4" />
+                        <span>Văn Hóa Doanh Nghiệp</span>
+                    </div>
+                </Link>
+                <Link
                     href="/ai"
                     class="text-sm font-medium transition-colors hover:text-primary"
                 >
