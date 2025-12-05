@@ -17,9 +17,7 @@ class ActivityLogController extends Controller
         $this->activityLogService = $activityLogService;
     }
 
-    /**
-     * Display activity logs index page
-     */
+
     public function index(Request $request): Response
     {
         $filters = [
@@ -33,7 +31,6 @@ class ActivityLogController extends Controller
 
         $logs = $this->activityLogService->getLogs($filters);
         
-        // Transform logs để đảm bảo causer data được serialize đúng
         $logs->getCollection()->transform(function ($log) {
             return [
                 'id' => $log->id,
@@ -64,9 +61,7 @@ class ActivityLogController extends Controller
         ]);
     }
 
-    /**
-     * Get activity statistics (API endpoint)
-     */
+
     public function statistics(Request $request)
     {
         $filters = [
@@ -80,9 +75,7 @@ class ActivityLogController extends Controller
         return response()->json($statistics);
     }
 
-    /**
-     * Get recent activities (API endpoint)
-     */
+
     public function recent(Request $request)
     {
         $limit = $request->get('limit', 10);
@@ -96,9 +89,7 @@ class ActivityLogController extends Controller
         return response()->json($activities);
     }
 
-    /**
-     * Get top active users (API endpoint)
-     */
+
     public function topUsers(Request $request)
     {
         $limit = $request->get('limit', 10);
@@ -107,9 +98,7 @@ class ActivityLogController extends Controller
         return response()->json($users);
     }
 
-    /**
-     * Export activity logs
-     */
+
     public function export(Request $request)
     {
         $filters = [
@@ -122,16 +111,12 @@ class ActivityLogController extends Controller
 
         $logs = $this->activityLogService->exportLogs($filters);
 
-        // In real application, you would generate CSV or Excel file
         return response()->json([
             'data' => $logs,
             'count' => count($logs),
         ]);
     }
 
-    /**
-     * Clean old logs
-     */
     public function clean(Request $request)
     {
         $days = $request->get('days', 90);

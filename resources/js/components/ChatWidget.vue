@@ -140,7 +140,6 @@ async function sendMessage() {
             message: messageText,
         });
 
-        // Update temp message with real data
         const index = messages.value.findIndex((m) => m.id === tempId);
         if (index !== -1) {
             messages.value[index] = {
@@ -152,15 +151,11 @@ async function sendMessage() {
         await nextTick();
         scrollToBottom();
     } catch (error) {
-        console.error('[ChatWidget] Error sending message:', error);
-
-        // Mark as failed
         const index = messages.value.findIndex((m) => m.id === tempId);
         if (index !== -1) {
             messages.value[index].status = 'failed' as any;
         }
 
-        // Show error notification
         alert('Failed to send message. Please try again.');
     } finally {
         sending.value = false;
@@ -311,14 +306,6 @@ onMounted(() => {
                 }
             }
         });
-
-        channel.subscribed(() => {
-            console.log('[ChatWidget] ✅ Connected to chat channel');
-        });
-
-        channel.error((error: any) => {
-            console.error('[ChatWidget] ❌ Channel error:', error);
-        });
     }
 });
 
@@ -338,10 +325,8 @@ function playNotificationSound() {
         const audio = new Audio('/sounds/notification.mp3');
         audio.volume = 0.3;
         audio.play().catch(() => {
-            // Ignore if sound fails to play
         });
     } catch (error) {
-        // Sound file not found, ignore
     }
 }
 
@@ -372,9 +357,7 @@ function requestNotificationPermission() {
 </script>
 
 <template>
-    <!-- Floating Chat Widget -->
     <div class="fixed right-6 bottom-6 z-50">
-        <!-- Chat Window -->
         <Transition name="chat-pop">
             <Card
                 v-if="isOpen"

@@ -10,18 +10,13 @@ use Illuminate\Support\Facades\Auth;
 
 class SupportChatController extends Controller
 {
-    /**
-     * Get the admin user ID dynamically
-     */
     private function getAdminId()
     {
         $admin = User::role('admin')->first();
-        return $admin ? $admin->id : 1; // fallback to 1 if no admin found
+        return $admin ? $admin->id : 1;
     }
 
-    /**
-     * Get messages with admin
-     */
+  
     public function messages()
     {
         $userId = Auth::id();

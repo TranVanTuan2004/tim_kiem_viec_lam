@@ -9,29 +9,22 @@ use Carbon\Carbon;
 
 class ActivityLogService
 {
-    /**
-     * Get paginated activity logs
-     */
     public function getLogs(array $filters = [], int $perPage = 20)
     {
         $query = ActivityLog::with(['causer:id,name,email,avatar', 'subject']);
 
-        // Filter by user
         if (isset($filters['user_id'])) {
             $query->byUser($filters['user_id']);
         }
 
-        // Filter by type
         if (isset($filters['type'])) {
             $query->byType($filters['type']);
         }
 
-        // Filter by event
         if (isset($filters['event'])) {
             $query->byEvent($filters['event']);
         }
 
-        // Filter by date range
         if (isset($filters['date_from'])) {
             $query->where('created_at', '>=', $filters['date_from']);
         }
@@ -40,7 +33,6 @@ class ActivityLogService
             $query->where('created_at', '<=', $filters['date_to']);
         }
 
-        // Search by description
         if (isset($filters['search'])) {
             $query->where('description', 'like', '%' . $filters['search'] . '%');
         }
@@ -48,14 +40,10 @@ class ActivityLogService
         return $query->latest()->paginate($perPage);
     }
 
-    /**
-     * Get activity statistics
-     */
     public function getStatistics(array $filters = []): array
     {
         $query = ActivityLog::query();
 
-        // Apply filters
         if (isset($filters['user_id'])) {
             $query->where('causer_id', $filters['user_id']);
         }
@@ -93,14 +81,11 @@ class ActivityLogService
         ];
     }
 
-    /**
-     * Get recent activities
-     */
+
     public function getRecentActivities(int $limit = 10, array $filters = [])
     {
         $query = ActivityLog::with(['causer:id,name,email,avatar', 'subject']);
 
-        // Apply filters
         if (isset($filters['user_id'])) {
             $query->byUser($filters['user_id']);
         }
@@ -112,9 +97,7 @@ class ActivityLogService
         return $query->recent(7)->latest()->limit($limit)->get();
     }
 
-    /**
-     * Get top active users
-     */
+
     public function getTopActiveUsers(int $limit = 10): array
     {
         return ActivityLog::select('causer_id', DB::raw('count(*) as activity_count'))
@@ -133,9 +116,7 @@ class ActivityLogService
             ->toArray();
     }
 
-    /**
-     * Clean old logs
-     */
+
     public function cleanOldLogs(int $days = 90): int
     {
         $deleted = ActivityLog::where('created_at', '<', now()->subDays($days))->delete();
@@ -143,9 +124,7 @@ class ActivityLogService
         return $deleted;
     }
 
-    /**
-     * Export logs to array
-     */
+
     public function exportLogs(array $filters = []): array
     {
         $logs = $this->getLogs($filters, 1000);
@@ -163,9 +142,7 @@ class ActivityLogService
         })->toArray();
     }
 
-    /**
-     * Get activity timeline
-     */
+ 
     public function getActivityTimeline(int $days = 7): array
     {
         $activities = ActivityLog::select(

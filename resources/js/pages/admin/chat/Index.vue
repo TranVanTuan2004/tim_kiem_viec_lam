@@ -58,7 +58,6 @@ const filteredUsers = computed(() => {
 });
 
 const currentUserId = computed(() => {
-    // Get from Inertia page props
     return (page.props.auth as any)?.user?.id;
 });
 

@@ -247,13 +247,6 @@ const rightNavItems: NavItem[] = [
                             <DropdownMenuContent align="end" class="w-80 p-0">
                                 <div class="flex items-center justify-between p-4 border-b">
                                     <h3 class="font-semibold">Thông báo</h3>
-                                    <Link
-                                        v-if="notifications?.unread_count && notifications.unread_count > 0"
-                                        href="/admin/notifications"
-                                        class="text-xs text-primary hover:underline"
-                                    >
-                                        Xem tất cả
-                                    </Link>
                                 </div>
                                 <div class="max-h-96 overflow-y-auto">
                                     <div

@@ -110,7 +110,7 @@ class Application extends Model
     public function getActivitylogOptions(): LogOptions
     {
         return LogOptions::defaults()
-            ->logAll()  // Log tất cả các field
+            ->logAll() 
             ->logOnlyDirty()
             ->dontSubmitEmptyLogs()
             ->setDescriptionForEvent(fn(string $eventName) => "Application #{$this->id} {$eventName}");

@@ -148,12 +148,7 @@ const adminNavItems: NavItem[] = [
         icon: MessageSquare,
     },
     {
-        title: 'Thông báo',
-        href: '/admin/notifications',
-        icon: Bell,
-    },
-    {
-        title: 'Activity Logs',
+        title: 'Lịch sử hệ thống',
         href: '/admin/activity-logs',
         icon: Activity,
     },

@@ -16,9 +16,6 @@ class BlogController extends Controller
         $this->blogService = $blogService;
     }
 
-    /**
-     * Display a listing of published blogs.
-     */
     public function index()
     {
         $filters = [
@@ -34,7 +31,6 @@ class BlogController extends Controller
         $blogs = $this->blogService->getPublishedBlogs($filters, $perPage)
             ->through(fn($blog) => $this->blogService->transformForList($blog));
 
-        // Get featured blogs for sidebar
         $featuredBlogs = $this->blogService->getFeaturedBlogs(5)
             ->map(fn($blog) => $this->blogService->transformForList($blog));
 
@@ -49,9 +45,6 @@ class BlogController extends Controller
         ]);
     }
 
-    /**
-     * Display the specified blog.
-     */
     public function show(string $slug)
     {
         $blog = $this->blogService->getBlogBySlug($slug);
@@ -60,10 +53,8 @@ class BlogController extends Controller
             abort(404);
         }
 
-        // Increment views
         $this->blogService->incrementViews($blog);
 
-        // Get related blogs
         $relatedBlogs = $this->blogService->getRecentBlogs(4)
             ->reject(fn($b) => $b->id === $blog->id)
             ->take(3)

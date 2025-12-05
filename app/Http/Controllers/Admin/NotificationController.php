@@ -12,26 +12,21 @@ use Inertia\Inertia;
 
 class NotificationController extends Controller
 {
-    /**
-     * Hiển thị danh sách thông báo hệ thống đã gửi
-     */
+ 
     public function index(Request $request)
     {
         $query = Notification::where('type', 'system_notification')
             ->with('user:id,name,email')
             ->orderBy('created_at', 'desc');
 
-        // Lọc theo user
         if ($request->filled('user_id')) {
             $query->where('user_id', $request->user_id);
         }
 
-        // Lọc theo trạng thái đọc
         if ($request->filled('is_read')) {
             $query->where('is_read', $request->is_read === 'true');
         }
 
-        // Tìm kiếm theo tiêu đề hoặc nội dung
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -42,7 +37,6 @@ class NotificationController extends Controller
 
         $notifications = $query->paginate(20)->withQueryString();
 
-        // Thống kê
         $stats = [
             'total' => Notification::where('type', 'system_notification')->count(),
             'unread' => Notification::where('type', 'system_notification')
@@ -53,7 +47,6 @@ class NotificationController extends Controller
                 ->count(),
         ];
 
-        // Lấy danh sách users để filter
         $users = User::select('id', 'name', 'email')
             ->orderBy('name')
             ->get();
@@ -66,9 +59,6 @@ class NotificationController extends Controller
         ]);
     }
 
-    /**
-     * Hiển thị form tạo thông báo hệ thống mới
-     */
     public function create()
     {
         // Thống kê số lượng users theo role

@@ -17,12 +17,10 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // Chỉ admin mới có thể truy cập dashboard này
         if (!$request->user()->isAdmin()) {
             abort(403, 'Unauthorized action.');
         }
 
-        // Tổng số liệu cơ bản
         $stats = [
             'total_users' => User::count(),
             'total_companies' => Company::count(),
@@ -32,14 +30,12 @@ class DashboardController extends Controller
             'active_subscriptions' => Subscription::where('status', 'active')->count(),
         ];
 
-        // Stats theo role
         $roleStats = [
             'admins' => User::withRole('Admin')->count(),
             'employers' => User::withRole('Employer')->count(),
             'candidates' => User::withRole('Candidate')->count(),
         ];
 
-        // Stats về jobs
         $jobStats = [
             'published' => JobPosting::where('status', 'approved')->count(),
             'pending' => JobPosting::where('status', 'pending')->count(),
@@ -47,7 +43,6 @@ class DashboardController extends Controller
             'featured' => JobPosting::where('is_featured', true)->count(),
         ];
 
-        // Stats về applications
         $applicationStats = [
             'pending' => Application::where('status', 'pending')->count(),
             'accepted' => Application::where('status', 'accepted')->count(),
@@ -55,7 +50,6 @@ class DashboardController extends Controller
             'interview' => Application::where('status', 'interview')->count(),
         ];
 
-        // Doanh thu (từ payments đã hoàn thành)
         $revenue = [
             'total' => Payment::where('status', 'completed')->sum('amount'),
             'this_month' => Payment::where('status', 'completed')
@@ -68,33 +62,28 @@ class DashboardController extends Controller
                 ->sum('amount'),
         ];
 
-        // Top job postings theo views
         $topJobs = JobPosting::with(['company'])
             ->orderBy('views', 'desc')
             ->limit(5)
             ->get();
 
-        // Top companies
         $topCompanies = Company::withCount('jobPostings')
             ->orderBy('job_postings_count', 'desc')
             ->limit(5)
             ->get();
 
-        // User activity - đăng ký mới trong 7 ngày qua
         $newUsers = User::where('created_at', '>=', now()->subDays(7))
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
             ->groupBy('date')
             ->orderBy('date')
             ->get();
 
-        // Jobs được tạo trong 7 ngày qua
         $newJobs = JobPosting::where('created_at', '>=', now()->subDays(7))
             ->select(DB::raw('DATE(created_at) as date'), DB::raw('count(*) as count'))
             ->groupBy('date')
             ->orderBy('date')
             ->get();
 
-        // Thống kê theo thời gian (30 ngày)
         $last30Days = collect(range(29, 0))->map(function ($days) {
             $date = now()->subDays($days)->startOfDay();
             return [
@@ -106,7 +95,6 @@ class DashboardController extends Controller
             ];
         });
 
-        // Recent activities
         $recentActivities = [
             'latest_users' => User::with('roles')->latest()->limit(5)->get(),
             'latest_jobs' => JobPosting::with('company')->latest()->limit(5)->get(),
