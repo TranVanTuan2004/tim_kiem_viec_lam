@@ -162,6 +162,11 @@ const adminNavItems: NavItem[] = [
         href: '/admin/service-packages',
         icon: CreditCard,
     },
+    {
+        title: 'Quản lý công ty',
+        href: '/admin/companies',
+        icon: Briefcase,
+    },
 ];
 
 const employerNavItems: NavItem[] = [

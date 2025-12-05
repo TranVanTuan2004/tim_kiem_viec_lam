@@ -35,6 +35,8 @@ use App\Http\Controllers\Admin\SubscriptionControllerV2;
 use App\Http\Controllers\Client\BlogController;
 use App\Http\Controllers\Admin\BlogController as AdminBlogController;
 use App\Http\Controllers\AIChatController;
+use App\Http\Controllers\Admin\CompanyController as AdminCompanyController;
+
 
 // Client Homepage
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -440,6 +442,21 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'verified'
     Route::patch('reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'update'])->name('reports.update');
     Route::delete('reports/{report}', [\App\Http\Controllers\Admin\ReportController::class, 'destroy'])->name('reports.destroy');
 });
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'active', 'role:Admin'])->group(function () {
+
+        Route::controller(AdminCompanyController::class)->group(function () {
+            Route::get('/companies', 'index')->name('companies.index');
+            Route::get('/companies/create', 'create')->name('companies.create');
+            Route::post('/companies', 'store')->name('companies.store');
+
+            Route::get('/companies/{company:company_slug}', 'show')->name('companies.show');
+            Route::get('/companies/{company}/edit', 'edit')->name('companies.edit');
+            Route::put('/companies/{company}', 'update')->name('companies.update');
+            Route::delete('/companies/{company:company_slug}', 'destroy')->name('companies.destroy');
+        });
+
+    });
+
 
 
 require __DIR__ . '/settings.php';
