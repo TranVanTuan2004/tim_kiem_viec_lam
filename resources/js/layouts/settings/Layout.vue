@@ -19,10 +19,10 @@ const sidebarNavItems: NavItem[] = [
         title: 'Password',
         href: editPassword(),
     },
-    {
-        title: 'Two-Factor Auth',
-        href: show(),
-    },
+    // {
+    //     title: 'Two-Factor Auth',
+    //     href: show(),
+    // },
     {
         title: 'Appearance',
         href: editAppearance(),
@@ -35,8 +35,8 @@ const currentPath = typeof window !== undefined ? window.location.pathname : '';
 <template>
     <div class="px-4 py-6">
         <Heading
-            title="Settings"
-            description="Manage your profile and account settings"
+            title="Cài đặt"
+            description="Quản lý hồ sơ và cài đặt tài khoản của bạn"
         />
 
         <div class="flex flex-col lg:flex-row lg:space-x-12">
